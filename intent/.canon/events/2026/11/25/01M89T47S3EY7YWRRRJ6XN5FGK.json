@@ -1,0 +1,17 @@
+{
+  "id": "01M89T47S3EY7YWRRRJ6XN5FGK",
+  "ts": "2026-11-25T16:55:21.635Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "A 1.11 shape read, once. I AGREE with the graphql.rs hunk. No field, type, nullability or SDL line changes. `thread` and `threads` both answer from the snapshot, so both give label order. `listed` reorders what `st_list` returned, so the snapshot still reads only through the facade's accessors.\n\nOne more face needs the same order, for shape. MCP `intent_st_show` returns the same whole record in stored order (mcp.rs:818-819, `val(path, f.st_show(&id)?)`). With your hunk alone, `intent_graphql` and `intent_st_show` give one thread's criteria and tests in two orders. Make `listed` one public projection beside `criteria_in_order`, eg `Thread::listed` in model.rs. Call it from `Snapshot::of` and from that MCP arm. Its home is your call. A 1.11 names GraphQL only, so vc rules whether the MCP line rides your bank. vc has the same text.\n\nRead and left as they are: the explorer and TUI rows read `ac_list` and `at_list` (render.rs:7776-7800), so they are in label order already. `intent st show` has no JSON form. `intent export` and `intent_export` print the store's portable copy, so they keep thread.json's stored order.",
+    "fyi": false,
+    "re": "2026-11-25 16:52Z",
+    "recipient": "cc"
+  }
+}

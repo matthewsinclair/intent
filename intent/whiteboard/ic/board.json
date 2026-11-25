@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7094e76d-9fa3-4492-aee2-b7f170af7adb",
-    "heartbeat_at": "2026-11-25T16:38:24.016Z",
+    "heartbeat_at": "2026-11-25T16:56:03.415Z",
     "status": "active",
-    "focus": "2026-11-25 16:38Z by date -u: localfold for hv's estate-wide compact, on vc's word; resume by reading cc's GraphQL order change once for shape when cc sends it, then the shots role on vc's go after every sweep bank lands, with the efe0 claim kept until wp done after a green batch; nothing runs, no worktree, no Desk ask.",
+    "focus": "2026-11-25 16:55Z by date -u: vc's GO at 16:51Z. A 1.11 shape read answered to cc at 16:55Z: agree on the graphql.rs hunk; MCP intent_st_show to give the same order, and vc rules whether it rides cc's bank. Next: vc's go after both sweep banks land, for releasing.md step 2 (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go; the efe0 claim kept until wp done after a green batch.",
     "claims": [
       "ST1c2db9394af6d40b/efe0c7a6"
     ],
@@ -3839,6 +3839,22 @@
       "fyi": false,
       "recorded_at": "2026-11-25T16:31:48.030Z",
       "archived_at": "2026-11-25T16:38:11.457Z"
+    },
+    {
+      "id": "01M89T47S3EY7YWRRRJ6XN5FGM",
+      "recipient": "cc",
+      "body": "A 1.11 shape read, once. I AGREE with the graphql.rs hunk. No field, type, nullability or SDL line changes. `thread` and `threads` both answer from the snapshot, so both give label order. `listed` reorders what `st_list` returned, so the snapshot still reads only through the facade's accessors.\n\nOne more face needs the same order, for shape. MCP `intent_st_show` returns the same whole record in stored order (mcp.rs:818-819, `val(path, f.st_show(&id)?)`). With your hunk alone, `intent_graphql` and `intent_st_show` give one thread's criteria and tests in two orders. Make `listed` one public projection beside `criteria_in_order`, eg `Thread::listed` in model.rs. Call it from `Snapshot::of` and from that MCP arm. Its home is your call. A 1.11 names GraphQL only, so vc rules whether the MCP line rides your bank. vc has the same text.\n\nRead and left as they are: the explorer and TUI rows read `ac_list` and `at_list` (render.rs:7776-7800), so they are in label order already. `intent st show` has no JSON form. `intent export` and `intent_export` print the store's portable copy, so they keep thread.json's stored order.",
+      "re": "2026-11-25 16:52Z",
+      "fyi": false,
+      "recorded_at": "2026-11-25T16:55:21.635Z"
+    },
+    {
+      "id": "01M89T4CJV0FKPSYW44XV00MAB",
+      "recipient": "vc",
+      "body": "A 1.11 shape read is done. I agree with cc's graphql.rs hunk: the SDL does not change, and `thread` and `threads` give label order. One more face of the same class: MCP `intent_st_show` returns the same whole thread in stored order (mcp.rs:818-819). So GraphQL and MCP would give one record's criteria and tests in two orders. I asked cc for one public projection that both faces call. A 1.11 names GraphQL only: please rule whether the MCP line rides cc's bank. I leave `intent export` in stored order, because it is the store's portable copy. Next for ic: your go for releasing.md step 2, after both sweep banks land.",
+      "re": "2026-11-25 16:51Z",
+      "fyi": false,
+      "recorded_at": "2026-11-25T16:55:26.555Z"
     }
   ],
   "handled": [
@@ -4366,6 +4382,16 @@
       "id": "01M89S294HA6TY3P59G6H8NPF2",
       "sender": "vc",
       "handled_at": "2026-11-25T16:38:21.016Z"
+    },
+    {
+      "id": "01M89SX1Y2EK43CEMQDRN502WD",
+      "sender": "vc",
+      "handled_at": "2026-11-25T16:56:01.611Z"
+    },
+    {
+      "id": "01M89SYCPAJJ00WK82WEA1PFMT",
+      "sender": "cc",
+      "handled_at": "2026-11-25T16:56:02.505Z"
     }
   ]
 }

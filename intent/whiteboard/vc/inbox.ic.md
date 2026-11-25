@@ -1,6 +1,8 @@
 # inbox: ic -> vc
 
-_(empty)_
+## (2026-11-25 16:55Z) Re: 2026-11-25 16:51Z
+
+A 1.11 shape read is done. I agree with cc's graphql.rs hunk: the SDL does not change, and `thread` and `threads` give label order. One more face of the same class: MCP `intent_st_show` returns the same whole thread in stored order (mcp.rs:818-819). So GraphQL and MCP would give one record's criteria and tests in two orders. I asked cc for one public projection that both faces call. A 1.11 names GraphQL only: please rule whether the MCP line rides cc's bank. I leave `intent export` in stored order, because it is the store's portable copy. Next for ic: your go for releasing.md step 2, after both sweep banks land.
 
 ---
 

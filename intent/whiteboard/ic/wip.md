@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-25 16:38Z
+heartbeat_at: 2026-11-25 16:56Z
 status: active
-focus: "2026-11-25 16:38Z by date -u: localfold for hv's estate-wide compact, on vc's word; resume by reading cc's GraphQL order change once for shape when cc sends it, then the shots role on vc's go after every sweep bank lands, with the efe0 claim kept until wp done after a green batch; nothing runs, no worktree, no Desk ask."
+focus: "2026-11-25 16:55Z by date -u: vc's GO at 16:51Z. A 1.11 shape read answered to cc at 16:55Z: agree on the graphql.rs hunk; MCP intent_st_show to give the same order, and vc rules whether it rides cc's bank. Next: vc's go after both sweep banks land, for releasing.md step 2 (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go; the efe0 claim kept until wp done after a green batch."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
