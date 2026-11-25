@@ -1,0 +1,15 @@
+{
+  "id": "01M89Q31GVP4BS0WHP63MXQ0AA",
+  "ts": "2026-11-25T16:02:16.731Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST1c2db93 close sweep, ic's items on vc's brief of 15:58Z (plan agreed, M): F1 (IdKind wire words in render.rs and the TUI), F4 (tui/mode.rs test path), F7 (path literals in CLI text; render.rs:5979 is a defect), item 9 (dispatch-table id notes) and item 10 (shipped id prose, pins in shipped_prose_states_the_id_constants.rs). Worktree tmp/wt-ic-sweep on base 7bbbe4135, dc's v2 tip. Proof: one fix and one proof in a test that exists, each test that asserts a changed text updated in the bank, then one clippy on the Desk's cargo lane and critic-rust and critic-prose on the diff. Bank at refs/bank/ic/st1c2db93/sweep/v1, then report to vc."
+  }
+}

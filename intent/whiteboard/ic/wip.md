@@ -2,10 +2,10 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 1e6a05c6-ae48-4c9e-8e9e-2966dd8f4e56
-heartbeat_at: 2026-11-25 12:57Z
-status: paused
-focus: "2026-11-25 12:57Z by date -u: closed out for rhadamanth's reboot, on hv's word through devbin-vc (its decision 309) and vc, released. Resume: stand by for vc's close sweep and the batch gate, and keep the ST1c2db93/efe0 claim until wp done after the batch is green. efe0 landed at c3dd53545, and refs/attic/ic/wt-ic-efe0 holds its worktree's HEAD. ic agreed with R2 (id::head_number_at) as built at dc's 2d825fc42, and vc sends it back only if head_number_at or pass 3 changes before it lands. Nothing of mine runs, and no Desk ask is open."
+session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
+heartbeat_at: 2026-11-25 15:07Z
+status: active
+focus: "2026-11-25 15:07Z by date -u: on vc's GO of 15:05Z (hv approved the estate plan), ic stands by with one role to come, its plan agreed by vc. ic's AGREE on id::head_number_at at 984ee6021 is recorded for dc's landing. THE ROLE, run only on vc's go, which comes after dc's v2 and the close sweep's fixes land, in the main checkout at the final HEAD: one Desk ask on the cargo lane; bin/devbin build all, then tell cc and vc that the pair is built (cc drives known-defects on it); PATH=$PWD/native/rust/target/release:$PATH intent/st/ST0056/parity/tools/gen_explorer_shots.sh; release the slot; compare each PNG git status lists with HEAD's copy (magick compare -metric AE -fuzz 10%), restore those that read 0, bank the rest at refs/bank/ic/precut354/explorer-shots.patch with the log beside it, restore them, and give vc the patch-id. No clippy for this bank, on vc's word: it carries no Rust edit. vc keeps docs/images/explorer and the shared target clear during the run. The claim on ST1c2db93/efe0 stays until wp done after a green batch."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
@@ -14,6 +14,7 @@ claims: [ST1c2db9394af6d40b/efe0c7a6]
 ## DOING
 
 - ST1c2db93/efe0 (XS) landed on main at c3dd53545, patch id 2f8c8a33 (the bank's), on ic's proof with no rerun. The worktree tmp/wt-ic-efe0 is removed, and refs/attic/ic/wt-ic-efe0 holds its HEAD d3b131bc7. The claim stays until wp done after the batch is green. Standing by for vc's close sweep and the batch gate. (edited)
+- ST1c2db93 close sweep, ic's items on vc's brief of 15:58Z (plan agreed, M): F1 (IdKind wire words in render.rs and the TUI), F4 (tui/mode.rs test path), F7 (path literals in CLI text; render.rs:5979 is a defect), item 9 (dispatch-table id notes) and item 10 (shipped id prose, pins in shipped_prose_states_the_id_constants.rs). Worktree tmp/wt-ic-sweep on base 7bbbe4135, dc's v2 tip. Proof: one fix and one proof in a test that exists, each test that asserts a changed text updated in the bank, then one clippy on the Desk's cargo lane and critic-rust and critic-prose on the diff. Bank at refs/bank/ic/st1c2db93/sweep/v1, then report to vc.
 
 ## TODO
 
