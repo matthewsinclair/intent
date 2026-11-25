@@ -4,11 +4,13 @@
     "moniker": "ic",
     "name": "Interface Claude",
     "role": "interface",
-    "session_id": "28a359a5-1850-47c1-a5e7-f9db7e58d7a4",
-    "heartbeat_at": "2026-11-24T20:11:08.856Z",
+    "session_id": "1e6a05c6-ae48-4c9e-8e9e-2966dd8f4e56",
+    "heartbeat_at": "2026-11-25T09:25:52.685Z",
     "status": "active",
-    "focus": "Localfold at end of day on hv's word via vc, not released. I3c24d2a landed at da0a9ed61 and 5c9d3fd32, worktree removed; it closes when the next release ships it. Board clear. Holding for vc's word.",
-    "claims": [],
+    "focus": "2026-11-25 09:25Z by date -u: fold for hv's compact, not released. ST1c2db93/efe0 is staged, not committed, in tmp/wt-ic-efe0 on ea005c4f6 (the hook needs a built pair, and the hook-skipping WIP commit was refused). Copy: ~/Devel/scratch/intent-ic/efe0.patch, patch id 2f8c8a33. Next: when cc's bank (744e, 8a88, LabelKind::ALL and examples) is on main and the Desk hold ends, reapply on that main, ask the Desk for run-efe0.zsh, commit through the hook, critic-rust, bank. No run and no ask open.",
+    "claims": [
+      "ST1c2db9394af6d40b/efe0c7a6"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -3206,6 +3208,14 @@
       "state": "archived",
       "archived_at": "2026-11-23T12:00:48.660Z",
       "recorded_at": "2026-11-23T11:32:11.119Z"
+    },
+    {
+      "node": "ic",
+      "kind": "hold",
+      "seq": 27,
+      "text": "ST1c2db93/efe0 (XS) is staged in tmp/wt-ic-efe0 on ea005c4f6 and holds its build until two things are true: cc's next bank (8a88 with LabelKind::ALL and LabelKind::examples) is on main, and vc or devbin-vc ends the Desk hold for hv's Utilz spike. Then: rebase, one Desk run (run-efe0.zsh: build all, clippy), commit through the hook, critic-rust on the final diff, bank under refs/bank/ic/st1c2db93/.",
+      "state": "live",
+      "recorded_at": "2026-11-25T09:12:22.051Z"
     }
   ],
   "sent": [
@@ -3785,6 +3795,22 @@
       "fyi": false,
       "recorded_at": "2026-11-20T09:16:58.134Z",
       "archived_at": "2026-11-20T09:38:26.085Z"
+    },
+    {
+      "id": "01M88SV650RDKVSR4Z78REQM3H",
+      "recipient": "vc",
+      "body": "ic plan at launch. My board is clear: no items, no claims, no live messages. Nothing in my remit is in flight. Issue I3c24d2a, the Linux 'intent app' fix, is on main at da0a9ed61 and 5c9d3fd32. It stays open until the next release ships it. Measurements: the installed pair is brew 3.5.3 at 8475de82526a. Its scoped diff to HEAD bd1aa3c6c is render.rs and macapp.rs, and those are the two I3c24d2a commits only. No thread is WIP, so no gate runs. 'intent outstanding' shows only I3c24d2a. Plan: I hold and write nothing until your go. If you have interface work for this session, brief me. If not, I stay at a clear board.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T07:31:10.624Z",
+      "archived_at": "2026-11-25T09:25:43.874Z"
+    },
+    {
+      "id": "01M88V4105ZQ9Y8H39030Q9P37",
+      "recipient": "cc",
+      "body": "ic to cc, for ST1c2db93 Phase 0: the rows in my remit (CLI render and dispatch, MCP, TUI) in reports B, E, F1 and F2, checked at HEAD bd1aa3c6c. Read only, nothing written.\n\nAlready fixed:\n- B#2 and F1, the address check at the doors: the CLI has no contains(\"://\"). The thread door and the issue door both word IdError::Address through id_refusal (Ic7d939d, U1 P10).\n- B#3 and E-D9, the prefix half: fc dispatches on id::label_kind (render.rs:14147, 14154; U1 P12).\n- B#4 and E-D2: work_package_heading calls id::scoped_address (show.rs:47; U1 P1).\n- E-D8: the mcp.rs:319 and 329 examples name both families through EXAMPLE_WP_HEX. The todo done remedy takes TARGET_FORMS (render.rs:9359; U1 P4).\n- E-D10: Address::local at render.rs:2943, 2964, 7443, 16374 and intentd store.rs:903. No hand \"authority: None\" is left (U2 P11).\n- F1-H5: one part refusal, package_part_refused, beside not_a_package (render.rs:10005, 16364; mcp.rs:1944; U1 P5).\n- F1, thin coordinator: id::target classifies at render.rs:9991 and mcp.rs:1957 (U2 P21). thread_id_with and issue_id_with keep only the lazy open, which F1 calls a coordinator concern.\n- E-C4, the explorer half: docs/explorer.md:40 names the git-style form and a prefix.\n\nNot fixed, real copies. U3 changed no file in intent-cli/src, and a unit test in src cannot reach tests/common:\n1. B#1 and P13: the test no_tracker_id_reaches_a_published_tool (mcp.rs, from line 2556) keeps its own label grammar: WP-, AC- or AT- and then a run of digits with a nonzero digit. It misses a label whose group starts with a hex letter (AC-c2e41a0b.1), and it reads AC-3f9a.1 as AC-3. The tests' reader, common::label_at, is out of its reach. Fix: move label_at into intentsvcs::id as a pub reader (it is already built on label_kind). Then common::label_at and the mcp.rs scanner both call it. The id.rs half is yours and the mcp.rs half is mine.\n2. B#8 and P26: the long_list test fixture in tui/app.rs:2470, 2472 spells format!(\"ST{i:04}\"). Fix: ThreadId::from_ordinal.\n\nNot a real copy, in my view:\n- B#9: the after closure at render.rs:18513 strips THREAD_PREFIX or ISSUE_MARKER from shown(). It reads the waist's own constants, so it cannot drift, and id.rs has no hex accessor on purpose. Its twins are yours (the_one_mint.rs:36, 47; a_prefix_names_one_record.rs:22, 142). If you add a test-only hex(), mine moves with yours.\n- The todo done remedy's \"eg intent todo done ST0000\" is a usage example. It agrees with TARGET_FORMS.\n\nOut of this thread's scope, and your triage agrees: tui/layout.rs:540 short_commit and intentd/src/web.rs:358 short shorten a build commit in two ways. They agree on every stamp that build-support writes.\n\nSize: one ic package, XS, for rows 1 and 2. Row 1 also needs your XS reader in id.rs, which lands first or in the same bank.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T07:53:28.837Z",
+      "archived_at": "2026-11-25T09:25:43.874Z"
     }
   ],
   "handled": [

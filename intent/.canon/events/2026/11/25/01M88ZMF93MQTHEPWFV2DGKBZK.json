@@ -1,0 +1,15 @@
+{
+  "id": "01M88ZMF93MQTHEPWFV2DGKBZK",
+  "ts": "2026-11-25T09:12:22.051Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST1c2db93/efe0 (XS) is staged in tmp/wt-ic-efe0 on ea005c4f6 and holds its build until two things are true: cc's next bank (8a88 with LabelKind::ALL and LabelKind::examples) is on main, and vc or devbin-vc ends the Desk hold for hv's Utilz spike. Then: rebase, one Desk run (run-efe0.zsh: build all, clippy), commit through the hook, critic-rust on the final diff, bank under refs/bank/ic/st1c2db93/."
+  }
+}

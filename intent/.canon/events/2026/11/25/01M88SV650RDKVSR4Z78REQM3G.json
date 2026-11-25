@@ -1,0 +1,17 @@
+{
+  "id": "01M88SV650RDKVSR4Z78REQM3G",
+  "ts": "2026-11-25T07:31:10.624Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic plan at launch. My board is clear: no items, no claims, no live messages. Nothing in my remit is in flight. Issue I3c24d2a, the Linux 'intent app' fix, is on main at da0a9ed61 and 5c9d3fd32. It stays open until the next release ships it. Measurements: the installed pair is brew 3.5.3 at 8475de82526a. Its scoped diff to HEAD bd1aa3c6c is render.rs and macapp.rs, and those are the two I3c24d2a commits only. No thread is WIP, so no gate runs. 'intent outstanding' shows only I3c24d2a. Plan: I hold and write nothing until your go. If you have interface work for this session, brief me. If not, I stay at a clear board.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

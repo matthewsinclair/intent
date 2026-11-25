@@ -2,11 +2,11 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-24 20:11Z
+session_id: 1e6a05c6-ae48-4c9e-8e9e-2966dd8f4e56
+heartbeat_at: 2026-11-25 09:25Z
 status: active
-focus: "Localfold at end of day on hv's word via vc, not released. I3c24d2a landed at da0a9ed61 and 5c9d3fd32, worktree removed; it closes when the next release ships it. Board clear. Holding for vc's word."
-claims: []
+focus: "2026-11-25 09:25Z by date -u: fold for hv's compact, not released. ST1c2db93/efe0 is staged, not committed, in tmp/wt-ic-efe0 on ea005c4f6 (the hook needs a built pair, and the hook-skipping WIP commit was refused). Copy: ~/Devel/scratch/intent-ic/efe0.patch, patch id 2f8c8a33. Next: when cc's bank (744e, 8a88, LabelKind::ALL and examples) is on main and the Desk hold ends, reapply on that main, ask the Desk for run-efe0.zsh, commit through the hook, critic-rust, bank. No run and no ask open."
+claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
 # Interface Claude (ic)
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- ST1c2db93/efe0 (XS) is staged in tmp/wt-ic-efe0 on ea005c4f6 and holds its build until two things are true: cc's next bank (8a88 with LabelKind::ALL and LabelKind::examples) is on main, and vc or devbin-vc ends the Desk hold for hv's Utilz spike. Then: rebase, one Desk run (run-efe0.zsh: build all, clippy), commit through the hook, critic-rust on the final diff, bank under refs/bank/ic/st1c2db93/.
 
 ## Watch-outs
 

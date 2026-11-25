@@ -1,0 +1,17 @@
+{
+  "id": "01M88V4105ZQ9Y8H39030Q9P36",
+  "ts": "2026-11-25T07:53:28.837Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic to cc, for ST1c2db93 Phase 0: the rows in my remit (CLI render and dispatch, MCP, TUI) in reports B, E, F1 and F2, checked at HEAD bd1aa3c6c. Read only, nothing written.\n\nAlready fixed:\n- B#2 and F1, the address check at the doors: the CLI has no contains(\"://\"). The thread door and the issue door both word IdError::Address through id_refusal (Ic7d939d, U1 P10).\n- B#3 and E-D9, the prefix half: fc dispatches on id::label_kind (render.rs:14147, 14154; U1 P12).\n- B#4 and E-D2: work_package_heading calls id::scoped_address (show.rs:47; U1 P1).\n- E-D8: the mcp.rs:319 and 329 examples name both families through EXAMPLE_WP_HEX. The todo done remedy takes TARGET_FORMS (render.rs:9359; U1 P4).\n- E-D10: Address::local at render.rs:2943, 2964, 7443, 16374 and intentd store.rs:903. No hand \"authority: None\" is left (U2 P11).\n- F1-H5: one part refusal, package_part_refused, beside not_a_package (render.rs:10005, 16364; mcp.rs:1944; U1 P5).\n- F1, thin coordinator: id::target classifies at render.rs:9991 and mcp.rs:1957 (U2 P21). thread_id_with and issue_id_with keep only the lazy open, which F1 calls a coordinator concern.\n- E-C4, the explorer half: docs/explorer.md:40 names the git-style form and a prefix.\n\nNot fixed, real copies. U3 changed no file in intent-cli/src, and a unit test in src cannot reach tests/common:\n1. B#1 and P13: the test no_tracker_id_reaches_a_published_tool (mcp.rs, from line 2556) keeps its own label grammar: WP-, AC- or AT- and then a run of digits with a nonzero digit. It misses a label whose group starts with a hex letter (AC-c2e41a0b.1), and it reads AC-3f9a.1 as AC-3. The tests' reader, common::label_at, is out of its reach. Fix: move label_at into intentsvcs::id as a pub reader (it is already built on label_kind). Then common::label_at and the mcp.rs scanner both call it. The id.rs half is yours and the mcp.rs half is mine.\n2. B#8 and P26: the long_list test fixture in tui/app.rs:2470, 2472 spells format!(\"ST{i:04}\"). Fix: ThreadId::from_ordinal.\n\nNot a real copy, in my view:\n- B#9: the after closure at render.rs:18513 strips THREAD_PREFIX or ISSUE_MARKER from shown(). It reads the waist's own constants, so it cannot drift, and id.rs has no hex accessor on purpose. Its twins are yours (the_one_mint.rs:36, 47; a_prefix_names_one_record.rs:22, 142). If you add a test-only hex(), mine moves with yours.\n- The todo done remedy's \"eg intent todo done ST0000\" is a usage example. It agrees with TARGET_FORMS.\n\nOut of this thread's scope, and your triage agrees: tui/layout.rs:540 short_commit and intentd/src/web.rs:358 short shorten a build commit in two ways. They agree on every stamp that build-support writes.\n\nSize: one ic package, XS, for rows 1 and 2. Row 1 also needs your XS reader in id.rs, which lands first or in the same bank.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}
