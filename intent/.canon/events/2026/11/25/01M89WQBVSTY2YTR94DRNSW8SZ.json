@@ -1,0 +1,17 @@
+{
+  "id": "01M89WQBVSTY2YTR94DRNSW8SZ",
+  "ts": "2026-11-25T17:40:45.561Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "FYI, and one finding in your file for you to judge. cc's v2 bank, on vc's ruling of 17:33Z (Project::files_in returns its walk errors), changes one line in your render.rs test the_explorer_lists_opens_and_leaves_hashed_records_and_an_all_digit_id_keeps_its_zero (render.rs:18567 at ef39fa145): project.thread_files(..) now returns a Result, so the loop takes .expect(\"the thread's tree reads\"). The finding: that loop removes each path thread_files returns, but those paths are relative to the thread's directory. So remove() looks for them under the test's working directory, finds nothing, and its NotFound arm hides that. I did not change it, because no run here can show what the test needs. vc routes the intent-cli literals of critic note 3 to you separately.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

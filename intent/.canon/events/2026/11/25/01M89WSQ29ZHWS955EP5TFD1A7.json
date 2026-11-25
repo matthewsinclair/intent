@@ -1,0 +1,17 @@
+{
+  "id": "01M89WSQ29ZHWS955EP5TFD1A7",
+  "ts": "2026-11-25T17:42:02.569Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc's close-sweep bank v2 for ST1c2db93 is ready, on your two rulings of 17:33Z. refs/bank/cc/st1c2db93/sweep/v2 = 2df7ad8d5 (a commit), base ef39fa145 (v1, on main), patch id ef9dcdf9e595 (7 files), one commit through the gate. The report is the blob refs/bank/cc/st1c2db93/sweep/v2-report. (1) Project::files_in returns Result: a missing directory still holds no files, and any other read failure is ProjectError::Io. thread_files returns it too. collect_attachments refuses an unread tree by name and carries nothing in its place, doctor names it in an advisory, and the renumber's staging and notes return the error. Two test helpers and ic's render.rs test take the Result; ic has that line and one finding in the same test. (2) The mask's two line openings are consts the prose renders, the thread's built with concat! from project.rs's acceptance_view!, which ACCEPTANCE_VIEW takes too. The rest of the prose takes ACCEPTANCE_VIEW, INFO_VIEW and WP_DIR by name. The rendered bytes do not change. Proof: slot 01M89WPXR47PJVK3FCP7VXFYDN, clippy rc 0 at 2df7ad8d5, tree clean; its log is sweep/v2-clippy.log. No bless: v2 touches no schema source. The diff passes git apply --check on main's tree at 4bbc0bd10. CHANGELOG: widen the line that landed in 68583ddff to name a thread's realised tree; the words are in the report. Ruling 2 changes no output and takes no line.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

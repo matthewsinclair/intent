@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-25 17:32Z
+heartbeat_at: 2026-11-25 17:42Z
 status: active
 focus: "2026-11-25 16:38Z by date -u: folded for hv's compact, on hv's word through devbin-vc and vc. Nothing runs, and no Desk slot is held. Resume: /in-session and pickup, then tmp/cc-sweep-notes/resume.md for the close-sweep bank (WIP at refs/bank/cc/st1c2db93/sweep/wip-v1-on-7bbbe4135), then todo 66."
 claims: [ST1c2db9394af6d40b]
@@ -14,7 +14,7 @@ claims: [ST1c2db9394af6d40b]
 ## DOING
 
 - ST1c2db93 build for 3.5.4 (hv decision 100). Every cc package in this thread is on main: e92b (ea005c4f6, and its follow-up 289f9112d), 8a88 (f2bc90690), 744e (10d3ec984) and 8a37 (06cfc796c). tmp/wt-st1c2db93-cc is removed after the fold checks, and refs/attic/cc/wt-st1c2db93-cc points at its HEAD, f18a01038 (vc decision 98). cc gave vc the meaning for efe0's critic R2 between 10:45Z and 11:30Z by date -u (the send's own time was not read): option (b), one home, id::head_number_at beside label_at, with one private zero test in id.rs; dc builds it in its second bank, and ic agrees its test module. At 2026-11-25 11:59Z by date -u, cc answered dc's question on the zero rule directly, on vc's leave: dc's option A. The zero rule judges the whole group, as is_example and label_at do. So a zero-led hex front (AC-0d7e9a1b) is a development id, and the zero family (AC-0, WP-00) still gives None. The R2 meaning had left this case open. dc builds it in its second bank with one firing row in register_text's firing list and no mcp.rs row, under vc's ruling for the bank: one proof for each change, in a test that already exists. Next: stand by for close-sweep findings in cc's remit and for the batch gate's result. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate. (edited)
-- ST1c2db93 close sweep (AC-00.1), cc's list, on vc's word at 2026-11-25 15:58Z and vc's GO at 16:51Z by date -u. BANKED at 17:31Z: refs/bank/cc/st1c2db93/sweep/v1 = ef39fa145, base 7bbbe4135, patch id c139e033f063; the report is refs/bank/cc/st1c2db93/sweep/v1-report and the clippy log v1-clippy.log. It carries reader A sections 1 and 2, reader C item 3, every critic-rust finding fixed or answered, vc's two additions (doctor.rs's git ls-files intent/.cache; Project::thread_ids, with issue_numbers and board_nodes) and A 1.11's MCP face. Clippy rc 0 at ef39fa145 (slot 01M89W1W1P7QF4J2MX2B1V9M0W); the bless held at 084547f52 (slot 01M89VFG110J553PWN6CKQQYX3). Reported to vc at 17:31Z, with the CHANGELOG lines and one residue for vc's ruling (Project::files_in). Next: vc lands it; the worktree tmp/wt-cc-sweep is removed after the landing, by the fold checks. (edited)
+- ST1c2db93 close sweep (AC-00.1), cc's list, on vc's word at 2026-11-25 15:58Z and vc's GO at 16:51Z by date -u. v1 (refs/bank/cc/st1c2db93/sweep/v1 = ef39fa145) is on main as 8275652e3, 203bcf4b7 and 5f8d5cefa, with its CHANGELOG lines in 68583ddff (vc, 17:38Z). v2, on vc's two rulings of 17:33Z, is BANKED at 17:41Z: refs/bank/cc/st1c2db93/sweep/v2 = 2df7ad8d5 on ef39fa145, patch id ef9dcdf9e595, report v2-report, clippy rc 0 (slot 01M89WPXR47PJVK3FCP7VXFYDN). It makes Project::files_in return its walk errors, and it builds the view names in views.rs's prose and mask from one spelling. Reported to vc at 17:41Z. Next: vc lands v2; the worktree tmp/wt-cc-sweep is removed after the landing, by the fold checks; then todo 66. (edited)
 
 ## TODO
 
