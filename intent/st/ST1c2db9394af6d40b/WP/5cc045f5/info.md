@@ -17,7 +17,7 @@ C13, the fixture_probe half, which vc decision 134 rules into this thread. dc's 
 
 ## Deliverables
 
-- Delete, and detach each attachment with `intent st detach`: `fixture_probe.sh`, `burn.sh`, `burn-baseline.tsv`, `gen_register.sh`, `gen_pertest.sh`, `coverage_map.sh`, `lib_classify.sh` and `lib_corpus.sh` under `intent/st/ST0056/parity/tools/`, `register.md` and `pertest.md` under `intent/st/ST0056/parity/`, and `tests/unit/burn_subject_provenance.bats`.
+- Delete, and detach each attachment with `intent st detach`: `fixture_probe.sh`, `burn.sh`, `burn-baseline.tsv`, `gen_register.sh`, `gen_pertest.sh`, `coverage_map.sh`, `lib_classify.sh` and `lib_corpus.sh` under `intent/st/ST0056/parity/tools/`, `register.md` and `pertest.md` under `intent/st/ST0056/parity/`, the TAP captures of v2 bats runs under `intent/st/ST0056/parity/tools/tap-baseline/` (the input of `gen_pertest.sh`, found by dc at the build; no code reads them), and `tests/unit/burn_subject_provenance.bats`.
 - Three gated guards lose their inventory arms: `provenance_check.sh:155-157` (the burn-artefacts group), `view_skew_check.sh` (its burn arms) and `runner_roster_check.sh` (its seven rows).
 - `surface/dispatch-table.json` loses `bats_coverage` (on 22 families), `coverage_findings`, and `about[8]`, which names `bats_coverage` and `coverage_map.sh` and is the source of the legend line in the md view. Nothing reads an `about` line by its index. The schema id `intent/dispatch-table@3.0-draft` stays.
 - `gen_dispatch_table.sh` loses the per-family "v2 BATS coverage" line (`:1306-1311`) and the "Parity holes" section (`:1368-1390`), with no guarded branch left for a key that is gone. `surface/dispatch-table.md` is rendered again.
