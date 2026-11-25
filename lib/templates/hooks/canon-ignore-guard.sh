@@ -76,12 +76,14 @@ done < <(git ls-files "$CANON_DIR" 2>/dev/null | head -200)
 # notices it never travelled. Intent mints every new id git-style, so the
 # future thread and issue are named with the worked example's hex, which names
 # no record (`intentsvcs::id::EXAMPLE_HEX`). An ordinal file is a real path or
-# nothing: none is minted again.
-PROBES+=(
+# nothing: none is minted again. The refusal below prints this list, so it
+# names the probes the guard holds and no copy of them.
+FUTURE_PROBES=(
   "${CANON_DIR}/st/ST3f9a2c1d4e5f6a7b.json"
   "${CANON_DIR}/issues/I3f9a2c1d4e5f6a7b.json"
   "${CANON_DIR}/.probe-a-path-that-will-exist-later"
 )
+PROBES+=("${FUTURE_PROBES[@]}")
 
 # Which (file, line) pairs does THIS commit add? Read once, as `path:linenum`.
 # `--unified=0` so hunk headers give exact post-image line numbers with no
@@ -207,8 +209,9 @@ echo "  like 'intent/.*/' looks tidy and correct and would silently un-commit th
 echo "  entire steel thread and issue estate (D29: a gitignored path is never canon)." >&2
 echo "" >&2
 echo "  If you meant a sibling, name it literally the way the others are named." >&2
-echo "  The probe set includes paths that do NOT exist yet (ST9999.json), so a rule" >&2
-echo "  matching only FUTURE artefacts is caught here too -- that is the same defect" >&2
-echo "  one day later, and the estate that suffers it never notices a new thread" >&2
-echo "  stopped travelling." >&2
+echo "  The probe set includes paths that do NOT exist yet. So a rule that matches only" >&2
+echo "  FUTURE artefacts is caught here too. That is the same defect one day later, and" >&2
+echo "  the estate that suffers it never notices that a new thread stopped travelling." >&2
+echo "  The future paths it probes:" >&2
+printf '    %s\n' "${FUTURE_PROBES[@]}" >&2
 exit 1

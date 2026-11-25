@@ -7,6 +7,12 @@
 //! teaching the old shape with nothing failing. This file builds each phrase
 //! from the constants and asserts the prose carries it, so either side moving
 //! alone fails here.
+//!
+//! The same holds for every other shipped copy of an id form (ST1c2db93
+//! WP-ce27): the `intent/wip.md` template, the canon-ignore hook's probes of a
+//! future canon file, and the tech note's sentence on a claim's address, which
+//! does not ship but teaches the same forms. Each pin reads its phrase, never
+//! a line number, so an edit elsewhere in its file moves nothing here.
 
 use intentsvcs::id::{
   CLAIM_ADDRESS_FORMS, EXAMPLE_HEX, EXAMPLE_WP_HEX, ISSUE_DIGITS, ISSUE_MARKER, MIN_PREFIX_HEX,
@@ -20,6 +26,12 @@ const AGENTS_TEMPLATE: &str = "lib/templates/llm/_AGENTS.md";
 const IN_ESSENTIALS: &str = "intent/plugins/claude/skills/in-essentials/SKILL.md";
 /// The whiteboard skill, which teaches a claim's address.
 const IN_WHITEBOARD: &str = "intent/plugins/claude/skills/in-whiteboard/SKILL.md";
+/// The template a project's `intent/wip.md` starts from.
+const WIP_TEMPLATE: &str = "lib/templates/prj/_wip.md";
+/// The shipped commit hook that refuses an ignore rule reaching the canon.
+const CANON_IGNORE_GUARD: &str = "lib/templates/hooks/canon-ignore-guard.sh";
+/// The tech note on working with LLMs, which teaches a claim's address too.
+const LLM_NOTE: &str = "intent/docs/working-with-llms.md";
 
 /// A count as the prose spells it. Panics on a count the prose has no word
 /// for, which is a prompt to extend this table, not to change the prose.
@@ -134,4 +146,32 @@ fn the_essentials_skill_states_the_id_constants() {
 #[test]
 fn the_whiteboard_skill_states_the_id_constants() {
   assert_states(IN_WHITEBOARD, &read(IN_WHITEBOARD), CLAIM_ADDRESS_FORMS);
+}
+
+/// The wip template tells a reader to lead a focus item with its thread's id,
+/// with one example of each family.
+#[test]
+fn the_wip_template_states_the_id_constants() {
+  let phrase = format!("eg `{}` or `{}`", shown_thread(), ordinal_thread());
+  assert_states(WIP_TEMPLATE, &read(WIP_TEMPLATE), &phrase);
+}
+
+/// The canon-ignore hook probes a future thread file and a future issue file,
+/// each named with the worked example's hex, which names no record.
+#[test]
+fn the_canon_ignore_guard_probes_the_worked_example() {
+  let text = read(CANON_IGNORE_GUARD);
+  for phrase in [
+    format!("/st/{THREAD_PREFIX}{EXAMPLE_HEX}.json"),
+    format!("/issues/{ISSUE_MARKER}{EXAMPLE_HEX}.json"),
+  ] {
+    assert_states(CANON_IGNORE_GUARD, &text, &phrase);
+  }
+}
+
+/// The tech note teaches a claim's address in both families by quoting
+/// `id::CLAIM_ADDRESS_FORMS`, as the whiteboard skill does.
+#[test]
+fn the_llm_note_states_the_claim_forms() {
+  assert_states(LLM_NOTE, &read(LLM_NOTE), CLAIM_ADDRESS_FORMS);
 }
