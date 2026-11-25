@@ -2301,7 +2301,20 @@ fn file_checks(
   // second opinion about what an attachment is would let a file be carried by
   // ingest and reported as uncovered by this, or the reverse and worse.
   for thread in &canon.threads {
-    for rel in project.thread_files(&thread.id) {
+    // A tree that does not read is said, never taken for one that holds
+    // nothing the model does not.
+    let files = match project.thread_files(&thread.id) {
+      Ok(files) => files,
+      Err(e) => {
+        report.findings.push(Finding::new(
+          project.relative(&project.thread_dir(&thread.id)),
+          FindingClass::Advisory,
+          format!("the thread's tree was not read, so a file in it that nothing holds is not named here: {e}"),
+        ));
+        continue;
+      }
+    };
+    for rel in files {
       match crate::project::Project::classify(&rel) {
         crate::project::ThreadFile::Attachment => {}
         crate::project::ThreadFile::GeneratedView | crate::project::ThreadFile::Canon => continue,

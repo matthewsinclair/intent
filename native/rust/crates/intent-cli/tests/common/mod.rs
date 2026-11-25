@@ -1729,6 +1729,7 @@ pub fn canon_files(root: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> 
     .expect("the project opens")
     .canon_dir();
   intentsvcs::project::Project::files_in(&canon)
+    .expect("the canon tree reads")
     .into_iter()
     .map(|rel| {
       let bytes = std::fs::read(canon.join(&rel)).expect("read a canon file");

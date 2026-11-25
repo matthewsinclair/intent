@@ -32,7 +32,7 @@ use crate::ingest::Canon;
 use crate::model::{
   AcState, AcceptanceTest, AtKind, Criterion, Issue, Thread, ThreadStatus, WorkPackage,
 };
-use crate::project::Project;
+use crate::project::{ACCEPTANCE_VIEW, INFO_VIEW, Project, WP_DIR};
 use crate::write_set::WriteSet;
 
 /// The line an EMPTY item list renders as: a `todo` bucket with nothing in it,
@@ -470,7 +470,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
       if !carries_heading(&thread.body, "Acceptance") {
         out.push_str("## Acceptance\n\n");
         out.push_str(&format!(
-          "Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n"
+          "{THREAD_ACCEPTANCE_RENDERED}, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n"
         ));
       }
     }
@@ -564,7 +564,7 @@ const CONTRACT_VERBS: &str = "`intent ac new` and `intent at new` mint a row, `i
 /// the packages are read, since each is a record of its own.
 fn work_packages_pointer(st: &str) -> String {
   format!(
-    "## Work Packages\n\nEach work package is a record of its own: `intent wp list {st}` lists them, and `intent wp show {st}/<id>` shows one. A realised package's cover is `WP/<id>/info.md` beside this file. This cover carries the thread's own fields only.\n\n"
+    "## Work Packages\n\nEach work package is a record of its own: `intent wp list {st}` lists them, and `intent wp show {st}/<id>` shows one. A realised package's cover is `{WP_DIR}/<id>/{INFO_VIEW}` beside this file. This cover carries the thread's own fields only.\n\n"
   )
 }
 
@@ -572,7 +572,7 @@ fn work_packages_pointer(st: &str) -> String {
 /// thread shown as `st` (ST0096 WP-05; ic's words on cc's meaning).
 fn acceptance_pointer(st: &str) -> String {
   format!(
-    "## Acceptance\n\nAcceptance criteria and tests are records of their own: `intent ac list {st}` and `intent at list {st}` list them, and `intent ac gate {st}` says whether the contract passes. `acceptance.md` beside this file is a GENERATED VIEW of them, and a row authored there is discarded by the next sync. The verbs write the contract: {CONTRACT_VERBS}. This cover never restates them.\n\n"
+    "## Acceptance\n\nAcceptance criteria and tests are records of their own: `intent ac list {st}` and `intent at list {st}` list them, and `intent ac gate {st}` says whether the contract passes. `{ACCEPTANCE_VIEW}` beside this file is a GENERATED VIEW of them, and a row authored there is discarded by the next sync. The verbs write the contract: {CONTRACT_VERBS}. This cover never restates them.\n\n"
   )
 }
 
@@ -986,10 +986,23 @@ fn first_difference(a: &str, b: &str) -> usize {
 /// an older Intent rendered differs from today's render in a sentence nobody
 /// typed. The prefix is what every version shares, and it is the whole line
 /// that is masked: the paragraph is one line and all of it is generated.
-const RENDERER_OWNED_LINES: &[&str] = &[
-  "Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`",
-  "Acceptance Criteria for this work package are RENDERED into `",
-];
+///
+/// **EACH PREFIX IS THE OPENING ITS PARAGRAPH IS RENDERED FROM** (ST1c2db93
+/// close sweep, A 1.13), so the mask and the render cannot part.
+const RENDERER_OWNED_LINES: &[&str] = &[THREAD_ACCEPTANCE_RENDERED, WP_ACCEPTANCE_RENDERED];
+
+/// The opening of a thread cover's acceptance paragraph, with the contract's
+/// file name from project.rs's `acceptance_view!`.
+const THREAD_ACCEPTANCE_RENDERED: &str = concat!(
+  "Acceptance Criteria and Acceptance Tests are RENDERED into `",
+  crate::project::acceptance_view!(),
+  "`"
+);
+
+/// The opening of a work package cover's acceptance paragraph, up to the
+/// thread's part of the contract's path.
+const WP_ACCEPTANCE_RENDERED: &str =
+  "Acceptance Criteria for this work package are RENDERED into `";
 
 /// The frontmatter that opens `intent/todo.md`: its generator marker, byte for
 /// byte as v2's `intent todo` wrote it (issue `0528`).
@@ -1727,7 +1740,7 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   if !carries_heading(&wp.body, "Acceptance") {
     out.push_str("## Acceptance\n\n");
     out.push_str(&format!(
-      "Acceptance Criteria for this work package are RENDERED into `{}/acceptance.md`, under the `{}` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n",
+      "{WP_ACCEPTANCE_RENDERED}{}/{ACCEPTANCE_VIEW}`, under the `{}` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n",
       thread.id.shown(),
       wp.seq.heading()
     ));

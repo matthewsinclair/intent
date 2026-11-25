@@ -14766,7 +14766,7 @@ impl Facade {
       if path.is_file() {
         staged.push(new.clone());
       } else if path.is_dir() {
-        for file in Project::files_in(&path) {
+        for file in Project::files_in(&path).map_err(|e| FacadeError::Ingest(e.into()))? {
           staged.push(format!("{new}/{}", file.display()));
         }
       }
@@ -17669,7 +17669,7 @@ impl Facade {
     let mut sources = Vec::new();
     for (source_path, target) in &done {
       if target.is_dir() {
-        for rel in Project::files_in(target) {
+        for rel in Project::files_in(target).map_err(|e| FacadeError::Ingest(e.into()))? {
           self.landed.push(target.join(&rel));
           sources.push(source_path.join(&rel));
         }

@@ -2168,6 +2168,17 @@ macro_rules! acceptance_stem {
   };
 }
 
+/// The acceptance contract's file name as a literal, for a `concat!` in
+/// another module: views.rs builds the line its mask recognises from it, so
+/// the rendered paragraph and the mask cannot part (ST1c2db93 close sweep, A
+/// 1.13). [`ACCEPTANCE_VIEW`] is its expansion here.
+macro_rules! acceptance_view {
+  () => {
+    concat!($crate::project::acceptance_stem!(), ".md")
+  };
+}
+pub(crate) use {acceptance_stem, acceptance_view};
+
 /// The generated cover's name without its extension, as an address may name
 /// it.
 pub const INFO_STEM: &str = info_stem!();
@@ -2181,7 +2192,7 @@ pub const INFO_VIEW: &str = concat!(info_stem!(), ".md");
 pub const ACCEPTANCE_STEM: &str = acceptance_stem!();
 
 /// A thread's generated acceptance contract's file name (ST1c2db93 P7).
-pub const ACCEPTANCE_VIEW: &str = concat!(acceptance_stem!(), ".md");
+pub const ACCEPTANCE_VIEW: &str = acceptance_view!();
 
 /// `WP`, a work package's directory under its thread's (ST1c2db93 P7): the
 /// one spelling [`Project::wp_rel`] and every package path pattern take.
@@ -2906,7 +2917,16 @@ impl Project {
     let dir = self.thread_dir(id);
     let mut carried = Vec::new();
     let mut refused = Vec::new();
-    for rel in Project::files_in(&dir) {
+    // A tree that does not read is refused by name, as a file that does not
+    // read is below, and carries nothing in its place.
+    let files = match Project::files_in(&dir) {
+      Ok(files) => files,
+      Err(e) => {
+        refused.push((self.relative(&dir), format!("could not be read: {e}")));
+        return (carried, refused);
+      }
+    };
+    for rel in files {
       let path = dir.join(&rel);
       let name = self.relative(&path);
       match Project::classify(&rel) {
@@ -2993,7 +3013,9 @@ impl Project {
     (carried, refused)
   }
 
-  pub fn thread_files(&self, id: &str) -> Vec<PathBuf> {
+  /// Every file in thread `id`'s realised tree, by [`Project::files_in`]: a
+  /// dehydrated thread has none, and a tree that does not read is the error.
+  pub fn thread_files(&self, id: &str) -> Result<Vec<PathBuf>, ProjectError> {
     Project::files_in(&self.thread_dir(id))
   }
 
@@ -3012,7 +3034,19 @@ impl Project {
   /// cheaper to fix than a duplicate is to keep in step. Renamed rather than
   /// aliased, because a deprecation stub is the two-homes shape with a label
   /// on it.
-  pub fn files_in(dir: &Path) -> Vec<PathBuf> {
+  ///
+  /// **A MISSING DIRECTORY HOLDS NO FILES**, which is a dehydrated thread's
+  /// normal state. Any other failure to read the directory or an entry under
+  /// it is the error, never a shorter list (No Silent Errors; vc's ruling in
+  /// the ST1c2db93 close sweep). The walk's own error is carried whole.
+  pub fn files_in(dir: &Path) -> Result<Vec<PathBuf>, ProjectError> {
+    let unread = |source| ProjectError::Io {
+      path: dir.display().to_string(),
+      source,
+    };
+    if !dir.try_exists().map_err(unread)? {
+      return Ok(Vec::new());
+    }
     let mut out = Vec::new();
     let mut walk = ignore::WalkBuilder::new(dir);
     walk
@@ -3021,8 +3055,10 @@ impl Project {
       .parents(true)
       .git_global(false)
       .git_exclude(false);
-    for entry in walk.build().filter_map(Result::ok) {
-      let path = entry.into_path();
+    for entry in walk.build() {
+      let path = entry
+        .map_err(|e| unread(std::io::Error::other(e)))?
+        .into_path();
       if path.is_file()
         && let Ok(rel) = path.strip_prefix(dir)
       {
@@ -3030,7 +3066,7 @@ impl Project {
       }
     }
     out.sort();
-    out
+    Ok(out)
   }
 
   /// Every path directly in `dir`. **A MISSING DIRECTORY IS AN EMPTY LIST**:

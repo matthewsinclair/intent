@@ -165,7 +165,7 @@ fn no_file_in_the_estate_can_be_named_as_an_artefact() {
     if ThreadId::parse(id).is_err() {
       continue;
     }
-    for rel in project.thread_files(id) {
+    for rel in project.thread_files(id).expect("the thread's tree reads") {
       let rel_str = rel.to_string_lossy().to_string();
       tried += 1;
       assert!(

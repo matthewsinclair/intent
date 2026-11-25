@@ -18577,7 +18577,10 @@ mod tests {
       done => done.expect("remove a minted record's file"),
     };
     for t in &mut canon.threads {
-      for path in project.thread_files(&t.id.stored()) {
+      for path in project
+        .thread_files(&t.id.stored())
+        .expect("the thread's tree reads")
+      {
         remove(&path);
       }
       let (id, origin) = if t.wps.is_empty() {
