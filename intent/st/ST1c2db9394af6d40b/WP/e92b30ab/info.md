@@ -17,12 +17,13 @@ B1, and Report E's D9 and T7 (triage P13, the home half). U3 put the one reader 
 
 ## Deliverables
 
-- `intentsvcs::id::label_at(text: &[u8], i: usize) -> Option<usize>`, moved whole from `intent-cli/tests/common/mod.rs:1465`, with its doc comment and its rule that the zero family (`AC-0.0`, `AT-00.0`) is a format example.
+- `intentsvcs::id::label_at(text: &[u8], i: usize) -> Option<usize>`, moved from `intent-cli/tests/common/mod.rs:1465` with its doc comment.
+- Its example rule asks `id::is_example`, so the label reader and the id reader exempt the same examples. A label is an example when its group and its sequence are all zeros (`AC-0.0`, `AT-00.0`), or when its group is not all zeros and `is_example` holds for it behind the package marker: the worked package, `EXAMPLE_WP_HEX` or a front of it (`AC-c2e41a0b.1`, which the MCP input schemas publish). Found by ic at the build, cc's meaning, 2026-11-25.
 - `common::label_at` is removed. Its two callers, `register_text_carries_no_maintainer_notes.rs:129` and `no_pm_state_in_output.rs:171`, call `intentsvcs::id::label_at`.
 
 ## Approach
 
-Move the function as it is. It already reads a label's kind through `id::label_kind`. Change no behaviour. The two caller edits are one line each and go in the same bank, so the tree compiles at each commit.
+Move the function. It already reads a label's kind through `id::label_kind`. The two caller edits are one line each and go in the same bank, so the tree compiles at each commit. The example rule is the one change in behaviour: the two callers stop counting the worked package's labels, which are format examples.
 
 ## Dependencies
 
@@ -30,7 +31,7 @@ None. The intent-cli package (ic, ST1c2db93/efe0) depends on this one.
 
 ## Risks
 
-A change to the text during the move changes what three scanners find. Move it as it is, and keep the byte-and-index signature, because each caller scans bytes.
+A label in the thread's own group stays a real label: `is_example("WP-00")` holds, so a rule that asked `is_example` for any group would exempt `AC-00.1`. Only a label whose group and sequence are all zeros is the zero-family example.
 
 ## Verification
 
