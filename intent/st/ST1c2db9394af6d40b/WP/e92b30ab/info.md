@@ -2,7 +2,7 @@
 wp_id: WP-e92b
 title: One reader of a criterion or test label in text
 scope: XS
-status: Not Started
+status: WIP
 ---
 
 # WP-e92b: One reader of a criterion or test label in text

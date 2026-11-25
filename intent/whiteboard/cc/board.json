@@ -3815,6 +3815,11 @@
       "id": "01M810PPWE98XKFKSZ5FMT7CSD",
       "sender": "vc",
       "handled_at": "2026-11-22T07:51:35.134Z"
+    },
+    {
+      "id": "01M88V4105ZQ9Y8H39030Q9P37",
+      "sender": "ic",
+      "handled_at": "2026-11-25T08:16:50.937Z"
     }
   ]
 }
