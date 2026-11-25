@@ -617,7 +617,7 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "A steel thread: `st/<ID>/thread.json`.",
+  "description": "A steel thread: `intent/.canon/st/<ID>.json`, with each work package,\ncriterion, test and attachment a record of its own under\n`intent/.canon/records/<ID>/`.",
   "properties": {
     "acceptance": {
       "anyOf": [

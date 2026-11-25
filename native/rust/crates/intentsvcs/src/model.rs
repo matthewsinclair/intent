@@ -148,7 +148,9 @@ pub fn sha256_hex(bytes: &[u8]) -> String {
 // Steel thread
 // ---------------------------------------------------------------------------
 
-/// A steel thread: `st/<ID>/thread.json`.
+/// A steel thread: `intent/.canon/st/<ID>.json`, with each work package,
+/// criterion, test and attachment a record of its own under
+/// `intent/.canon/records/<ID>/`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct Thread {
@@ -1174,21 +1176,27 @@ impl Thread {
   /// example: grouped under its first package, or under the thread's `00`
   /// when it has none, at the sequence after the last one that group holds.
   pub fn example_label(&self, kind: crate::id::LabelKind) -> String {
-    let group = self
-      .wps
-      .first()
-      .map_or_else(|| crate::id::THREAD_GROUP.to_string(), |w| w.seq.stored());
-    let head = format!("{}-{group}.", kind.head());
+    // The group a label names is read by `id::group_of`, so a label whose
+    // group is spelled another way, `AC-1.3` under `01`, is counted (close
+    // sweep A 1.5), and the label is built and read by the waist.
+    let (group, named) = match self.wps.first() {
+      Some(w) => (w.seq.stored(), crate::id::Group::Package(w.seq)),
+      None => (
+        crate::id::THREAD_GROUP.to_string(),
+        crate::id::Group::Thread,
+      ),
+    };
     let held: Vec<&str> = match kind {
       crate::id::LabelKind::Criterion => self.criteria.iter().map(|c| c.id.as_str()).collect(),
       crate::id::LabelKind::Test => self.tests.iter().map(|t| t.id.as_str()).collect(),
     };
     let next = held
       .iter()
-      .filter_map(|id| id.strip_prefix(&head)?.parse::<u32>().ok())
+      .filter(|id| crate::id::group_of(id) == named)
+      .filter_map(|id| crate::id::label_seq(id))
       .max()
       .map_or(1, |n| n + 1);
-    format!("{head}{next}")
+    crate::id::label_of(kind, &group, next)
   }
 
   /// **EVERY FIAT RECORD THIS THREAD HOLDS, AND THE ONE WALK OF THEM** (the
@@ -1831,7 +1839,7 @@ impl AtStatus {
 // Issue
 // ---------------------------------------------------------------------------
 
-/// An issue: `issues/<n>.json` (structure) + `issues/<n>.md` (authored body).
+/// An issue: `intent/.canon/issues/<ID>.json`, its authored body included.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct Issue {

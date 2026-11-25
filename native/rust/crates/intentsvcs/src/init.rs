@@ -401,12 +401,18 @@ pub fn init_with_languages(
         .iter()
         .map(|(dest, _)| root.join(crate::sync::root_file_path(dest, contracts))),
     )
-    .chain([root.join("intent/.cache/intent.db")])
+    .chain([root
+      .join(crate::project::default_intent_dir())
+      .join(crate::project::CACHE_DIR_NAME)
+      .join(crate::project::DB_FILE_NAME)])
     // The index views `init` writes below (issue 0448), from their one
     // declaration. Joined here because the check runs before a `Project`
     // exists to derive them, under the `intent_dir` this function writes into
     // the config.
-    .chain(crate::project::INDEX_VIEWS.map(|view| root.join("intent").join(view)))
+    .chain(
+      crate::project::INDEX_VIEWS
+        .map(|view| root.join(crate::project::default_intent_dir()).join(view)),
+    )
     .filter(|path| path.exists())
     .collect();
   if !occupied.is_empty() {
@@ -466,10 +472,11 @@ pub fn init_with_languages(
     crate::project::Contracts::Root => String::new(),
     crate::project::Contracts::Dotclaude => "  \"contracts\": \"dotclaude\",\n".to_string(),
   };
+  let intent_dir = crate::project::default_intent_dir();
   write(
     &config,
     &format!(
-      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"project_id\": {project_id:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": {languages_json},\n{contracts_line}  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
+      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"project_id\": {project_id:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": {intent_dir:?},\n  \"languages\": {languages_json},\n{contracts_line}  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
     ),
   )?;
 

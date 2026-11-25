@@ -32,6 +32,13 @@ const WIP_TEMPLATE: &str = "lib/templates/prj/_wip.md";
 const CANON_IGNORE_GUARD: &str = "lib/templates/hooks/canon-ignore-guard.sh";
 /// The tech note on working with LLMs, which teaches a claim's address too.
 const LLM_NOTE: &str = "intent/docs/working-with-llms.md";
+/// The published schema faces whose descriptions quote an id (ST1c2db93
+/// close sweep, A 1.7): each is generated from intentsvcs' types, and
+/// `schema_faces_drift` holds the face to its type.
+const THREAD_SCHEMA: &str = "schema/thread.schema.json";
+const ISSUE_SCHEMA: &str = "schema/issue.schema.json";
+const EVENT_SCHEMA: &str = "schema/event.schema.json";
+const DDL_FACE: &str = "schema/ddl.sql";
 
 /// A count as the prose spells it. Panics on a count the prose has no word
 /// for, which is a prompt to extend this table, not to change the prose.
@@ -301,4 +308,62 @@ fn the_user_docs_state_the_id_constants() {
 #[test]
 fn the_llm_note_states_the_claim_forms() {
   assert_states(LLM_NOTE, &read(LLM_NOTE), CLAIM_ADDRESS_FORMS);
+}
+
+/// The schema faces quote the worked example whole, as a record stores it,
+/// and an ordinal of each family at its width (ST1c2db93 close sweep, A 1.7).
+/// The ordinals' numbers are the descriptions' own, so the pin binds their
+/// width and family, which the constants fix, and not which number they are.
+#[test]
+fn the_schema_faces_state_the_id_constants() {
+  let thread = format!("{THREAD_PREFIX}{EXAMPLE_HEX}");
+  let package = format!("{thread}/{EXAMPLE_WP_HEX}");
+  let issue = format!("{ISSUE_MARKER}{EXAMPLE_HEX}");
+  let ordinal = |n: usize, width: usize| format!("{n:0width$}");
+  let faces = [
+    (
+      THREAD_SCHEMA,
+      vec![
+        format!("`{thread}`"),
+        format!(
+          "{} digits for an ordinal, eg `{}`",
+          word(WP_DIGITS),
+          ordinal(1, WP_DIGITS)
+        ),
+      ],
+    ),
+    (
+      ISSUE_SCHEMA,
+      vec![format!(
+        "{} digits for an ordinal, eg `{}`",
+        word(ISSUE_DIGITS),
+        ordinal(21, ISSUE_DIGITS)
+      )],
+    ),
+    (
+      EVENT_SCHEMA,
+      vec![
+        format!(
+          "`{}/{}` or `{}`",
+          ordinal_thread(),
+          ordinal(2, WP_DIGITS),
+          ordinal(21, ISSUE_DIGITS)
+        ),
+        format!("`{thread}`, `{package}` or `{issue}`"),
+      ],
+    ),
+    (
+      DDL_FACE,
+      vec![
+        format!("`{}` or `{EXAMPLE_WP_HEX}`", ordinal(4, WP_DIGITS)),
+        format!("`{}` or `{issue}`", ordinal(703, ISSUE_DIGITS)),
+      ],
+    ),
+  ];
+  for (rel, phrases) in faces {
+    let text = read(rel);
+    for phrase in phrases {
+      assert_states(rel, &text, &phrase);
+    }
+  }
 }

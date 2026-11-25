@@ -69,15 +69,18 @@ pub fn thread(canon: &Canon, old: &ThreadId, new: &ThreadId) -> Option<Renumbere
   // behind is a dangling reference doctor then reports.
   let (old_id, new_id) = (old.stored(), new.stored());
   for thread in &mut next.threads {
-    let owner = thread.id.shown();
+    // The thread as a message prints it, and each row under it in the one
+    // scoped form, `<thread>/<row>` (close sweep A 1.6 and the C15 row).
+    let owner_id = thread.id.clone();
+    let owner = owner_id.shown();
     for ac in &mut thread.criteria {
       if let AcState::Descoped { to, .. } = &mut ac.state
         && *to == *old
       {
         *to = new.clone();
         rewritten.push(format!(
-          "{owner} {} descoped to: {} -> {}",
-          ac.id,
+          "{} descoped to: {} -> {}",
+          crate::id::scoped_address(&owner, &ac.id),
           old.shown(),
           new.shown()
         ));
@@ -90,8 +93,8 @@ pub fn thread(canon: &Canon, old: &ThreadId, new: &ThreadId) -> Option<Renumbere
       if let Some(to) = moved_claim(from, &old_id, &new_id) {
         let row = match row {
           FiatRow::Thread => owner.clone(),
-          FiatRow::Package(wp) => crate::id::wp_address(&owner, wp),
-          FiatRow::Criterion(id) | FiatRow::Test(id) => format!("{owner} {id}"),
+          FiatRow::Package(wp) => crate::id::wp_address_shown(&owner_id, wp),
+          FiatRow::Criterion(id) | FiatRow::Test(id) => crate::id::scoped_address(&owner, &id),
         };
         rewritten.push(format!("{row} inherited from: {from} -> {to}"));
         record.inherited_from = Some(to);

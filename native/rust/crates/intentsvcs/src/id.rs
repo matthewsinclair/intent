@@ -242,7 +242,7 @@ impl IdKind {
   pub const ALL: [IdKind; 3] = [IdKind::Thread, IdKind::WorkPackage, IdKind::Issue];
 
   /// The word prose uses, in a message or a plan's line. Not a wire form.
-  pub fn as_str(&self) -> &'static str {
+  pub const fn as_str(&self) -> &'static str {
     match self {
       IdKind::Thread => "steel thread",
       IdKind::WorkPackage => "work package",
@@ -809,7 +809,7 @@ pub trait Mintable: Sized + PartialEq {
 }
 
 impl Mintable for ThreadId {
-  const WHAT: &'static str = "steel thread";
+  const WHAT: &'static str = IdKind::Thread.as_str();
   fn minted_from(origin: &str) -> Self {
     Self::from_origin(origin)
   }
@@ -825,7 +825,7 @@ impl Mintable for ThreadId {
 }
 
 impl Mintable for WpId {
-  const WHAT: &'static str = "work package";
+  const WHAT: &'static str = IdKind::WorkPackage.as_str();
   fn minted_from(origin: &str) -> Self {
     Self::from_origin(origin)
   }
@@ -841,7 +841,7 @@ impl Mintable for WpId {
 }
 
 impl Mintable for IssueId {
-  const WHAT: &'static str = "issue";
+  const WHAT: &'static str = IdKind::Issue.as_str();
   fn minted_from(origin: &str) -> Self {
     Self::from_origin(origin)
   }
@@ -2269,6 +2269,19 @@ pub fn regrouped(label: &str, wp: WpId) -> String {
     Some((head, _, tail)) => format!("{head}-{}.{tail}", wp.stored()),
     None => label.to_string(),
   }
+}
+
+/// The sequence a label carries after its dot, when it is a number:
+/// `AC-01.3` carries 3. Read through [`label_parts`], so no caller strips a
+/// head of its own (ST1c2db93 close sweep, A 1.5).
+pub fn label_seq(label: &str) -> Option<u32> {
+  label_parts(label)?.2.parse().ok()
+}
+
+/// A label of `kind` in `group` at `seq`, eg `AC-01.3`: the one constructor
+/// of a label, which [`label_parts`] splits back.
+pub fn label_of(kind: LabelKind, group: &str, seq: u32) -> String {
+  format!("{}-{group}.{seq}", kind.head())
 }
 
 /// **THE ONE READER OF A LABEL'S GROUP** (issue 0712). There were five, and

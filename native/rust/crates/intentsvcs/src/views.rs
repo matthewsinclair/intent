@@ -2515,6 +2515,16 @@ pub enum ThreadView {
 }
 
 impl ThreadView {
+  /// **WHICH VIEWS A THREAD HAS, SAID ONCE** (ST1c2db93 close sweep, A 1.10):
+  /// its cover, its acceptance view, and each work package's cover in the
+  /// thread's own package order. [`thread_views`] renders each of them, and
+  /// `organize` declares each one's path.
+  pub fn of(thread: &Thread) -> Vec<ThreadView> {
+    let mut views = vec![ThreadView::Info, ThreadView::Acceptance];
+    views.extend(thread.wps.iter().map(|wp| ThreadView::WpInfo(wp.seq)));
+    views
+  }
+
   /// The file's path within the thread's own directory.
   pub fn file(self) -> String {
     match self {
@@ -2543,14 +2553,20 @@ impl ThreadView {
 /// paths and [`read_thread_file`] reads one back by name, so which views a
 /// thread has is said once rather than in the walk and again in the explorer.
 pub fn thread_views(thread: &Thread, ctx: &RenderContext<'_>) -> Vec<(ThreadView, String)> {
-  let mut out = vec![
-    (ThreadView::Info, info(thread, ctx)),
-    (ThreadView::Acceptance, acceptance(thread, ctx)),
-  ];
-  for wp in &thread.wps {
-    out.push((ThreadView::WpInfo(wp.seq), wp_info(thread, wp, ctx)));
-  }
-  out
+  // `ThreadView::of` lists the packages in the thread's own order, so each
+  // package view takes the next package.
+  let mut packages = thread.wps.iter();
+  ThreadView::of(thread)
+    .into_iter()
+    .filter_map(|view| {
+      let text = match view {
+        ThreadView::Info => info(thread, ctx),
+        ThreadView::Acceptance => acceptance(thread, ctx),
+        ThreadView::WpInfo(_) => wp_info(thread, packages.next()?, ctx),
+      };
+      Some((view, text))
+    })
+    .collect()
 }
 
 /// What one of a thread's files holds, read from the model with nothing written.

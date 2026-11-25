@@ -530,7 +530,8 @@ impl crate::remedy::Remedy for OrganizeError {
       Self::PreconditionsUnmet { .. } => "dehydration stays gated until this project's declared preconditions are met, and the refusal above names every one that is not. `intent ac list` shows the state of each. Nothing here needs undoing: hydration and verification in the same run were unaffected, and no file was removed.".to_string(),
       Self::Scan { .. } => "the tree could not be walked, so nothing was planned and nothing was touched. The cause above names the path -- check it is readable and re-run.".to_string(),
       Self::NothingToWrite { path } => format!(
-        "run `intent sync --to-store`, which loads canon again and reads an opaque attachment's bytes from its sidecar under `intent/.canon/st/`; if that sidecar is missing, restore it from git first. Nothing was written to {}.",
+        "run `intent sync --to-store`, which loads canon again and reads an opaque attachment's bytes from its sidecar under `{}/` in the intent directory; if that sidecar is missing, restore it from git first. Nothing was written to {}.",
+        crate::project::CANON_ST_DIR,
         path.display()
       ),
       Self::CaseFoldUnread { path, .. } => format!(
@@ -694,10 +695,10 @@ pub fn plan(
     if !realised.declares(&thread.id) {
       continue;
     }
-    declared_paths.insert(project.info_view(&thread.id));
-    declared_paths.insert(project.acceptance_view(&thread.id));
-    for wp in &thread.wps {
-      declared_paths.insert(project.wp_info_view(&thread.id, wp.seq));
+    // Which views a thread has is `ThreadView::of`'s list (close sweep A
+    // 1.10), the one the renderer walks.
+    for view in views::ThreadView::of(thread) {
+      declared_paths.insert(view.path(project, &thread.id));
     }
   }
   // **ISSUES JOIN BY THE SAME RULE AS THREADS (AC-01.2), WHICH IS WHY THIS IS A

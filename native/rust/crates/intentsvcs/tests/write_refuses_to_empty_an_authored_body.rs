@@ -69,6 +69,12 @@ fn closing_an_issue_will_not_write_an_empty_body_over_an_authored_one() {
     said.contains(&number.shown()),
     "the refusal names the subject: {said}"
   );
+  // As a person reads it (ST1c2db93 close sweep, A 1.6): the mint made a
+  // git-style id, whose stored form is longer than the shown one and holds it.
+  assert!(
+    number.is_hashed() && !said.contains(&number.stored()),
+    "the refusal names the subject by its shown id, not its stored one: {said}"
+  );
   assert!(
     said.contains(&BODY.len().to_string()),
     "and how much is at stake, so an operator can tell a stray newline from the \

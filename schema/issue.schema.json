@@ -10,7 +10,7 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "An issue: `issues/<n>.json` (structure) + `issues/<n>.md` (authored body).",
+  "description": "An issue: `intent/.canon/issues/<ID>.json`, its authored body included.",
   "properties": {
     "body": {
       "default": "",

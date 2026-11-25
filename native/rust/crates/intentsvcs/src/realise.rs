@@ -176,7 +176,7 @@ pub fn realise(
       crate::project::key_pair(thread.attachments.iter().map(|a| a.path.as_str()))
     {
       return Err(RealiseError::CasePair {
-        thread: thread.id.stored(),
+        thread: thread.id.shown(),
         held: held.to_string(),
         path: path.to_string(),
       });
@@ -228,7 +228,7 @@ pub fn realise(
       // wearing a fallback's clothes.
       let Some(bytes) = att.as_bytes() else {
         return Err(RealiseError::MissingBytes {
-          thread: thread.id.stored(),
+          thread: thread.id.shown(),
           path: att.path.clone(),
         });
       };

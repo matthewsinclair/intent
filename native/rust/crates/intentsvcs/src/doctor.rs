@@ -1033,7 +1033,10 @@ fn ingest_findings(e: &crate::ingest::IngestError) -> Vec<Finding> {
 /// attachment is a record file of its own, and the finding names that file,
 /// which is the one a person opens to fix it. In 3.4.0's format every child is
 /// inside the thread's own file, so every finding names that.
-struct ThreadFiles {
+///
+/// **AND IT IS THE ONE ANSWER TO WHICH FILE HOLDS A CHILD** (ST1c2db93 close
+/// sweep, A 1.2): `intent id` names a work package's canon file through it.
+pub(crate) struct ThreadFiles {
   own: String,
   /// The intent directory, project-relative, and the thread's stored id, when
   /// the thread's own file is in the release's format.
@@ -1041,7 +1044,7 @@ struct ThreadFiles {
 }
 
 impl ThreadFiles {
-  fn of(project: &Project, thread: &Thread) -> Self {
+  pub(crate) fn of(project: &Project, thread: &Thread) -> Self {
     let own = project.relative(&project.thread_json(&thread.id));
     // **BY THE THREAD FILE'S OWN FORMAT**, as ingest reads it. The canon was
     // read whole before any check runs, so this second read of the schema
@@ -1063,7 +1066,7 @@ impl ThreadFiles {
     }
   }
 
-  fn wp(&self, id: &str) -> String {
+  pub(crate) fn wp(&self, id: &str) -> String {
     self.child(|thread| crate::project::canon_wp_rel(thread, id))
   }
 
@@ -1077,6 +1080,14 @@ impl ThreadFiles {
 
   fn attachment(&self, path: &str) -> String {
     self.child(|thread| crate::project::canon_attachment_rel(thread, path))
+  }
+
+  /// Where the thread carries its attachments: their records' directory in
+  /// the release's format, its own file in 3.4.0's (close sweep row A4.6).
+  pub(crate) fn attachments(&self) -> String {
+    self.child(|thread| {
+      crate::project::canon_children_rel(thread, crate::project::CANON_ATTACHMENTS_DIR)
+    })
   }
 }
 
@@ -1315,7 +1326,10 @@ fn model_checks(thread: &Thread, canon: &Canon, files: &ThreadFiles, out: &mut V
       );
     }
   }
-  for (detail, _) in shared_short_forms("work packages", thread.wps.iter().map(|wp| &wp.seq)) {
+  for (detail, _) in shared_short_forms(
+    crate::id::IdKind::WorkPackage.plural(),
+    thread.wps.iter().map(|wp| &wp.seq),
+  ) {
     add(
       files.own.clone(),
       format!("{detail}, in {}", thread.id.shown()),
@@ -2380,8 +2394,11 @@ fn attachment_drift(
     if let Some((held, path)) =
       crate::project::key_pair(thread.attachments.iter().map(|a| a.path.as_str()))
     {
+      // The record of the second of the pair, as the other attachment
+      // findings name theirs (close sweep A 1.2): in the release's format an
+      // attachment is a record of its own, not a line of the thread's file.
       report.findings.push(Finding::new(
-        project.relative(&project.thread_json(&thread.id)),
+        ThreadFiles::of(project, thread).attachment(path),
         FindingClass::CasePair,
         format!(
           "canon holds `{held}` and `{path}` for {}, which differ only in case, so a case-insensitive disk (macOS's default) would realise them as one file",
@@ -2500,7 +2517,10 @@ fn id_family_findings(canon: &Canon, project: &Project, report: &mut Report) {
   // **A THREAD PAIR IS ADMITTED BY THE RUN'S SCOPE, AS EVERY THREAD CHECK IS**:
   // named when any member is in scope, since a door's resolver meets a closed
   // thread too, and counted out of scope when none is.
-  for (detail, whole) in shared_short_forms("steel threads", canon.threads.iter().map(|t| &t.id)) {
+  for (detail, whole) in shared_short_forms(
+    crate::id::IdKind::Thread.plural(),
+    canon.threads.iter().map(|t| &t.id),
+  ) {
     let members: Vec<&Thread> = canon
       .threads
       .iter()
@@ -2520,7 +2540,10 @@ fn id_family_findings(canon: &Canon, project: &Project, report: &mut Report) {
     );
     report.admit(admitting, vec![finding]);
   }
-  for (detail, _) in shared_short_forms("issues", canon.issues.iter().map(|i| &i.number)) {
+  for (detail, _) in shared_short_forms(
+    crate::id::IdKind::Issue.plural(),
+    canon.issues.iter().map(|i| &i.number),
+  ) {
     report.findings.push(Finding::new(
       project.relative(&project.issues_view_dir()),
       FindingClass::ShortFormShared,

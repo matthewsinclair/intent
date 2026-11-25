@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS related (
 -- `bytes` and `sha256` DESCRIBE `text` -- they are written by one constructor
 -- and never set independently, so a stored hash cannot come to disagree with
 -- the content it describes.
--- openness: carried by intent/.canon/st/<ID>.json
+-- openness: carried by intent/.canon/records/<ID>/attachments/<PATH>.json
 -- `seq` is the ORDER THE PRODUCER CHOSE, carried rather than re-derived. The
 -- store gives back what it was given: a read that sorted by `path` would
 -- reorder a thread whose attachments arrived any other way, and canon compared
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS attachments (
   -- and rung 11 exists because one of them produced a shape nobody checked.
   CHECK ((text IS NULL) <> (blob IS NULL))
 );
--- openness: carried by intent/.canon/st/<ID>.json
+-- openness: carried by intent/.canon/records/<ID>/wp/<WP>.json
 -- `scope` is NULLABLE and `scope_legacy` sits beside it, exactly as `file` and
 -- `legacy` do on `tests`. v2 read scope as free text and one work package in
 -- the corpus carries `Medium-Large`, which sits BETWEEN two enum members: the
@@ -206,7 +206,7 @@ CREATE TABLE IF NOT EXISTS wps (
 -- descoped row carrying `satisfied`), and a schema that can represent a
 -- contradiction eventually stores one. Same treatment `legacy` already gets.
 -- The discriminant stays queryable as `json_extract(state, '$.is')`.
--- openness: carried by intent/.canon/st/<ID>.json
+-- openness: carried by intent/.canon/records/<ID>/ac/<LABEL>.json
 CREATE TABLE IF NOT EXISTS criteria (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
   id TEXT NOT NULL,
@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS criteria (
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, id)
 );
--- openness: carried by intent/.canon/st/<ID>.json
+-- openness: carried by intent/.canon/records/<ID>/at/<LABEL>.json
 CREATE TABLE IF NOT EXISTS tests (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
   id TEXT NOT NULL,
@@ -254,7 +254,7 @@ CREATE TABLE IF NOT EXISTS tests (
 -- optional: prose whose only home is a file is destroyed by the first render,
 -- which is the defect this column exists to close rather than a style choice
 -- about where markdown lives.
--- openness: carried by intent/.canon/issues/<NNNN>.json
+-- openness: carried by intent/.canon/issues/<ID>.json
 CREATE TABLE IF NOT EXISTS issues (
   -- The issue's stored id, `0703` or `I3f9a2c1d4e5f6a7b`, as TEXT so an
   -- all-digit id keeps its leading zero (rung 36).

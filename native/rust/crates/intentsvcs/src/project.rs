@@ -1423,6 +1423,13 @@ pub(crate) fn default_intent_dir() -> String {
   "intent".to_string()
 }
 
+/// The per-machine directory under the intent directory, and the store's file
+/// in it: the one spelling [`Project::cache_dir`], [`Project::db_path`] and
+/// `init`'s check before a project exists take (close sweep A 1.13).
+pub const CACHE_DIR_NAME: &str = ".cache";
+/// See [`CACHE_DIR_NAME`].
+pub const DB_FILE_NAME: &str = "intent.db";
+
 #[derive(Debug, thiserror::Error)]
 pub enum ProjectError {
   #[error("no Intent project found at or above {0} (looked for intent/.config/config.json)")]
@@ -2142,12 +2149,35 @@ const STEEL_THREADS_VIEW: &str = concat!(st_dir_name!(), "/", steel_threads_view
 /// The flat DOING / TODO / DONE view, relative to the intent directory.
 pub const TODO_VIEW: &str = "todo.md";
 
+/// The generated cover's name and the acceptance contract's, each without its
+/// extension (ST1c2db93 close sweep row A8): an address may name a view by
+/// its stem, and the file names below are built from them. Macros rather than
+/// `const`s because `concat!` takes only literals.
+macro_rules! info_stem {
+  () => {
+    "info"
+  };
+}
+macro_rules! acceptance_stem {
+  () => {
+    "acceptance"
+  };
+}
+
+/// The generated cover's name without its extension, as an address may name
+/// it.
+pub const INFO_STEM: &str = info_stem!();
+
 /// The generated cover's file name, a thread's and a work package's alike
 /// (ST1c2db93 P7): the one spelling every path to a cover is built from.
-pub const INFO_VIEW: &str = "info.md";
+pub const INFO_VIEW: &str = concat!(info_stem!(), ".md");
+
+/// The acceptance contract's name without its extension, as an address may
+/// name it.
+pub const ACCEPTANCE_STEM: &str = acceptance_stem!();
 
 /// A thread's generated acceptance contract's file name (ST1c2db93 P7).
-pub const ACCEPTANCE_VIEW: &str = "acceptance.md";
+pub const ACCEPTANCE_VIEW: &str = concat!(acceptance_stem!(), ".md");
 
 /// `WP`, a work package's directory under its thread's (ST1c2db93 P7): the
 /// one spelling [`Project::wp_rel`] and every package path pattern take.
@@ -2611,7 +2641,7 @@ impl Project {
   /// The per-machine directory beside the canon (D21): the store and every
   /// file kept with it, ignored and never committed. One home for its path.
   pub fn cache_dir(&self) -> PathBuf {
-    self.intent_dir().join(".cache")
+    self.intent_dir().join(CACHE_DIR_NAME)
   }
 
   /// The SQLite db (D21) -- gitignored, and the durable SSOT rather than a
@@ -2619,7 +2649,7 @@ impl Project {
   /// extract is how the estate travels, and the store is re-created from it on
   /// a fresh clone.
   pub fn db_path(&self) -> PathBuf {
-    self.cache_dir().join("intent.db")
+    self.cache_dir().join(DB_FILE_NAME)
   }
 
   /// The manifest of the paths the last `intent upgrade` wrote or removed, for
@@ -2772,6 +2802,20 @@ impl Project {
       return (self.issue_view(number) == path).then_some(Named::Issue(number));
     }
     None
+  }
+
+  /// **THE ONE LIST OF THE PATHS A THREAD OWNS** (ST1c2db93 close sweep, A
+  /// 1.3), the paths [`Self::owner_of`] answers the other way. A renumber
+  /// refuses a target that any of them names and moves each directory, and a
+  /// renumber in the middle of a merge restores and stages each, so none of
+  /// them can be left out of one of those and kept in another.
+  pub fn thread_paths(&self, id: &str) -> ThreadPaths {
+    ThreadPaths {
+      record: self.thread_json(id),
+      sidecars: self.canon_thread_dir(id),
+      records: self.intent_dir().join(canon_records_rel(id)),
+      realised: self.thread_dir(id),
+    }
   }
 
   /// The generated views as formatter-ignore GLOBS, relative to the project
@@ -2999,7 +3043,11 @@ impl Project {
       .map(|e| e.path())
       .filter(|p| p.extension().is_some_and(|x| x == "json"))
     {
-      ids.push(self.canon_name(&path, "steel thread", crate::id::ThreadId::parse)?);
+      ids.push(self.canon_name(
+        &path,
+        crate::id::IdKind::Thread.as_str(),
+        crate::id::ThreadId::parse,
+      )?);
     }
     // Typed, as [`Self::issue_numbers`] is (ST1c2db93 P8), and ordered by the
     // stored text it always was: a thread's typed order puts every ordinal
@@ -3041,10 +3089,55 @@ impl Project {
       .map(|e| e.path())
       .filter(|p| p.extension().is_some_and(|x| x == "json"))
     {
-      ids.push(self.canon_name(&path, "issue", crate::id::IssueId::parse)?);
+      ids.push(self.canon_name(
+        &path,
+        crate::id::IdKind::Issue.as_str(),
+        crate::id::IssueId::parse,
+      )?);
     }
     ids.sort_unstable();
     Ok(ids)
+  }
+}
+
+/// The paths one thread owns ([`Project::thread_paths`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ThreadPaths {
+  /// Its canon record, `.canon/st/<ID>.json`, which the store writes.
+  pub record: PathBuf,
+  /// `.canon/st/<ID>/` beside it: its opaque attachments' bytes and any canon
+  /// file nobody models, which are authored bytes.
+  pub sidecars: PathBuf,
+  /// `.canon/records/<ID>/`: its work packages', criteria's, tests' and
+  /// attachments' records in the release's format (ST0096 WP-05), which the
+  /// store writes.
+  pub records: PathBuf,
+  /// Its realised tree: the views the store renders, its attachments' files,
+  /// and any file nobody modelled.
+  pub realised: PathBuf,
+}
+
+impl ThreadPaths {
+  /// Every path, the record first: its name is a prefix of its sidecars'
+  /// directory's, so a reader that takes the first prefix a path starts with
+  /// must meet the record before the directory.
+  pub fn all(&self) -> [PathBuf; 4] {
+    [
+      self.record.clone(),
+      self.sidecars.clone(),
+      self.records.clone(),
+      self.realised.clone(),
+    ]
+  }
+
+  /// The three directories, which a renumber moves whole. The record is the
+  /// store's to write at the new id.
+  pub fn dirs(&self) -> [PathBuf; 3] {
+    [
+      self.realised.clone(),
+      self.sidecars.clone(),
+      self.records.clone(),
+    ]
   }
 }
 
@@ -3157,7 +3250,7 @@ impl Project {
             // (`classify` names three, and the thread cover opens above). Its
             // remedy named `intent wp`, which has no writer for a package's prose
             // (issue 0334); `set` is the verb that writes it.
-            _ => "`intent set intent:///threads/<ST>/wp/<NN> objective|body --from <file>`",
+            _ => "`intent set intent:///threads/<ST>/wp/<package> objective|body --from <file>`",
           },
         }
       }

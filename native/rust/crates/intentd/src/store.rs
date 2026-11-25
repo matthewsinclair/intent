@@ -992,15 +992,20 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
             // other form above) and falls back to the address's own form name
             // rather than inventing one, so a fourth declared form degrades
             // instead of lying.
+            // Each id in its shown form, as every face prints it (ST1c2db93
+            // close sweep, A 1.6): an address may carry the stored sixteen
+            // hex, and the browser only displays this name.
             let instance = match &address.entity {
-              Entity::Thread { id } => id.clone(),
+              Entity::Thread { id } => intentsvcs::nav::shown_or_as_is(id),
               // The parse read the segment, so `.../wp/2` is named `ST0056/02`,
               // as every door names it, and not echoed back as typed.
               Entity::Wp { thread, wp } => match wp {
-                intentsvcs::id::Spelled::Whole(seq) => intentsvcs::id::wp_address(thread, *seq),
+                intentsvcs::id::Spelled::Whole(seq) => {
+                  intentsvcs::nav::shown_or_as_is(&intentsvcs::id::wp_address(thread, *seq))
+                }
                 intentsvcs::id::Spelled::Prefix(_) => address.entity.form().to_string(),
               },
-              Entity::Issue { id } => id.clone(),
+              Entity::Issue { id } => intentsvcs::nav::shown_or_as_is(id),
               other => other.form().to_string(),
             };
             // **THE TITLE IS READ THE WAY EVERY OTHER VALUE IS READ.** Going

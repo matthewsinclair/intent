@@ -1640,11 +1640,13 @@ pub enum FacadeError {
   /// `POST` to the collection -- which tells a terminal caller nothing about a
   /// `--covers` naming a criterion that does not exist.
   #[error(
-    "`intent:///threads/{st}/at/{at}` cannot be written: the row would not satisfy the acceptance-test contract: {findings}"
+    "`{url}` cannot be written: the row would not satisfy the acceptance-test contract: {findings}"
   )]
   RowBreaksContract {
     st: String,
     at: String,
+    /// The row's address, as `Entity::At` forms it (close sweep A 1.12).
+    url: String,
     findings: String,
   },
   /// The SQL door was handed more than one statement (AC-17.1).
@@ -1744,6 +1746,10 @@ pub enum FacadeError {
     url: String,
     path: String,
     thread: String,
+    /// Where the thread's canon carries its attachments, project-relative:
+    /// their records' directory in the release's format, its own file in
+    /// 3.4.0's (close sweep row A4.6).
+    carried_in: String,
   },
   /// `st relate` naming a target no thread in the project carries (issue 0460).
   ///
@@ -1757,7 +1763,13 @@ pub enum FacadeError {
   RelatedToItself { thread: String },
   /// `st unrelate` naming a link the thread does not carry (issue 0460).
   #[error("{thread} carries no related link to {target}, so there is nothing to unrelate")]
-  NoSuchRelated { thread: String, target: String },
+  NoSuchRelated {
+    thread: String,
+    target: String,
+    /// The thread's own canon file, project-relative, which carries its
+    /// `related` in both formats (close sweep row A4.6).
+    canon: String,
+  },
   /// A read naming a document the thread does not carry (issue 0398).
   ///
   /// **BESIDE `NoSuchAttachment` AND `NoSuchEditable`, AND NEITHER, BECAUSE THE
@@ -1822,7 +1834,8 @@ pub enum FacadeError {
   /// what cannot hold it, so the way out is a re-kind, which re-enters a row
   /// at `n-a` at `to-write` in the same call (issues 0324 and 0337).
   #[error(
-    "{st} {at} is a non-test row, which asserts prose INSTEAD of a file, so `{file}` cannot be cited on it"
+    "{} is a non-test row, which asserts prose INSTEAD of a file, so `{file}` cannot be cited on it",
+    crate::id::scoped_address(.st, .at)
   )]
   FileOnANonTestRow {
     st: String,
@@ -1832,7 +1845,10 @@ pub enum FacadeError {
   /// A status that does not fit the row's kind (issue 0337): `n/a` on a test
   /// row, or `to-write`/`red`/`green` on a non-test row -- recorded by a verdict
   /// on an existing row, or named to `at new` for a row it would create.
-  #[error("{st} {at} is a {kind} row, and `{status}` is not a verdict that row can hold")]
+  #[error(
+    "{} is a {kind} row, and `{status}` is not a verdict that row can hold",
+    crate::id::scoped_address(.st, .at)
+  )]
   VerdictWrongForKind {
     st: String,
     at: String,
@@ -3599,11 +3615,9 @@ pub fn require_local(address: &Address) -> Result<(), FacadeError> {
     Some(authority) => Err(FacadeError::CrossProjectAddress {
       url: address.to_url(),
       authority: authority.clone(),
-      local: Address {
-        authority: None,
-        ..address.clone()
-      }
-      .to_url(),
+      local: Address::local(address.entity.clone())
+        .with_format(address.format)
+        .to_url(),
     }),
   }
 }
@@ -3848,9 +3862,10 @@ impl crate::remedy::Remedy for FacadeError {
       Self::HydrationWouldOverwrite { id, .. } => format!(
         "copy the version on disk somewhere else first -- then `intent st hydrate {id} --overwrite` discards it and writes what the store renders. If the version on disk is the one you want, it belongs in canon: make the change through the CLI so the store carries it"
       ),
-      Self::NoSuchAttachment { thread, .. } => format!(
-        "the paths {thread} carries are its canon's `attachments`, in `intent/{}` -- name one of those, relative to the thread's own directory",
-        crate::project::canon_thread_rel(thread)
+      Self::NoSuchAttachment {
+        thread, carried_in, ..
+      } => format!(
+        "the paths {thread} carries are its canon's `attachments`, in `{carried_in}` -- name one of those, relative to the thread's own directory"
       ),
       Self::NoSuchRelatedTarget { thread, .. } => format!(
         "run `intent st list` to see the threads this project has, and relate {thread} to one of those -- a link to a thread that does not exist is the dangling reference `intent doctor` reports"
@@ -3858,9 +3873,8 @@ impl crate::remedy::Remedy for FacadeError {
       Self::RelatedToItself { thread } => format!(
         "name a different thread as the target -- {thread}'s links name the threads beside it"
       ),
-      Self::NoSuchRelated { thread, .. } => format!(
-        "the links {thread} carries are its canon's `related`, in `intent/{}`, and its `info.md` lists them under `## Related Steel Threads` -- name one of those",
-        crate::project::canon_thread_rel(thread)
+      Self::NoSuchRelated { thread, canon, .. } => format!(
+        "the links {thread} carries are its canon's `related`, in `{canon}`, and its `info.md` lists them under `## Related Steel Threads` -- name one of those"
       ),
       Self::NotCarried { thread, path } => format!(
         "a thread carries a document once it is attached -- `intent st attach {thread} {path} --from <file>` writes one into the store"
@@ -3942,7 +3956,7 @@ impl crate::remedy::Remedy for FacadeError {
       }
       Self::OpenWorkPackages { st, .. } => {
         format!(
-          "finish each with `intent wp done {st}/<NN>` or drop it with `intent wp cancel {st}/<NN> --reason \"...\"`, then close {st} again"
+          "finish each with `intent wp done {st}/<package>` or drop it with `intent wp cancel {st}/<package> --reason \"...\"`, then close {st} again"
         )
       }
       Self::FileOnANonTestRow { st, at, file } => format!(
@@ -4169,9 +4183,12 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoSuchIssue { .. } => {
         "run `intent issues list --kind all` to see every issue this project has, closed ones included".to_string()
       }
+      // Both families' claim forms, from the one sentence every claim
+      // refusal quotes (close sweep rows C13 and A11).
       Self::MalformedIssueId { .. } => format!(
-        "{}, which `intent/.intentfiles` names as `ISSUE:0001`",
-        crate::id::ISSUE_ID_FORM
+        "{}; `intent/.intentfiles` and a board name {}",
+        crate::id::ISSUE_ID_FORM,
+        crate::id::CLAIM_ADDRESS_FORMS
       ),
       Self::NotAnId { refusal, .. } => refusal.remedy.clone(),
       Self::UnknownId { kinds, .. } => format!(
@@ -5529,21 +5546,29 @@ pub enum IngestCommit {
 }
 
 /// The threads and issues whose value differs between `held` and `canon`, by
-/// subject, in id order: what an ingest pass changed in the store. A subject
-/// the pass removed says so, because `took ST0003` read as an arrival when
-/// driven on a pulled deletion.
+/// subject, in [`crate::id::record_order`], the order every list of records
+/// takes (close sweep A 1.9): what an ingest pass changed in the store. A
+/// subject the pass removed says so, because `took ST0003` read as an arrival
+/// when driven on a pulled deletion.
 fn changed_subjects(held: &(Vec<Thread>, Vec<Issue>), canon: &Canon) -> Vec<String> {
-  fn changed<T: PartialEq, K: Ord + Clone>(
+  fn changed<T: PartialEq + crate::id::Ordered, K: PartialEq>(
     before: &[T],
     after: &[T],
     key: impl Fn(&T) -> K,
   ) -> Vec<(K, bool)> {
-    let mut keys: Vec<K> = before.iter().chain(after).map(&key).collect();
-    keys.sort();
-    keys.dedup();
-    keys
+    // Each subject once, as its record now or, when the pass removed it, as
+    // it was, so the one record order can place it.
+    let mut records: Vec<&T> = after.iter().collect();
+    records.extend(
+      before
+        .iter()
+        .filter(|b| !after.iter().any(|a| key(a) == key(b))),
+    );
+    records.sort_by(|a, b| crate::id::record_order(*a, *b));
+    records
       .into_iter()
-      .filter_map(|k| {
+      .filter_map(|record| {
+        let k = key(record);
         let now = after.iter().find(|t| key(t) == k);
         (before.iter().find(|t| key(t) == k) != now).then_some((k, now.is_none()))
       })
@@ -5624,7 +5649,8 @@ pub struct IdRecord {
   /// The id as tables and people show it.
   pub shown: String,
   /// The canon file that holds the record, project-relative. A work package's
-  /// is its thread's, which carries it.
+  /// is its own record in the release's format, and its thread's file in
+  /// 3.4.0's, which carries it inline (close sweep A 1.2).
   pub canon: String,
   /// Where the record is realised, project-relative, whether or not it is.
   pub path: String,
@@ -5705,7 +5731,8 @@ impl IdRecord {
       kind: crate::id::IdKind::WorkPackage.wire(),
       id: crate::id::wp_address(&thread, package.seq),
       shown: crate::id::wp_address_shown(&owner.id, package.seq),
-      canon: project.relative(&project.thread_json(&thread)),
+      // By the thread file's own format, as doctor names a package's file.
+      canon: crate::doctor::ThreadFiles::of(project, owner).wp(&package.seq.stored()),
       path: project.relative(&project.wp_dir(&thread, package.seq)),
       title: package.title.clone(),
       created,
@@ -6505,13 +6532,15 @@ impl Facade {
   }
 
   pub fn wp_show(&self, st: &str, seq: crate::id::WpId) -> Result<&WorkPackage, FacadeError> {
-    self
-      .st_show(st)?
+    let thread = self.st_show(st)?;
+    thread
       .wps
       .iter()
       .find(|w| w.seq == seq)
       .ok_or_else(|| FacadeError::NoSuchWorkPackage {
-        st: st.to_string(),
+        // The thread as a person reads it (close sweep A 1.6): a door passes
+        // the stored spelling, which is sixteen hex for a git-style id.
+        st: thread.id.shown(),
         wp: seq.heading(),
       })
   }
@@ -6529,7 +6558,7 @@ impl Facade {
   ) -> Result<&WorkPackage, FacadeError> {
     let crate::id::Spelled::Whole(seq) = wp else {
       return Err(FacadeError::NoSuchWorkPackage {
-        st: thread.to_string(),
+        st: crate::nav::shown_or_as_is(thread),
         wp: format!("work package `{}`", wp.segment()),
       });
     };
@@ -14019,22 +14048,30 @@ impl Facade {
         })),
       }
     };
-    let stem = |name: &str| name.split('.').next().unwrap_or_default().to_string();
-    let seen = |dirs: [std::path::PathBuf; 2]| -> Result<Vec<String>, FacadeError> {
-      let mut seen = Vec::new();
+    // The record each name in the tree belongs to, read by `Project::owner_of`
+    // (close sweep A 1.8), the one reader of which record owns a path, so no
+    // name is cut at its dot here. A name that is no record's is passed over,
+    // as it always was.
+    let owners = |dirs: [std::path::PathBuf; 2]| -> Result<Vec<Named>, FacadeError> {
+      let mut owners = Vec::new();
       for dir in dirs {
-        seen.extend(names(dir)?.iter().map(|name| stem(name)));
+        for name in names(dir.clone())? {
+          owners.extend(self.project.owner_of(&dir.join(name)));
+        }
       }
-      seen.extend(taken.iter().cloned());
-      Ok(seen)
+      Ok(owners)
     };
     match from {
       Named::Thread(_) => {
         let mut visible: Vec<crate::id::ThreadId> =
           self.canon.threads.iter().map(|t| t.id.clone()).collect();
-        let tree = seen([self.project.canon_st_dir(), self.project.st_dir()])?;
+        let tree = owners([self.project.canon_st_dir(), self.project.st_dir()])?;
+        visible.extend(tree.into_iter().filter_map(|owner| match owner {
+          Named::Thread(id) => Some(id),
+          Named::Issue(_) => None,
+        }));
         visible.extend(
-          tree
+          taken
             .iter()
             .filter_map(|id| crate::id::ThreadId::parse(id).ok()),
         );
@@ -14045,9 +14082,13 @@ impl Facade {
       Named::Issue(_) => {
         let mut visible: Vec<crate::id::IssueId> =
           self.canon.issues.iter().map(|i| i.number).collect();
-        let tree = seen([self.project.issues_dir(), self.project.issues_view_dir()])?;
+        let tree = owners([self.project.issues_dir(), self.project.issues_view_dir()])?;
+        visible.extend(tree.into_iter().filter_map(|owner| match owner {
+          Named::Issue(id) => Some(id),
+          Named::Thread(_) => None,
+        }));
         visible.extend(
-          tree
+          taken
             .iter()
             .filter_map(|id| crate::id::IssueId::parse(id).ok()),
         );
@@ -14405,14 +14446,17 @@ impl Facade {
   }
 
   fn thread_both_sides_added_packages_to(&self, path: &str) -> Result<Option<String>, FacadeError> {
-    let canon_st = format!("{}/", self.project.relative(&self.project.canon_st_dir()));
-    let Some(id) = path
-      .strip_prefix(&canon_st)
-      .and_then(|rest| rest.strip_suffix(".json"))
-      .filter(|id| crate::id::ThreadId::parse(id).is_ok())
+    // Which thread owns the path is `Project::owner_of`'s answer, and whether
+    // it is that thread's own record is the layout's (close sweep A 1.4), as
+    // `plan::classify` asks them: neither is spelled here.
+    let Some(crate::id::Named::Thread(owner)) = self.project.owner_of(std::path::Path::new(path))
     else {
       return Ok(None);
     };
+    if self.project.relative(&self.project.thread_json(&owner)) != path {
+      return Ok(None);
+    }
+    let id = owner.stored();
     let root = self.project.root();
     // A missing version (an add/add has no base, a delete has no side) is a
     // side to take, whichever version it is, so all three are fetched before
@@ -14503,21 +14547,18 @@ impl Facade {
           .zip(crate::id::ThreadId::parse(to).ok())
           .and_then(|(old, new)| crate::renumber::thread(&self.canon, &old, &new))
           .ok_or_else(|| no_such_thread(from))?;
+        // Every path the thread owns (close sweep A 1.3): its records
+        // directory too, so the old id's records go back to the pulled side
+        // and the new id's are staged with the rest.
         (
-          vec![
-            (
-              rel(self.project.thread_json(from)),
-              rel(self.project.thread_json(to)),
-            ),
-            (
-              rel(self.project.canon_thread_dir(from)),
-              rel(self.project.canon_thread_dir(to)),
-            ),
-            (
-              rel(self.project.thread_dir(from)),
-              rel(self.project.thread_dir(to)),
-            ),
-          ],
+          self
+            .project
+            .thread_paths(from)
+            .all()
+            .into_iter()
+            .zip(self.project.thread_paths(to).all())
+            .map(|(old, new)| (rel(old), rel(new)))
+            .collect::<Vec<_>>(),
           Sigil::SteelThread,
           model,
         )
@@ -14563,8 +14604,10 @@ impl Facade {
       };
 
     // This clone's authored files move to the new id, from `HEAD`. Its canon
-    // file and its views are the store's to write, below.
-    let thread_dir = matches!(minted, Named::Thread(_)).then(|| rel(self.project.thread_dir(from)));
+    // file, its records and its views are the store's to write, below.
+    let owned = matches!(minted, Named::Thread(_)).then(|| self.project.thread_paths(from));
+    let thread_dir = owned.as_ref().map(|paths| rel(paths.realised.clone()));
+    let records = owned.as_ref().map(|paths| rel(paths.records.clone()));
     // **EVERY MOVE IS DECIDED BEFORE ANY IS WRITTEN**, so a refusal leaves the
     // tree as it found it rather than half moved.
     let mut moves: Vec<(&String, String)> = Vec::new();
@@ -14576,10 +14619,11 @@ impl Facade {
         continue;
       };
       // A prefix that is a FILE -- the canon file, an issue's view -- is the
-      // store's to write at the new id. Under the realised directory a
-      // generated view is too; everything else there, and every canon sidecar,
-      // is this clone's authored bytes.
-      if path == old {
+      // store's to write at the new id, and so is every record under the
+      // records directory. Under the realised directory a generated view is
+      // too; everything else there, and every canon sidecar, is this clone's
+      // authored bytes.
+      if path == old || Some(old) == records.as_ref() {
         continue;
       }
       let within = path[old.len()..].trim_start_matches('/');
@@ -17352,21 +17396,16 @@ impl Facade {
   ) -> Result<Renumbering, FacadeError> {
     self.refuse_a_store_not_this_checkouts()?;
     self.st_show(old)?;
-    let subject = format!("steel thread {new}");
+    let subject = format!("steel thread {}", crate::nav::shown_or_as_is(new));
     if self.canon.threads.iter().any(|t| t.id == new) {
       return Err(FacadeError::RenumberTargetTaken {
         subject,
         held_by: "the store".to_string(),
       });
     }
-    self.refuse_a_taken_path(
-      &subject,
-      &[
-        self.project.thread_json(new),
-        self.project.thread_dir(new),
-        self.project.canon_thread_dir(new),
-      ],
-    )?;
+    // Every path the move below writes, its records directory included (close
+    // sweep A 1.3): the list is the one the move takes its directories from.
+    self.refuse_a_taken_path(&subject, &self.project.thread_paths(new).all())?;
     let old_id = self.st_show(old)?.id.clone();
     let new_id =
       crate::id::ThreadId::parse(new).map_err(|e| not_an_id(new, &e, crate::id::IdKind::Thread))?;
@@ -17396,23 +17435,13 @@ impl Facade {
       // nobody modelled; the canon directory carries the opaque sidecars; the
       // records directory carries each child's file in the release's format
       // (ST0096 WP-05), which the write then rewrites in place.
-      moves: vec![
-        (self.project.thread_dir(old), self.project.thread_dir(new)),
-        (
-          self.project.canon_thread_dir(old),
-          self.project.canon_thread_dir(new),
-        ),
-        (
-          self
-            .project
-            .intent_dir()
-            .join(crate::project::canon_records_rel(old)),
-          self
-            .project
-            .intent_dir()
-            .join(crate::project::canon_records_rel(new)),
-        ),
-      ],
+      moves: self
+        .project
+        .thread_paths(old)
+        .dirs()
+        .into_iter()
+        .zip(self.project.thread_paths(new).dirs())
+        .collect(),
       stale: vec![self.project.thread_json(old)],
       rerender: Some(self.project.thread_dir(new)),
       envelope,
@@ -18459,7 +18488,7 @@ impl Facade {
       // scope nobody ever wrote. The envelope records what was actually there.
       .map(|w| w.scope_display())
       .ok_or_else(|| FacadeError::NoSuchWorkPackage {
-        st: st.to_string(),
+        st: crate::nav::shown_or_as_is(st),
         wp: seq.heading(),
       })?;
 
@@ -18489,7 +18518,7 @@ impl Facade {
       .iter_mut()
       .find(|w| w.seq == seq)
       .ok_or_else(|| FacadeError::NoSuchWorkPackage {
-        st: st.to_string(),
+        st: crate::nav::shown_or_as_is(st),
         wp: seq.heading(),
       })?;
     wp.scope = Some(scope);
@@ -18985,8 +19014,16 @@ impl Facade {
       .collect();
 
     if !introduced.is_empty() {
+      // The thread as a person reads it, in the commands the remedy names and
+      // in the row's address (close sweep A 1.6 and A 1.12).
+      let shown = crate::nav::shown_or_as_is(st);
       return Err(FacadeError::RowBreaksContract {
-        st: st.to_string(),
+        url: crate::address::Entity::At {
+          thread: shown.clone(),
+          at: row.id.clone(),
+        }
+        .local_url(),
+        st: shown,
         at: row.id.clone(),
         findings: introduced.join("; "),
       });
@@ -19338,7 +19375,7 @@ impl Facade {
     let file = after.file.as_deref().unwrap_or_default();
     if matches!(after.kind, AtKind::NonTest) && after.file != before.file && !file.is_empty() {
       return Err(FacadeError::FileOnANonTestRow {
-        st: st.to_string(),
+        st: crate::nav::shown_or_as_is(st),
         at: after.id.clone(),
         file: file.to_string(),
       });
@@ -19857,7 +19894,7 @@ impl Facade {
     };
     if !fits {
       return Err(FacadeError::VerdictWrongForKind {
-        st: st.to_string(),
+        st: crate::nav::shown_or_as_is(st),
         at: at.to_string(),
         kind: crate::model::enum_str(&kind),
         status: status.display().to_string(),
@@ -20142,11 +20179,7 @@ impl Facade {
         let value = Self::posted_json(address, body)?;
         let title = Self::posted_title(address, &value)?;
         let id = self.st_new(&title)?;
-        Ok(Address {
-          authority: None,
-          entity: AddrEntity::Thread { id },
-          format: address.format,
-        })
+        Ok(Address::local(AddrEntity::Thread { id }).with_format(address.format))
       }
       // **THE SECOND AND THIRD OF D57-8's THREE SERVER-ASSIGNED POPULATIONS.**
       // `_threads, issues, WP seq_` is the design's own list; until 2026-08-20
@@ -20164,13 +20197,12 @@ impl Facade {
             .and_then(|v| v.as_str())
             .unwrap_or_default(),
         )?;
-        Ok(Address {
-          authority: None,
-          entity: AddrEntity::Issue {
+        Ok(
+          Address::local(AddrEntity::Issue {
             id: number.stored(),
-          },
-          format: address.format,
-        })
+          })
+          .with_format(address.format),
+        )
       }
       AddrEntity::WpCollection { thread } => {
         let value = Self::posted_json(address, body)?;
@@ -20190,14 +20222,13 @@ impl Facade {
           })?,
         };
         let seq = self.wp_new(thread, &title, scope)?;
-        Ok(Address {
-          authority: None,
-          entity: AddrEntity::Wp {
+        Ok(
+          Address::local(AddrEntity::Wp {
             thread: thread.clone(),
             wp: crate::id::Spelled::Whole(seq),
-          },
-          format: address.format,
-        })
+          })
+          .with_format(address.format),
+        )
       }
       // **REFUSED BY NAME, WITH THE REASON THAT DECIDES IT: the id is already
       // known, so the entity address exists and `PUT` is the verb that reaches
@@ -21143,6 +21174,7 @@ impl Facade {
         url: address.to_url(),
         path: path.clone(),
         thread: thread.clone(),
+        carried_in: crate::doctor::ThreadFiles::of(&self.project, holder).attachments(),
       });
     }
     let (thread, path) = (thread.clone(), path.clone());
@@ -21233,6 +21265,7 @@ impl Facade {
       return Err(FacadeError::NoSuchRelated {
         thread: id.to_string(),
         target: target.to_string(),
+        canon: self.project.relative(&self.project.thread_json(&holder.id)),
       });
     }
     self
@@ -22463,7 +22496,7 @@ impl Facade {
       };
       if !on_disk.body.is_empty() {
         return Err(FacadeError::WriteWouldEmptyAnAuthoredBody {
-          subject: format!("issue {}", issue.number.stored()),
+          subject: format!("issue {}", issue.number.shown()),
           had: on_disk.body.len(),
         });
       }
@@ -22490,7 +22523,7 @@ impl Facade {
       };
       if views::carriable_cover(thread, &ctx, &on_disk) {
         return Err(FacadeError::CoverEditNotCarried {
-          id: thread.id.stored(),
+          id: thread.id.shown(),
           path: self.project.relative(&cover),
         });
       }
@@ -23193,15 +23226,16 @@ impl Facade {
 /// holding a remedy that does not parse.
 ///
 /// **THE FIELD NAME IS NOT THE ADDRESS SEGMENT.** The model calls them
-/// `wps`/`criteria`/`tests`; the grammar spells them `wp`/`ac`/`at`
-/// (`address.rs:445-467`). Interpolating one as the other prints a remedy that
-/// sends an operator to a parse error from the tool that just told them to go
-/// there.
+/// `wps`/`criteria`/`tests`; the grammar spells them `wp`/`ac`/`at`, and the
+/// segments are the grammar's own constants (close sweep A 1.12), which its
+/// parse and its writer take too. Interpolating one as the other prints a
+/// remedy that sends an operator to a parse error from the tool that just
+/// told them to go there.
 const CHILD_COLLECTIONS: [(&str, &str); 4] = [
-  ("wps", "wp"),
-  ("criteria", "ac"),
-  ("tests", "at"),
-  ("attachments", "attachments"),
+  ("wps", crate::address::WP_SEGMENT),
+  ("criteria", crate::address::AC_SEGMENT),
+  ("tests", crate::address::AT_SEGMENT),
+  ("attachments", crate::address::ATTACHMENTS_SEGMENT),
 ];
 
 /// Every property name a model declares, ABSENT OPTIONALS INCLUDED.
@@ -23674,7 +23708,7 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
       "status" => Some(Unsettable::Machine(
         "intent wp start|done|fc|unstart|reopen|cancel|reinstate",
       )),
-      "fiat" => Some(Unsettable::Machine("intent fc <ST-id>/<NN> --because")),
+      "fiat" => Some(Unsettable::Machine("intent fc <ST-id>/<package> --because")),
       _ => None,
     },
     AddrEntity::Ac { .. } => match field {
@@ -23888,7 +23922,7 @@ fn ac_row(thread: &Thread, c: &Criterion) -> AcRow {
     // satisfaction comes from a covering green test and storing it too
     // would be the double truth data-model.md forbids.
     state: match &c.state {
-      AcState::Descoped { to, .. } => format!("descoped-to: {}", to.stored()),
+      AcState::Descoped { to, .. } => format!("descoped-to: {}", to.shown()),
       AcState::Withdrawn { reason, .. } => format!("withdrawn: {reason}"),
       // **ISSUE 0137, AND IT WAS A WILDCARD SWALLOWING A STATE THAT HAS
       // TWO EXPLICIT NEIGHBOURS.** `Fiat` fell into the `_` arm below and

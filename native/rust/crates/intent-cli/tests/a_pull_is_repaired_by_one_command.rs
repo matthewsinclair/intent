@@ -50,6 +50,16 @@ impl Team {
   /// written by each clone with its own creation event. Bob's event is
   /// [`BOBS_CREATION`], which his record's new id derives from.
   fn both_mint_the_same_id_and_bob_pulls(&self) -> (String, String) {
+    self.both_mint_the_same_id_and_bob_pulls_with(&[])
+  }
+
+  /// As [`Self::both_mint_the_same_id_and_bob_pulls`], with `bobs_packages`
+  /// under Bob's thread, so his thread has records of its own that the repair
+  /// must move with it.
+  fn both_mint_the_same_id_and_bob_pulls_with(
+    &self,
+    bobs_packages: &[(u32, &str)],
+  ) -> (String, String) {
     let id = intentsvcs::id::ThreadId::from_ordinal(1)
       .expect("an ordinal thread")
       .stored();
@@ -62,7 +72,7 @@ impl Team {
     self
       .forge
       .git(&self.alice, &["push", "-q", "origin", "HEAD:main"]);
-    crate::common::seed_ordinal_thread(&self.bob, &id, "Bob's next", &[]);
+    crate::common::seed_ordinal_thread(&self.bob, &id, "Bob's next", bobs_packages);
     crate::common::seed_creation_event(&self.bob, BOBS_CREATION, "st.new", "thread", &id);
     self
       .forge
@@ -204,7 +214,9 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
 fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerated_is_staged() {
   let team = Team::new();
   let forge = &team.forge;
-  let (merge, minted) = team.both_mint_the_same_id_and_bob_pulls();
+  // Bob's thread has a package, so it has a record of its own under
+  // `.canon/records/`, which the repair moves with it (close sweep A 1.3).
+  let (merge, minted) = team.both_mint_the_same_id_and_bob_pulls_with(&[(1, "Bob's first")]);
   // Where sync's repair moves this clone's thread: the git-style id its own
   // creation event mints (ST0095 WP-06), which this clone's log holds.
   let moved = intentsvcs::id::ThreadId::from_origin(BOBS_CREATION).stored();
@@ -304,6 +316,28 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
       "sync staged a path it did not regenerate: {path}"
     );
   }
+  // Close sweep A 1.3: the repair restores and stages every path the thread
+  // owns, its records directory included. Bob's package record is staged under
+  // the id his thread moved to, and none is left under the id the pulled side
+  // keeps, which holds no package.
+  let project = intentsvcs::project::Project::open(bob).expect("bob's project");
+  let package = intentsvcs::id::WpId::from_ordinal(1)
+    .expect("an ordinal package")
+    .stored();
+  let record_of = |thread: &str| {
+    project
+      .intent_dir()
+      .join(intentsvcs::project::canon_wp_rel(thread, &package))
+  };
+  let moved_record = project.relative(&record_of(&moved));
+  assert!(
+    staged.lines().any(|path| path == moved_record),
+    "the moved thread's package record {moved_record} is staged: {staged}"
+  );
+  assert!(
+    !record_of(&minted).exists(),
+    "no record of bob's package is left under the pulled {minted}"
+  );
   assert!(
     forge
       .git(bob, &["status", "--porcelain"])

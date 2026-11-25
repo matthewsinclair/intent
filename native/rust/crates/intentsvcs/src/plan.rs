@@ -627,30 +627,30 @@ pub fn classify(
             project.relative(&project.intent_dir().join(crate::project::CANON_RECORDS_DIR))
           )) =>
         {
-          let packages = format!(
-            "{}/",
-            project.relative(
-              &project
-                .intent_dir()
-                .join(crate::project::canon_children_rel(
-                  &id.stored(),
-                  crate::project::CANON_WP_DIR
-                ))
-            )
-          );
-          match path
-            .strip_prefix(&packages)
-            .and_then(|file| file.strip_suffix(".json"))
-          {
-            // The file's name is read as a package id (issue If57165a): one
-            // that is not is no package, and is a side to take like any other
-            // path, and ingest reports it after the merge: a file it cannot
-            // parse by its parse finding, one it can as `SchemaInvalid`, since
-            // its name and its record disagree.
-            Some(package) if entry.is_add_add() && crate::id::WpId::parse(package).is_ok() => {
+          // The file's name is read as a package id (issue If57165a), and the
+          // path is confirmed against the layout's name for that package's
+          // record, as `Project::owner_of` confirms a record's path (close
+          // sweep A 1.4): the layout is not read backwards here. A name that
+          // is no package id is no package, and is a side to take like any
+          // other path, and ingest reports it after the merge: a file it
+          // cannot parse by its parse finding, one it can as `SchemaInvalid`,
+          // since its name and its record disagree.
+          let package = std::path::Path::new(path)
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .and_then(|stem| crate::id::WpId::parse(stem).ok())
+            .filter(|package| {
+              project.relative(&project.intent_dir().join(crate::project::canon_wp_rel(
+                &id.stored(),
+                &package.stored(),
+              )))
+                == path
+            });
+          match package {
+            Some(package) if entry.is_add_add() => {
               out.packages_added_twice.push(PackageAddedTwice {
                 thread: id.stored(),
-                package: package.to_string(),
+                package: package.stored(),
                 path: path.to_string(),
               })
             }

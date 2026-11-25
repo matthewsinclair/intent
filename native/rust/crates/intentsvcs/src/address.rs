@@ -340,6 +340,18 @@ impl Entity {
   }
 }
 
+/// The segment that names a thread's work packages in an address, and the
+/// three below it each name one other kind of a thread's children: the parse,
+/// the writer and the facade's table of a thread's child collections take
+/// them from here (ST1c2db93 close sweep, A 1.12).
+pub const WP_SEGMENT: &str = "wp";
+/// See [`WP_SEGMENT`].
+pub const AC_SEGMENT: &str = "ac";
+/// See [`WP_SEGMENT`].
+pub const AT_SEGMENT: &str = "at";
+/// See [`WP_SEGMENT`].
+pub const ATTACHMENTS_SEGMENT: &str = "attachments";
+
 /// A parsed `intent://` address.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Address {
@@ -563,8 +575,8 @@ const VIEW_NAMES: &[&str] = &[
   crate::project::ACCEPTANCE_VIEW,
   crate::project::TODO_VIEW,
   crate::project::STEEL_THREADS_VIEW_NAME,
-  "info",
-  "acceptance",
+  crate::project::INFO_STEM,
+  crate::project::ACCEPTANCE_STEM,
 ];
 
 /// The segment that makes an address name a VIEW, if one does.
@@ -597,7 +609,7 @@ const VIEW_NAMES: &[&str] = &[
 /// `/threads/ST0000/wp/01/info.md` stay refused.
 fn view_segment<'a>(segments: &[&'a str]) -> Option<&'a str> {
   let (head, remainder): (&[&str], &[&str]) = match segments {
-    ["threads", _, "attachments", rest @ ..] => (&segments[..3], rest),
+    ["threads", _, ATTACHMENTS_SEGMENT, rest @ ..] => (&segments[..3], rest),
     _ => (segments, &[]),
   };
   if let Some(s) = head.iter().find(|s| VIEW_NAMES.contains(s)) {
@@ -738,29 +750,29 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
     // the grammar and false of the design: `POST` needs a collection address
     // for every population whose ids the tool assigns, and there are three.
     ["issues"] => Ok(Entity::Issues),
-    ["threads", id, "wp"] => Ok(Entity::WpCollection {
+    ["threads", id, WP_SEGMENT] => Ok(Entity::WpCollection {
       thread: thread(id)?,
     }),
     ["threads", id] => Ok(Entity::Thread { id: thread(id)? }),
-    ["threads", id, "ac"] => Ok(Entity::AcCollection {
+    ["threads", id, AC_SEGMENT] => Ok(Entity::AcCollection {
       thread: thread(id)?,
     }),
-    ["threads", id, "wp", wp] => Ok(Entity::Wp {
+    ["threads", id, WP_SEGMENT, wp] => Ok(Entity::Wp {
       thread: thread(id)?,
       wp: package(wp)?,
     }),
-    ["threads", id, "ac", ac] => Ok(Entity::Ac {
+    ["threads", id, AC_SEGMENT, ac] => Ok(Entity::Ac {
       thread: thread(id)?,
       ac: ac.to_string(),
     }),
-    ["threads", id, "at", at] => Ok(Entity::At {
+    ["threads", id, AT_SEGMENT, at] => Ok(Entity::At {
       thread: thread(id)?,
       at: at.to_string(),
     }),
     // The attachment path is the REMAINDER, because an attachment lives at a
     // relative path with its own separators. Rejoined rather than kept as
     // segments so the value is what `Project::classify` takes.
-    ["threads", id, "attachments", rest @ ..] if !rest.is_empty() => Ok(Entity::Attachment {
+    ["threads", id, ATTACHMENTS_SEGMENT, rest @ ..] if !rest.is_empty() => Ok(Entity::Attachment {
       thread: thread(id)?,
       path: rest.join("/"),
     }),
@@ -793,14 +805,14 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
     // the earlier segment and the one they can see.
     ["nodes"] => Err(incomplete("a node moniker", "/nodes/ic")),
     ["events"] => Err(incomplete("an event id", "/events/1")),
-    ["threads", id, "at"] => {
+    ["threads", id, AT_SEGMENT] => {
       thread(id)?;
       Err(incomplete(
         "an acceptance test id",
         "/threads/ST0000/at/<AT id>",
       ))
     }
-    ["threads", id, "attachments"] => {
+    ["threads", id, ATTACHMENTS_SEGMENT] => {
       thread(id)?;
       Err(incomplete(
         "an attachment path",
@@ -840,19 +852,28 @@ impl Address {
     }
   }
 
+  /// This address asking for `format`, for a local address that answers in
+  /// the format its request asked for (close sweep row D10), so a caller
+  /// builds it from [`Self::local`] and never spells the empty authority.
+  pub fn with_format(self, format: Option<Format>) -> Address {
+    Address { format, ..self }
+  }
+
   /// Render back to a string. Round-trips with [`parse`].
   pub fn to_url(&self) -> String {
     let authority = self.authority.as_deref().unwrap_or("");
     let path = match &self.entity {
       Entity::Threads => "threads".to_string(),
       Entity::Issues => "issues".to_string(),
-      Entity::WpCollection { thread } => format!("threads/{thread}/wp"),
+      Entity::WpCollection { thread } => format!("threads/{thread}/{WP_SEGMENT}"),
       Entity::Thread { id } => format!("threads/{id}"),
-      Entity::AcCollection { thread } => format!("threads/{thread}/ac"),
-      Entity::Wp { thread, wp } => format!("threads/{thread}/wp/{}", wp.segment()),
-      Entity::Ac { thread, ac } => format!("threads/{thread}/ac/{ac}"),
-      Entity::At { thread, at } => format!("threads/{thread}/at/{at}"),
-      Entity::Attachment { thread, path } => format!("threads/{thread}/attachments/{path}"),
+      Entity::AcCollection { thread } => format!("threads/{thread}/{AC_SEGMENT}"),
+      Entity::Wp { thread, wp } => format!("threads/{thread}/{WP_SEGMENT}/{}", wp.segment()),
+      Entity::Ac { thread, ac } => format!("threads/{thread}/{AC_SEGMENT}/{ac}"),
+      Entity::At { thread, at } => format!("threads/{thread}/{AT_SEGMENT}/{at}"),
+      Entity::Attachment { thread, path } => {
+        format!("threads/{thread}/{ATTACHMENTS_SEGMENT}/{path}")
+      }
       Entity::Issue { id } => format!("issues/{id}"),
       Entity::Node { moniker } => format!("nodes/{moniker}"),
       Entity::NodeInbox {

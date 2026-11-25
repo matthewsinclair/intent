@@ -750,12 +750,15 @@ impl Remedy for IntentfilesError {
     match self {
       // Both id families, from the id module's worked example (ST1c2db93 P4).
       IntentfilesError::UnknownSigil { .. } => {
-        use crate::id::{EXAMPLE_HEX, ISSUE_MARKER, THREAD_PREFIX};
+        use crate::id::{EXAMPLE_HEX, ISSUE_DIGITS, ISSUE_MARKER, THREAD_DIGITS, THREAD_PREFIX};
         format!(
           "write `{}` or `{}`, or `{}` or `{}`; the manifest names artefacts, never files",
-          declared_key(Sigil::SteelThread, &format!("{THREAD_PREFIX}0000")),
+          declared_key(
+            Sigil::SteelThread,
+            &format!("{THREAD_PREFIX}{}", "0".repeat(THREAD_DIGITS)),
+          ),
           declared_key(Sigil::SteelThread, &format!("{THREAD_PREFIX}{EXAMPLE_HEX}")),
-          declared_key(Sigil::Issue, "0000"),
+          declared_key(Sigil::Issue, &"0".repeat(ISSUE_DIGITS)),
           declared_key(Sigil::Issue, &format!("{ISSUE_MARKER}{EXAMPLE_HEX}")),
         )
       }

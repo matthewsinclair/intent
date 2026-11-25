@@ -288,7 +288,7 @@ fn id_names_the_record_each_spelling_names() {
   let package = answer(&doc, 2);
   assert_eq!(
     package["canon"], thread["canon"],
-    "a package's canon is its thread's, which carries it:\n{doc:#}"
+    "in 3.4.0's format, as seeded, a package's canon is its thread's, which carries it:\n{doc:#}"
   );
   let thread_dir = thread["path"].as_str().expect("a thread path");
   assert!(
@@ -334,5 +334,29 @@ fn id_names_the_record_each_spelling_names() {
       && lines[3].starts_with(&format!("not-an-id token={elsewhere} -- "))
       && lines[3].contains("names the project `elsewhere`"),
     "another project's address is no id of a record here:\n{out}{err}"
+  );
+
+  // In the release's format a package is a record of its own (ST1c2db93 close
+  // sweep, A 1.2), so a package `wp new` makes names that record, and not its
+  // thread's file, as its canon. Last, because the writes below may move the
+  // seeded thread into the release's format too.
+  let minted = created(&ok(
+    root,
+    &["st", "new", "A thread in the release's format"],
+  ));
+  let made = created(&ok(
+    root,
+    &["wp", "new", minted.as_str(), "A package of its own"],
+  ));
+  let doc: Value = serde_json::from_str(&ok(
+    root,
+    &["id", minted.as_str(), made.as_str(), "--format", "json"],
+  ))
+  .expect("`intent id --format json` prints one JSON document");
+  let (thread, package) = (answer(&doc, 0), answer(&doc, 1));
+  let canon = package["canon"].as_str().expect("a canon path");
+  assert!(
+    root.join(canon).is_file() && package["canon"] != thread["canon"],
+    "a package in the release's format names its own record as its canon:\n{doc:#}"
   );
 }

@@ -336,7 +336,7 @@ type Invoker {
 }
 
 """
-An issue: `issues/<n>.json` (structure) + `issues/<n>.md` (authored body).
+An issue: `intent/.canon/issues/<ID>.json`, its authored body included.
 """
 type Issue {
   """
@@ -471,7 +471,9 @@ type Related {
 }
 
 """
-A steel thread: `st/<ID>/thread.json`.
+A steel thread: `intent/.canon/st/<ID>.json`, with each work package,
+criterion, test and attachment a record of its own under
+`intent/.canon/records/<ID>/`.
 """
 type Thread {
   """
