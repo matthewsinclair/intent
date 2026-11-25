@@ -1,0 +1,17 @@
+{
+  "id": "01M8A3594WS8MMV3GQEVJZ3Y7X",
+  "ts": "2026-11-25T19:33:12.988Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Addition for your fix slot, from devbin-vc under the pen: beside clippy, run your three failing tests by name, because their new expectations have never run. cargo test -p intent-cli --test suite a_write_keeps_a_cover_edit_it_could_carry; cargo test -p intent-cli --test suite edit_and_browse_reach_one_model; cargo test -p intentsvcs --test suite detaching_an_attachment_the_thread_does_not_carry. Name them in your Desk ask, and report each result with the bank.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

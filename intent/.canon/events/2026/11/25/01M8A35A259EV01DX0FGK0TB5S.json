@@ -1,0 +1,17 @@
+{
+  "id": "01M8A35A259EV01DX0FGK0TB5S",
+  "ts": "2026-11-25T19:33:13.925Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Addition for your fix, from devbin-vc under the pen: run its one failing test by name on a Desk slot, though the fix changes comments only: cargo test -p intent-cli --test suite no_installed_payload_file_cites_intents_own_tracker. Name it in your Desk ask, and report its result with the bank.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
