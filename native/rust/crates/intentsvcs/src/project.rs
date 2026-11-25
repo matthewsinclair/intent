@@ -2491,7 +2491,7 @@ impl Project {
   /// treat as missing. An absent whiteboard directory is the same answer as an
   /// empty one -- a project that has never run the protocol has no board, which
   /// is not a defect to report. A directory that does not read is the error
-  /// ([`Self::entries_in`]).
+  /// (`Self::entries_in`).
   pub fn board_nodes(&self) -> Result<Vec<String>, ProjectError> {
     let mut nodes: Vec<String> = self
       .entries_in(&self.whiteboard_dir())?
@@ -3094,7 +3094,7 @@ impl Project {
 
   /// Every thread id with committed canon, sorted. Absent `st/` is an empty
   /// project, not an error -- `intent init` creates the directory lazily. A
-  /// directory that does not read is the error ([`Self::entries_in`]).
+  /// directory that does not read is the error (`Self::entries_in`).
   pub fn thread_ids(&self) -> Result<Vec<crate::id::ThreadId>, ProjectError> {
     let mut ids = Vec::new();
     for path in self.entries_in(&self.canon_st_dir())? {
@@ -3133,8 +3133,8 @@ impl Project {
   }
 
   /// Every issue with committed canon, by id, sorted. A file whose name is not
-  /// an issue id is refused by name ([`Self::canon_name`]), and a directory
-  /// that does not read is the error ([`Self::entries_in`]).
+  /// an issue id is refused by name (`Self::canon_name`), and a directory
+  /// that does not read is the error (`Self::entries_in`).
   pub fn issue_numbers(&self) -> Result<Vec<crate::id::IssueId>, ProjectError> {
     let mut ids = Vec::new();
     for path in self.entries_in(&self.issues_dir())? {

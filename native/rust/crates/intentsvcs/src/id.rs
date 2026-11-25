@@ -2279,14 +2279,14 @@ pub fn regrouped(label: &str, wp: WpId) -> String {
 }
 
 /// The sequence a label carries after its dot, when it is a number:
-/// `AC-01.3` carries 3. Read through [`label_parts`], so no caller strips a
+/// `AC-01.3` carries 3. Read through `label_parts`, so no caller strips a
 /// head of its own (ST1c2db93 close sweep, A 1.5).
 pub fn label_seq(label: &str) -> Option<u32> {
   label_parts(label)?.2.parse().ok()
 }
 
 /// A label of `kind` in `group` at `seq`, eg `AC-01.3`, joined by
-/// [`label_join`], which [`label_parts`] splits back.
+/// `label_join`, which `label_parts` splits back.
 pub fn label_of(kind: LabelKind, group: &str, seq: u32) -> String {
   label_join(kind.head(), group, seq)
 }

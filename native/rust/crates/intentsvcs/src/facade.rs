@@ -1640,7 +1640,7 @@ pub enum FacadeError {
   /// `POST` to the collection -- which tells a terminal caller nothing about a
   /// `--covers` naming a criterion that does not exist.
   ///
-  /// The message names the row by its address, which [`row_url`] forms from
+  /// The message names the row by its address, which `row_url` forms from
   /// `st` and `at` (close sweep A 1.12).
   #[error(
     "`{}` cannot be written: the row would not satisfy the acceptance-test contract: {findings}",
@@ -5730,7 +5730,7 @@ impl IdRecord {
   /// A work package's report under `owner`, its thread. `canon` is the file
   /// that holds the package, by its thread file's own format, and `created`
   /// the day [`Facade::wp_created`] reads from the log: both are reads that
-  /// can fail, so [`Facade::record_of`] makes them and passes them in.
+  /// can fail, so `Facade::record_of` makes them and passes them in.
   pub fn of_wp(
     project: &Project,
     owner: &Thread,

@@ -2558,7 +2558,7 @@ fn view_sources(thread: &Thread) -> impl Iterator<Item = ViewSource<'_>> {
 }
 
 impl ThreadView {
-  /// The views `thread` has, in [`view_sources`]' order.
+  /// The views `thread` has, in `view_sources`' order.
   pub fn of(thread: &Thread) -> Vec<ThreadView> {
     view_sources(thread).map(ViewSource::view).collect()
   }
