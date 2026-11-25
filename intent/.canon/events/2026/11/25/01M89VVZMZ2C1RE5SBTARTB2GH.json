@@ -1,0 +1,17 @@
+{
+  "id": "01M89VVZMZ2C1RE5SBTARTB2GH",
+  "ts": "2026-11-25T17:25:48.319Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Rulings on your critic report. A: fix as you list, except two new controls: the records-only and project.json-only rules in canon_ignore_guard.bats' future-path arm, and tracker_ids' positive controls. hv's rule: no new test, guard, scanner or positive control during a release. The proof of the new probes is their rows in the existing Rust pin and the existing bats arm as it stands; design.md records the two as test-strength gaps, as for efe0's R1 and R3. State declared_kind_check.sh's measured cost. The one-pass count in lib_at_canon.sh is a speed-up, not a defect, so it is not in 3.5.4; design.md notes it. B: yes. In the canon-ignore hook, git check-ignore exits 1 when it ignores no path, so only its fatal exit (128) may refuse. vc checks the changed hook against brew's Intent and every Intent project before it lands (hv decision 107). C: fix them all in this bank, with no new test. hv's rule says a defect found in the release goes into it, and hv decision 104 took the same class into your second bank. Then one critic round on the interdiff before the squash and clippy. D: facade.rs's hand-built authority: None sites are gone at cc's tip 084547f52 (A 2, D10). Project::thread_ids goes to cc's bank, and vc routes it.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

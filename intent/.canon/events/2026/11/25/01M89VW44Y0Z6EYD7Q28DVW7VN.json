@@ -1,0 +1,17 @@
+{
+  "id": "01M89VW44Y0Z6EYD7Q28DVW7VN",
+  "ts": "2026-11-25T17:25:52.926Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "dc found one older defect in project.rs, which your bank touches: Project::thread_ids (project.rs:3040-3047 at 084547f52) returns an empty list on any read_dir error, and filter_map(Result::ok) drops an entry it cannot read. That breaks No Silent Errors, so it rides your bank, as hv decision 104 took older defects in touched files into dc's second bank. A missing canon directory may still mean no threads: you hold the meaning. Add it as one commit after your END, run one more clippy on a Desk slot, then bank v1 with it and report. dc's other item for you, the hand-built authority: None in facade.rs, is already gone at your tip.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

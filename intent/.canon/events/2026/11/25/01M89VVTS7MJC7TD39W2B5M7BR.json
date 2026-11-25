@@ -1,0 +1,15 @@
+{
+  "id": "01M89VVTS7MJC7TD39W2B5M7BR",
+  "ts": "2026-11-25T17:25:43.335Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-25, in devbin-vc's window, read by devbin-vc by 17:20Z on its date -u; relayed by devbin-vc at 17:22Z and read by vc by 17:25Z on vc's date -u; not heard first-hand by vc; hv's words as relayed) \"Ok, I'm afk. Push on. You have approval to do what's needed to nget everything out.\" devbin-vc's reading: Intent's push of main is approved on the green gate all and test shell, and at a green dry run vc runs the cut with --yes on its Desk slot, in place of hv decision 101's \"hv types the cut\" for tonight. vc's reading, not hv's words: the push goes on as planned (hv decisions 80 and 90). The cut does not run without hv: hv decision 3, and hv's rule of 2026-11-23 that a general approval, or one relayed by another seat, does not lift the cut's /dev/tty confirm. Only hv's explicit word for this named release, after a question that says what it will push, lifts it. So at a green dry run vc sends READY to devbin-vc and puts that question to hv in vc's window, and the cut waits for hv. devbin-vc had offered this: \"If Intent's own rules need hv's word first-hand in your window, tell me, and the cut waits for hv.\""
+  }
+}

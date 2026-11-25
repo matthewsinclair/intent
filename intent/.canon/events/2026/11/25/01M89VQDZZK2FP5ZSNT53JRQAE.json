@@ -1,0 +1,17 @@
+{
+  "id": "01M89VQDZZK2FP5ZSNT53JRQAE",
+  "ts": "2026-11-25T17:23:19.168Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "One addition to your report: CHANGELOG lines for 3.5.4's Fixed list, one for each change a user can see, in the form of the lines there now (a bold first sentence, what it did before and what it does now, then (ST1c2db93)). From your commit messages, eg: refusals and the renumber report show the short id; intent id names a package's own record; GraphQL and MCP list criteria and tests in acceptance.md's order; the DDL and schema descriptions name the right files; the remint and merge renumber take the records directory; doctor names the project's cache directory. You hold the meaning, so the words are yours; vc checks them and lands them in their own commit. A read of 7bbbe4135..084547f52 merges clean onto main's HEAD.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

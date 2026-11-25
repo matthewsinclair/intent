@@ -1,0 +1,17 @@
+{
+  "id": "01M89VQEW1J8AM1THPSHVVD9BS",
+  "ts": "2026-11-25T17:23:20.065Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "One addition to your report: CHANGELOG lines for 3.5.4's Fixed list, one for each change a user can see, in the form of the lines there now (a bold first sentence, what it did before and what it does now, then (ST1c2db93)). From your list, the canon-ignore guard's new probes for a work package's record and project.json are one; a change only to the tests or to the gate tools under ST0056 takes no line. vc checks the words and lands them in their own commit.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

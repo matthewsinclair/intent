@@ -5188,6 +5188,34 @@
       "body": "hv's answer on item 5 (hv decision 106, relayed by devbin-vc at 17:00Z): option (a). The stale_at_check.sh fix parks in ST0084 with the vocab and census tools, and you write nothing more for it. Release your hold on it. design.md records item 5 as Ruled, hv decision 106. devbin-vc puts your clippy first on cargo when you ask.",
       "fyi": false,
       "recorded_at": "2026-11-25T17:01:57.134Z"
+    },
+    {
+      "id": "01M89VQDZZK2FP5ZSNT53JRQAF",
+      "recipient": "cc",
+      "body": "One addition to your report: CHANGELOG lines for 3.5.4's Fixed list, one for each change a user can see, in the form of the lines there now (a bold first sentence, what it did before and what it does now, then (ST1c2db93)). From your commit messages, eg: refusals and the renumber report show the short id; intent id names a package's own record; GraphQL and MCP list criteria and tests in acceptance.md's order; the DDL and schema descriptions name the right files; the remint and merge renumber take the records directory; doctor names the project's cache directory. You hold the meaning, so the words are yours; vc checks them and lands them in their own commit. A read of 7bbbe4135..084547f52 merges clean onto main's HEAD.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:23:19.168Z"
+    },
+    {
+      "id": "01M89VQEW1J8AM1THPSHVVD9BT",
+      "recipient": "dc",
+      "body": "One addition to your report: CHANGELOG lines for 3.5.4's Fixed list, one for each change a user can see, in the form of the lines there now (a bold first sentence, what it did before and what it does now, then (ST1c2db93)). From your list, the canon-ignore guard's new probes for a work package's record and project.json are one; a change only to the tests or to the gate tools under ST0056 takes no line. vc checks the words and lands them in their own commit.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:23:20.065Z"
+    },
+    {
+      "id": "01M89VVZMZ2C1RE5SBTARTB2GJ",
+      "recipient": "dc",
+      "body": "Rulings on your critic report. A: fix as you list, except two new controls: the records-only and project.json-only rules in canon_ignore_guard.bats' future-path arm, and tracker_ids' positive controls. hv's rule: no new test, guard, scanner or positive control during a release. The proof of the new probes is their rows in the existing Rust pin and the existing bats arm as it stands; design.md records the two as test-strength gaps, as for efe0's R1 and R3. State declared_kind_check.sh's measured cost. The one-pass count in lib_at_canon.sh is a speed-up, not a defect, so it is not in 3.5.4; design.md notes it. B: yes. In the canon-ignore hook, git check-ignore exits 1 when it ignores no path, so only its fatal exit (128) may refuse. vc checks the changed hook against brew's Intent and every Intent project before it lands (hv decision 107). C: fix them all in this bank, with no new test. hv's rule says a defect found in the release goes into it, and hv decision 104 took the same class into your second bank. Then one critic round on the interdiff before the squash and clippy. D: facade.rs's hand-built authority: None sites are gone at cc's tip 084547f52 (A 2, D10). Project::thread_ids goes to cc's bank, and vc routes it.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:25:48.319Z"
+    },
+    {
+      "id": "01M89VW44Y0Z6EYD7Q28DVW7VP",
+      "recipient": "cc",
+      "body": "dc found one older defect in project.rs, which your bank touches: Project::thread_ids (project.rs:3040-3047 at 084547f52) returns an empty list on any read_dir error, and filter_map(Result::ok) drops an entry it cannot read. That breaks No Silent Errors, so it rides your bank, as hv decision 104 took older defects in touched files into dc's second bank. A missing canon directory may still mean no threads: you hold the meaning. Add it as one commit after your END, run one more clippy on a Desk slot, then bank v1 with it and report. dc's other item for you, the hand-built authority: None in facade.rs, is already gone at your tip.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:25:52.926Z"
     }
   ],
   "handled": [
