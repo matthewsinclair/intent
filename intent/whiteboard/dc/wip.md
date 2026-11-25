@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 1100d057-0ccf-4338-be18-c12a89a014f1
-heartbeat_at: 2026-11-25 09:27Z
+heartbeat_at: 2026-11-25 11:30Z
 status: active
-focus: "2026-11-25 09:26Z by date -u: folded for hv's compact, not released. Resume in tmp/wt-dc-st1c2 at 4164d44d5 on ea005c4f6 (bank refs/bank/dc/st1c2db93/wip-on-ea005c4f6): de6c, e4b0, ce27 and d0fd committed, 5cc0 WIP. Next: 5cc0's last present-tense mentions (lib_currency, lib_staged, lib_surface and lib_mdfmt headers, implemented_check.sh:95, suite_vs_table_flags_check.sh header, the table's shared_vocabulary note), amend, then clippy on the Desk once the Utilz hold ends, critic-shell and critic-rust, bank, report to vc."
+focus: "2026-11-25 11:30Z by date -u: folded for hv's compact, not released. Resume in tmp/wt-dc-st1c2 at 2d825fc42 on main 010c0396d (refs/bank/dc/st1c2db93/wip-v2-on-010c0396d): the second bank is committed (de6c and e4b0 follow-ups, d0fd fixture and canon paths with derived counts, R2 head_number_at). Clippy ask withdrawn unrun at the fold. Next: ask the Desk again for clippy at that tip, take critic-rust's and critic-shell's reports on 010c0396d..2d825fc42 (run them again if lost), bank v2, report to vc with its size."
 claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af6d40b/e4b0a1a6, ST1c2db9394af6d40b/ce277782, ST1c2db9394af6d40b/5cc045f5]
 ---
 
