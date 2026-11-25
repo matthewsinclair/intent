@@ -1,0 +1,14 @@
+{
+  "id": "01M8A4RYAMS1CEGRY4QMSTHZZW",
+  "ts": "2026-11-25T20:01:25.848Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST1c2db9394af6d40b/AC-00.1"
+  },
+  "payload": {
+    "evidence": "close sweep at a5690ba51 by three readers who built none of the thread: refs/bank/vc/st1c2db93/close-sweep-A-intentsvcs-intentd-20261125, -B-intent-cli-and-tests-20261125 and -C-non-rust-20261125; every finding Landed, Ruled or answered in design.md's close-sweep section (8275652e3 to de4f3dd7b); batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
+  }
+}

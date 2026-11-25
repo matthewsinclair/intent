@@ -3,6 +3,7 @@
   "text": "An independent sweep of the whole tree, by a reader that built none of this thread's packages, finds one home for each id and realisation concern at the 3.5.4 candidate, or each remaining one is answered on the record in design.md.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "close sweep at a5690ba51 by three readers who built none of the thread: refs/bank/vc/st1c2db93/close-sweep-A-intentsvcs-intentd-20261125, -B-intent-cli-and-tests-20261125 and -C-non-rust-20261125; every finding Landed, Ruled or answered in design.md's close-sweep section (8275652e3 to de4f3dd7b); batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

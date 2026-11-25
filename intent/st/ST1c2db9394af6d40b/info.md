@@ -1,9 +1,9 @@
 ---
 st_id: ST1c2db93
 title: Highlander residue after ST0095 and ST0096: one home for every id and realisation concern
-status: WIP
+status: Completed
 created: 2026-11-22
-completed:
+completed: 2026-11-25
 ---
 
 # ST1c2db93: Highlander residue after ST0095 and ST0096: one home for every id and realisation concern
