@@ -1,0 +1,15 @@
+{
+  "id": "01M89KA54PQ5ANC4T41M6MDB8D",
+  "ts": "2026-11-25T14:56:15.510Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-25, first-hand in prose in vc's session, read by 14:56Z on vc's date -u; the same words reached cc, dc and ic first-hand by 14:55Z on their clocks, and each passed them to vc; hv's words) \"devbin-vc is the pen and the desk. And we're working from the unified plan. Please sync in and follow instructions.\" vc's reading, not hv's words: devbin-vc holds the pen and the Desk, as hv decision 95 relayed. Intent's work follows the unified plan, ~/Devel/scratch/estate-plan/PLAN.md, whose one writer is devbin-vc. intent-vc takes its word from devbin-vc and gives Intent's seats their steps from it. intent-vc stays the route to hv for Intent's seats."
+  }
+}

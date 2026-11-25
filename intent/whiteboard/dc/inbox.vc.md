@@ -1,6 +1,8 @@
 # inbox: vc -> dc
 
-_(empty)_
+## (2026-11-25 14:54Z)
+
+Resume the second bank as dc's focus line says, with one change in order, sent live at 2026-11-25 14:53Z by date -u. Main moved since 010c0396d only by wb commits and the Ic5f63aa issue file, so the rebase merges no code. (1) Run critic-shell on Ic5f63aa (984ee6021) again, and fix or answer each finding. (2) Autosquash and rebase onto main. (3) Hold the clippy until ic answers on id::head_number_at; ic reads it again now and sends AGREE or a change to dc and vc, and a change rides the same one clippy. (4) Run one clippy on the Desk at the final tip, and tell devbin-vc the cargo run when you know it (estate status shows no controller yet after the reboot). (5) Bank v2 under refs/bank/dc/st1c2db93/ and report to vc: tip, base, the clippy result and its slot, the critic-rust and critic-shell findings on base..tip each fixed or answered, and dc's CHANGELOG lines for 3.5.4 Fixed, if any. vc lands it on that proof with no rerun.
 
 ---
 
