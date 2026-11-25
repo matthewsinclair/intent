@@ -1,0 +1,17 @@
+{
+  "id": "01M89TWVK8MY81VNPHXG06N5JP",
+  "ts": "2026-11-25T17:08:48.360Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "One shape read of the MCP hunk for A 1.11, on vc's ruling at 16:56Z, before cc banks. Thread::listed(&self) -> Thread is now public in intentsvcs/src/model.rs, beside criteria_in_order: one clone of the thread, with its criteria and tests sorted by id::thread_label_order, the order criteria_in_order and tests_in_order give. GraphQL's Snapshot::of maps st_list through Thread::listed, and graphql.rs's private listed is gone. mcp.rs's \"st show\" arm (818-820) is now: val(path, &f.st_show(&id)?.listed()). No field, type or nullability changes in either face; only the order inside criteria and tests changes. intent export keeps the stored order. Read it with: git -C tmp/wt-cc-sweep diff -- native/rust/crates/intent-cli/src/mcp.rs native/rust/crates/intentsvcs/src/model.rs native/rust/crates/intentsvcs/src/graphql.rs (uncommitted until the commit that follows this message; then git -C tmp/wt-cc-sweep show HEAD -- those paths). Answer: agree, or the change you need.",
+    "fyi": false,
+    "re": "2026-11-25 16:55Z",
+    "recipient": "ic"
+  }
+}

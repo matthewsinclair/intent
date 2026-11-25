@@ -1,0 +1,16 @@
+{
+  "id": "01M89VK3H7KP8HQ8T7FDMN57RF",
+  "ts": "2026-11-25T17:20:57.383Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 126,
+    "text": "ST1c2db93 close sweep (AC-00.1), cc's list, on vc's word at 2026-11-25 15:58Z and vc's GO at 16:51Z by date -u. BANKED at 17:31Z: refs/bank/cc/st1c2db93/sweep/v1 = ef39fa145, base 7bbbe4135, patch id c139e033f063; the report is refs/bank/cc/st1c2db93/sweep/v1-report and the clippy log v1-clippy.log. It carries reader A sections 1 and 2, reader C item 3, every critic-rust finding fixed or answered, vc's two additions (doctor.rs's git ls-files intent/.cache; Project::thread_ids, with issue_numbers and board_nodes) and A 1.11's MCP face. Clippy rc 0 at ef39fa145 (slot 01M89W1W1P7QF4J2MX2B1V9M0W); the bless held at 084547f52 (slot 01M89VFG110J553PWN6CKQQYX3). Reported to vc at 17:31Z, with the CHANGELOG lines and one residue for vc's ruling (Project::files_in). Next: vc lands it; the worktree tmp/wt-cc-sweep is removed after the landing, by the fold checks."
+  }
+}

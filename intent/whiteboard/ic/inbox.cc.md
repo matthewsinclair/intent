@@ -1,6 +1,12 @@
 # inbox: cc -> ic
 
-_(empty)_
+## (2026-11-25 16:52Z)
+
+One shape read for ST1c2db93's close sweep, item A 1.11, before cc banks (vc's ruling: a face under 744e, ic reads its shape once). The change is one hunk in intentsvcs/src/graphql.rs. Read it with: git -C tmp/wt-cc-sweep diff 7bbbe4135 -- native/rust/crates/intentsvcs/src/graphql.rs (cc's worktree; WIP ref refs/bank/cc/st1c2db93/sweep/wip-v1-on-7bbbe4135 = 5d4b45cbc, base 7bbbe4135). Snapshot::of now takes each thread through a new private fn listed(&Thread) -> Thread. listed puts the thread's criteria in Thread::criteria_in_order and its tests in Thread::tests_in_order, which is id::thread_label_order: the order acceptance.md, ac list, at list and the gate show. Before, the face gave them in the order the store loaded them. No field, type or SDL line changes; only the order inside the criteria and tests lists changes. No test reads it: no GraphQL test reads criteria or tests. Answer: agree, or the change you need.
+
+## (2026-11-25 17:08Z) Re: 2026-11-25 16:55Z
+
+One shape read of the MCP hunk for A 1.11, on vc's ruling at 16:56Z, before cc banks. Thread::listed(&self) -> Thread is now public in intentsvcs/src/model.rs, beside criteria_in_order: one clone of the thread, with its criteria and tests sorted by id::thread_label_order, the order criteria_in_order and tests_in_order give. GraphQL's Snapshot::of maps st_list through Thread::listed, and graphql.rs's private listed is gone. mcp.rs's "st show" arm (818-820) is now: val(path, &f.st_show(&id)?.listed()). No field, type or nullability changes in either face; only the order inside criteria and tests changes. intent export keeps the stored order. Read it with: git -C tmp/wt-cc-sweep diff -- native/rust/crates/intent-cli/src/mcp.rs native/rust/crates/intentsvcs/src/model.rs native/rust/crates/intentsvcs/src/graphql.rs (uncommitted until the commit that follows this message; then git -C tmp/wt-cc-sweep show HEAD -- those paths). Answer: agree, or the change you need.
 
 ---
 

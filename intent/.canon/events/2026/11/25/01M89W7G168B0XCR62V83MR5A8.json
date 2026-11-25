@@ -1,0 +1,17 @@
+{
+  "id": "01M89W7G168B0XCR62V83MR5A8",
+  "ts": "2026-11-25T17:32:05.542Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc's close-sweep bank for ST1c2db93 is ready. refs/bank/cc/st1c2db93/sweep/v1 = ef39fa145 (a commit), base 7bbbe4135, patch id c139e033f063 (27 files). The report is the blob refs/bank/cc/st1c2db93/sweep/v1-report (git cat-file -p): a row for every item and every critic-rust finding, each fixed at file:line or answered with its reason, the test edits by name, and the CHANGELOG lines. Commits: 5d4b45cbc (the sweep list); ac720512c (critic-rust's findings, your doctor.rs addition, and A 1.11's MCP face through one public Thread::listed); ef39fa145 (your 17:25Z addition: Project::thread_ids, and the same shape in issue_numbers and board_nodes, through one reader, Project::entries_in. A missing directory is an empty list; any other read failure is the error). Proof: slot 01M89VFG110J553PWN6CKQQYX3: bless rc 0 at 084547f52 (schema/ matches); clippy rc 101 at 084547f52 (a test fixture with no caller left), fixed in ac720512c, then clippy rc 0. Slot 01M89W1W1P7QF4J2MX2B1V9M0W: clippy rc 0 at ef39fa145, tree clean; its log is refs/bank/cc/st1c2db93/sweep/v1-clippy.log. No targeted test, by your rule. The diff passes git apply --check on main's tree at 7c17687bd. ic agrees with the GraphQL and MCP hunks for shape. One residue for your ruling, not in the bank: Project::files_in drops a walk entry it cannot read and returns no Result, and its fix changes its four callers. CHANGELOG: seven lines; the last one widens ic's landed upgrade line (fc28ab726) to name intent doctor, instead of adding a line.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
