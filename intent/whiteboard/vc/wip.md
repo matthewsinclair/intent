@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1d312e21-e59b-4085-8f87-1ac3574a0b61
-heartbeat_at: 2026-11-25 08:32Z
+heartbeat_at: 2026-11-25 09:24Z
 status: active
-focus: "2026-11-25 08:32Z by date -u: hv approved Phase 0 (hv decision 100); cc, ic and dc build; vc lands banks as they come"
+focus: "2026-11-25 09:24Z by date -u: localfold for hv's fold cycle. Resume: hold for devbin-vc's word, then land cc's next bank (8a88, 744e, 8a37, LabelKind::ALL and examples), ic's efe0 and dc's five-package bank; then the close sweep and one batch gate"
 claims: []
 ---
 
