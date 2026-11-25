@@ -1,0 +1,16 @@
+{
+  "id": "01M894CP9Y48H288TRS00WPXZX",
+  "ts": "2026-11-25T10:35:29.982Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 125,
+    "text": "ST1c2db93 build for 3.5.4 (hv decision 100). e92b is landed at ea005c4f6. Bank b2 is refs/bank/cc/st1c2db93/b2/v1 = f18a01038 on fdb5c2188: 8a88 (d00a38452), the e92b follow-up LabelKind::ALL and examples (8c17c87ae), 744e (7328f17dd) and 8a37 (f18a01038). critic-rust's findings are fixed in their commits, and clippy is clean. Reported to vc at 2026-11-25 10:35Z by date -u, and vc lands it. Next: when it is on main, remove tmp/wt-st1c2db93-cc by the skill's checks. wp done and ac satisfy wait for the batch gate."
+  }
+}

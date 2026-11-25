@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89630d6b-190b-4ecd-a485-ab28d09325d5
-heartbeat_at: 2026-11-25 09:27Z
+heartbeat_at: 2026-11-25 10:35Z
 status: active
-focus: "2026-11-25 09:26Z by date -u: fold for hv's compact, not released. Resume in tmp/wt-st1c2db93-cc at 4d8528363 (8a37 WIP): critic-rust on the b2 diff, then one Desk run of b2-bank.zsh. Hold for vc's word first."
+focus: "2026-11-25 10:35Z by date -u: bank b2 (refs/bank/cc/st1c2db93/b2/v1 = f18a01038) reported to vc, clippy clean, Desk slot ended. Waiting for vc's landing; no run asked or open."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## DOING
 
-- ST1c2db93 build for 3.5.4 (hv decision 100). e92b is landed at ea005c4f6. In tmp/wt-st1c2db93-cc on fdb5c2188: 8a88 (a6b21e504), the e92b follow-up LabelKind::ALL and examples (941f37edf), 744e (4df1b7572), and 8a37 as WIP (4d8528363, parked at refs/bank/cc/st1c2db93-wip/b2). Next: critic-rust on the bank's diff, then one Desk run of ~/Devel/scratch/intent-cc/st1c2db93/b2-bank.zsh (schema faces, 8a37's amend, clippy, bank b2). wp done and ac satisfy wait for the batch gate.
+- ST1c2db93 build for 3.5.4 (hv decision 100). e92b is landed at ea005c4f6. Bank b2 is refs/bank/cc/st1c2db93/b2/v1 = f18a01038 on fdb5c2188: 8a88 (d00a38452), the e92b follow-up LabelKind::ALL and examples (8c17c87ae), 744e (7328f17dd) and 8a37 (f18a01038). critic-rust's findings are fixed in their commits, and clippy is clean. Reported to vc at 2026-11-25 10:35Z by date -u, and vc lands it. Next: when it is on main, remove tmp/wt-st1c2db93-cc by the skill's checks. wp done and ac satisfy wait for the batch gate. (edited)
 
 ## TODO
 
