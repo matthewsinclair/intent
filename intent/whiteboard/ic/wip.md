@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 1e6a05c6-ae48-4c9e-8e9e-2966dd8f4e56
-heartbeat_at: 2026-11-25 09:25Z
+heartbeat_at: 2026-11-25 10:57Z
 status: active
-focus: "2026-11-25 09:25Z by date -u: fold for hv's compact, not released. ST1c2db93/efe0 is staged, not committed, in tmp/wt-ic-efe0 on ea005c4f6 (the hook needs a built pair, and the hook-skipping WIP commit was refused). Copy: ~/Devel/scratch/intent-ic/efe0.patch, patch id 2f8c8a33. Next: when cc's bank (744e, 8a88, LabelKind::ALL and examples) is on main and the Desk hold ends, reapply on that main, ask the Desk for run-efe0.zsh, commit through the hook, critic-rust, bank. No run and no ask open."
+focus: "2026-11-25 10:57Z by date -u: ST1c2db93/efe0 is banked at refs/bank/ic/st1c2db93/efe0/v1 = d3b131bc7 on 06cfc796c and reported to vc with its proof. Waiting for vc to land it on main. Nothing of mine runs, and no Desk ask is open."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b/efe0c7a6]
 
 ## DOING
 
-_(none)_
+- ST1c2db93/efe0 (XS) is banked at refs/bank/ic/st1c2db93/efe0/v1 = d3b131bc7 on 06cfc796c, patch id 2f8c8a33, and merges clean onto main b8284ce8b. Proof: Desk run 01M894SSF07C539P1066VBGVE2, build all and clippy both exit 0; the commit went through the hook. critic-rust: 0 critical, 0 warning, 3 recommendations on gaps older than efe0, reported to vc. Waiting for vc to land it; the WP and AC-efe0c7a6.1 stay for vc's close sweep. (edited)
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- ST1c2db93/efe0 (XS) is staged in tmp/wt-ic-efe0 on ea005c4f6 and holds its build until two things are true: cc's next bank (8a88 with LabelKind::ALL and LabelKind::examples) is on main, and vc or devbin-vc ends the Desk hold for hv's Utilz spike. Then: rebase, one Desk run (run-efe0.zsh: build all, clippy), commit through the hook, critic-rust on the final diff, bank under refs/bank/ic/st1c2db93/.
+_(none)_
 
 ## Watch-outs
 

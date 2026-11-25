@@ -1,0 +1,15 @@
+{
+  "id": "01M894TMRAWZHGDG189ECY6G75",
+  "ts": "2026-11-25T10:43:07.146Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST1c2db93/efe0 (XS) is banked at refs/bank/ic/st1c2db93/efe0/v1 = d3b131bc7 on 06cfc796c, patch id 2f8c8a33, and merges clean onto main b8284ce8b. Proof: Desk run 01M894SSF07C539P1066VBGVE2, build all and clippy both exit 0; the commit went through the hook. critic-rust: 0 critical, 0 warning, 3 recommendations on gaps older than efe0, reported to vc. Waiting for vc to land it; the WP and AC-efe0c7a6.1 stay for vc's close sweep."
+  }
+}
