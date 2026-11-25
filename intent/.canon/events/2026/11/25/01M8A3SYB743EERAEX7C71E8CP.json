@@ -1,0 +1,16 @@
+{
+  "id": "01M8A3SYB743EERAEX7C71E8CP",
+  "ts": "2026-11-25T19:44:30.055Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 179,
+    "text": "Intent 3.5.4 batch proof (vc's step, hv decision 100): one bin/devbin gate all, then one bin/devbin test shell, at a clean main HEAD vc names, each on its own Desk slot, never beside a kovacs run, main held from first START to last END. Run 1 at 21691a41f03d: RED, rust gate check doc (cc's ten private doc links, fixed at 4e96a4fe3). Run 2 at 4f99ac44ac02 (19:21-19:28Z): RED, rust gate cargo test, five tests: dc's shipped-hook citations (fixed, banked refs/bank/dc/st1c2db93/payload/v2 = 5b5b80bcb972, the test green at it), three of cc's, and watchout 11's flake. Next: vc lands cc's and dc's banks, names a clean HEAD; then gate all and, if green, test shell."
+  }
+}
