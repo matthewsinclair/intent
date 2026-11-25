@@ -145,7 +145,7 @@ INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/
 # `wb_info_rc` REPORTS AND DOES NOT GATE, WHICH IS A DELIBERATE DEPARTURE from
 # the shape agreed with vc ("branch on rc as well as emptiness"), recorded here
 # rather than resolved quietly. Gating on rc makes the guards conditional on an
-# exit code whose meanings are still being settled -- vc's own 0045 measured
+# exit code whose meanings are still being settled -- a measurement showed
 # that `Facade::open` gates EVERY command and the migration refusal returns 1.
 # The day `info` inherits that, rc is non-zero in every unmigrated project (ie
 # every consumer, the moment before it upgrades) while INTENT_HOME resolves
@@ -343,7 +343,7 @@ fi
 # chose. Closing it makes states A to E agree rather than adding a new
 # severity: the gate is not becoming stricter, it is becoming consistent.
 #
-# **AND THIS IS NOT ISSUE 0043 REBUILT ON THE GIT SIDE.** That objection applies
+# **AND THIS IS NOT THE REFUSE-EVERYTHING GATE REBUILT ON THE GIT SIDE.** That objection applies
 # to blocking when the tool RAN and answered; it does not apply here, because
 # the tool did not run at all and this arm has blocked for states A, B and D
 # since it was written. The fail-open below (exit 2 and any other unrecognised
@@ -437,8 +437,8 @@ if [ -z "$_cv" ] || [ ! -x "$_cv" ] || [ -d "$_cv" ]; then
     # **THE HISTORY IS IN THIS COMMENT AND NOT ON THE OPERATOR'S TERMINAL.** A
     # draft of this branch printed "this used to reach the critic and fail as
     # exit 126 -- reported as UNENFORCED"; true, and none of the reader's
-    # business. It is D37's rule -- our own backlog is not output -- and it also
-    # defeated the test asserting the old wording was gone, because the message
+    # business, because our own backlog is not output. The draft also defeated
+    # the test asserting the old wording was gone, because the message
     # contained the word the assertion was looking for.
     echo "  state: $_cand exists but is not executable." >&2
     if [ -L "$_cand" ]; then
@@ -477,12 +477,12 @@ fi
 # with the jq read; the empty array is the one route left, and it
 # is named below.
 #
-# **0242 NAMES A THIRD -- AN ABSENT `config.json` -- AND IT CANNOT ARRIVE HERE.**
+# **A THIRD ROUTE, AN ABSENT `config.json`, CANNOT ARRIVE HERE.**
 # Driven 2026-09-05: the project test at the top of this file `exit 0`s on that
 # case with its own message, well before this block. A branch for it here would
 # be unreachable code READING as coverage, which is the defect this fix is
 # about, one level down. The first build of this fix had exactly that branch;
-# it is removed rather than left in as defence, and the row is corrected.
+# it is removed rather than left in as defence.
 #
 # **THE LANGUAGES ARE THE BINARY'S, READ THROUGH `intent lang declared`.**
 # This read was a jq program of its own beside the binary's
@@ -595,8 +595,8 @@ done <<<"$served_out"
 # Declared languages that have no headless code critic: a prose discipline
 # (author, content) that a critic subagent reviews on demand. The gate does not
 # dispatch them and does not count them as enforced, because no check of them
-# runs here (issue Ic5f63aa): `intent critic <lang> --staged` is a no-op for
-# them, and its exit 0 read as an enforced language.
+# runs here: `intent critic <lang> --staged` is a no-op for them, and its
+# exit 0 would read as an enforced language.
 ONDEMAND=()
 # The languages that have a headless code critic, from `intent critic
 # --languages`, so the gate keeps no language list of its own. When the binary
@@ -624,7 +624,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     # registry), and `--languages` is its answer, so the gate needs no language
     # knowledge of its own and cannot drift from the CLI. A served language
     # with no headless code critic is on demand: it is not dispatched, because
-    # the critic's no-op exit 0 would count it as enforced (issue Ic5f63aa).
+    # the critic's no-op exit 0 would count it as enforced.
     if [ "$SERVED" != " " ] && [ "${SERVED#* "$lang" }" = "$SERVED" ]; then
       NOPACK+=("$lang")
       continue
@@ -763,7 +763,7 @@ if [ "${#NOPACK[@]}" -gt 0 ]; then
 fi
 # An on-demand discipline is named on its own, on the line that counts the
 # declared languages. So whenever `intent critic --languages` answers, that
-# count includes no check that did not run (issue Ic5f63aa).
+# count includes no check that did not run.
 ondemand_note=""
 [ "${#ONDEMAND[@]}" -gt 0 ] && ondemand_note="; on demand, not checked by this gate: ${ONDEMAND[*]}"
 if [ "${#LANGS[@]}" -eq 0 ]; then
