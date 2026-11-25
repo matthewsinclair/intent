@@ -1,0 +1,15 @@
+{
+  "id": "01M89CH1NHR4PAJVDG0FH95BXQ",
+  "ts": "2026-11-25T12:57:41.297Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Ic5f63aa (low), added to the second bank on vc's word: the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. Committed at 984ee6021 in tmp/wt-dc-st1c2. critic-shell's review was stopped at the close-out for the reboot, and runs again first after it."
+  }
+}

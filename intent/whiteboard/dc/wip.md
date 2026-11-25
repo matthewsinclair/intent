@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 1100d057-0ccf-4338-be18-c12a89a014f1
-heartbeat_at: 2026-11-25 11:30Z
-status: active
-focus: "2026-11-25 11:30Z by date -u: folded for hv's compact, not released. Resume in tmp/wt-dc-st1c2 at 2d825fc42 on main 010c0396d (refs/bank/dc/st1c2db93/wip-v2-on-010c0396d): the second bank is committed (de6c and e4b0 follow-ups, d0fd fixture and canon paths with derived counts, R2 head_number_at). Clippy ask withdrawn unrun at the fold. Next: ask the Desk again for clippy at that tip, take critic-rust's and critic-shell's reports on 010c0396d..2d825fc42 (run them again if lost), bank v2, report to vc with its size."
-claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af6d40b/e4b0a1a6, ST1c2db9394af6d40b/ce277782, ST1c2db9394af6d40b/5cc045f5]
+heartbeat_at: 2026-11-25 12:57Z
+status: paused
+focus: "2026-11-25 12:57Z by date -u: closed out for rhadamanth's reboot, released. Resume in tmp/wt-dc-st1c2 at 984ee6021 (refs/bank/dc/st1c2db93/wip-v2b-on-010c0396d, base 010c0396d): the second bank's edits and Ic5f63aa are committed as fixups, not squashed. Next: critic-shell on 984ee6021 again, autosquash and rebase onto main, one clippy on the Desk at the final tip, bank v2, report to vc. Notes and the clippy driver: tmp/dc-st1c2-notes/."
+claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af6d40b/e4b0a1a6, ST1c2db9394af6d40b/ce277782, ST1c2db9394af6d40b/5cc045f5, ISSUE:Ic5f63aa0773060bd]
 ---
 
 # DevX Claude (dc)
@@ -14,6 +14,7 @@ claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af
 ## DOING
 
 - ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100, vc's go at 08:31Z): one worktree, tmp/wt-dc-st1c2, with its own build target; one commit for each package; one bank under refs/bank/dc/st1c2db93/. Proof before the bank: clippy, critic-rust and critic-shell on the diff. The batch's gate all and test shell at main's HEAD decide it, booked by vc.
+- Ic5f63aa (low), added to the second bank on vc's word: the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. Committed at 984ee6021 in tmp/wt-dc-st1c2. critic-shell's review was stopped at the close-out for the reboot, and runs again first after it.
 
 ## TODO
 
