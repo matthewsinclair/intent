@@ -1,0 +1,15 @@
+{
+  "id": "01M88V8C275YRNX20Q32K86GXW",
+  "ts": "2026-11-25T07:55:51.239Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(vc, 2026-11-25, under hv's pen granted 2026-08-22, applying hv's rule of 2026-11-23 that v2 no longer exists; ratified_in: vc, 2026-11-25, under hv's pen granted 2026-08-22; dc's row C13 at HEAD) The v2-only intent/st/ST0056/parity/tools/fixture_probe.sh and the v2 bats-estate inventory it serves are retired in the Highlander residue thread (ST1c2db93), with their uses in gen_register.sh and coverage_map.sh. It is dc's work, and cc puts it in Phase 0."
+  }
+}

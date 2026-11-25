@@ -1,0 +1,15 @@
+{
+  "id": "01M88X8T8Y3Q8VTRZKB9A0J8BT",
+  "ts": "2026-11-25T08:31:03.410Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-25, by selection in vc's question dialog, first-hand in vc's session, answered by 08:31Z on vc's date -u; the options' wording vc's, the choice hv's and vc's recommendation) PHASE 0 OF THE HIGHLANDER RESIDUE THREAD (ST1c2db93) IS APPROVED: build now. hv chose \"Approve, build now\" over \"Hold for my comments\". The ten packages of b5a2fa051 are built for 3.5.4 by cc (e92b, 8a88, 8a37, 744e), ic (efe0, after e92b) and dc (d0fd, de6c, e4b0, ce27, 5cc0). Each builder runs clippy and the critic on its diff before it banks. After the last bank, vc runs the thread's close sweep (AC-00.1, a read), and then one gate all and one test shell at main's HEAD, booked with the Desk, decide the whole batch."
+  }
+}

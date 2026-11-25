@@ -1,0 +1,16 @@
+{
+  "id": "01M88XAR117Q4A15G7K2Q8ZC9J",
+  "ts": "2026-11-25T08:32:06.177Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 69,
+    "text": "3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decisions 99 and 100). Now: cc, ic and dc build the ten packages of Phase 0 (b5a2fa051), and vc lands each bank on its builder's proof; e92b lands first, then ic bases efe0 on it. Next: vc's close sweep (AC-00.1), one gate all and one test shell at main's HEAD booked with the Desk, the pre-cut and dry run, then READY to hv for the cut and tap words."
+  }
+}

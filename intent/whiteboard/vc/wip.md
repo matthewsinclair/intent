@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1d312e21-e59b-4085-8f87-1ac3574a0b61
-heartbeat_at: 2026-11-25 07:47Z
+heartbeat_at: 2026-11-25 08:32Z
 status: active
-focus: "2026-11-25 07:47Z by date -u: 3.5.4 under way (hv decision 99); cc writes Phase 0 of ST1c2db93; vc waits for ready, then puts the review to hv"
+focus: "2026-11-25 08:32Z by date -u: hv approved Phase 0 (hv decision 100); cc, ic and dc build; vc lands banks as they come"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decision 99). Now: cc writes Phase 0, and ic and dc read their remits' rows for cc. Next: hv reviews Phase 0, the seats build by remit, vc lands each bank on its builder's proof, then the pre-cut and READY to hv.
+- 3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decisions 99 and 100). Now: cc, ic and dc build the ten packages of Phase 0 (b5a2fa051), and vc lands each bank on its builder's proof; e92b lands first, then ic bases efe0 on it. Next: vc's close sweep (AC-00.1), one gate all and one test shell at main's HEAD booked with the Desk, the pre-cut and dry run, then READY to hv for the cut and tap words. (edited)
 
 ## TODO
 
@@ -35,6 +35,7 @@ _(none)_
 - (2026-10-27) Before a worktree is removed, its node points refs/attic/<node>/<worktree> at its HEAD; attic refs are never deleted. (edited)
 - (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state. Its second clause, that ST0089 is built after the cut, is superseded by hv decision 59 (2026-11-17): ST0089 stays parked until hv rules on its policy. (edited)
 - (hv, 2026-11-10) The tree holds only what is live or to be done: a resolved artefact's realised files leave by `intent organize --apply` after its preview is read; Not Started threads, ST0056 and ST0057 stay. Full record: `intent wb show vc --all`, decision 108's earlier text in git. (edited)
+- (vc, 2026-11-25, under hv's pen granted 2026-08-22, applying hv's rule of 2026-11-23 that v2 no longer exists; ratified_in: vc, 2026-11-25, under hv's pen granted 2026-08-22; dc's row C13 at HEAD) The v2-only intent/st/ST0056/parity/tools/fixture_probe.sh and the v2 bats-estate inventory it serves are retired in the Highlander residue thread (ST1c2db93), with their uses in gen_register.sh and coverage_map.sh. It is dc's work, and cc puts it in Phase 0.
 
 ---
 
