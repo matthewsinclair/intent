@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89630d6b-190b-4ecd-a485-ab28d09325d5
-heartbeat_at: 2026-11-25 08:11Z
+heartbeat_at: 2026-11-25 09:27Z
 status: active
-focus: "2026-11-25 08:11Z by date -u: ST1c2db93 Phase 0 written and committed, holding for hv's review through vc"
+focus: "2026-11-25 09:26Z by date -u: fold for hv's compact, not released. Resume in tmp/wt-st1c2db93-cc at 4d8528363 (8a37 WIP): critic-rust on the b2 diff, then one Desk run of b2-bank.zsh. Hold for vc's word first."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## DOING
 
-- ST1c2db93 Phase 0 (hv decision 99, for 3.5.4): every row of the seven reports checked at bd1aa3c6c with ic and dc. design.md records each row, and each residual concern is one package with one non-test criterion, for cc, ic or dc. AC-00.1 is the close sweep. Committed as one commit; holding for hv's review through vc. No code changes until hv approves. (edited)
+- ST1c2db93 build for 3.5.4 (hv decision 100). e92b is landed at ea005c4f6. In tmp/wt-st1c2db93-cc on fdb5c2188: 8a88 (a6b21e504), the e92b follow-up LabelKind::ALL and examples (941f37edf), 744e (4df1b7572), and 8a37 as WIP (4d8528363, parked at refs/bank/cc/st1c2db93-wip/b2). Next: critic-rust on the bank's diff, then one Desk run of ~/Devel/scratch/intent-cc/st1c2db93/b2-bank.zsh (schema faces, 8a37's amend, clippy, bank b2). wp done and ac satisfy wait for the batch gate.
 
 ## TODO
 
