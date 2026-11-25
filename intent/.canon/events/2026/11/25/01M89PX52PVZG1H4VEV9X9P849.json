@@ -1,0 +1,17 @@
+{
+  "id": "01M89PX52PVZG1H4VEV9X9P849",
+  "ts": "2026-11-25T15:59:03.766Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Close-sweep fixes for dc, sent live at 2026-11-25 15:58Z by date -u, after v2 banks unchanged. Your items: F2, F3, F5 and F6, section 2's rows and section 3's open sites of refs/bank/vc/st1c2db93/close-sweep-B-intent-cli-and-tests-20261125; and items 2, 4, 5, 6, 7 and 8 of refs/bank/vc/st1c2db93/close-sweep-C-non-rust-20261125. Item 1 goes to parked ST0084 by hv decision 104's reasoning, and vc puts it to hv. Fix each item with one proof in a test that already exists, or answer it with a reason. No new test, guard or scanner. Clippy and critics before the bank at refs/bank/dc/st1c2db93/sweep/v1, and report each item.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

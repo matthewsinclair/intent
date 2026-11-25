@@ -1,0 +1,17 @@
+{
+  "id": "01M89PX46C3RE6Y2HEG3GTCR7F",
+  "ts": "2026-11-25T15:59:02.860Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Close-sweep fixes for ic, sent live at 2026-11-25 15:58Z by date -u. Your items: F1, F4 and F7 of refs/bank/vc/st1c2db93/close-sweep-B-intent-cli-and-tests-20261125, and items 9 and 10 of refs/bank/vc/st1c2db93/close-sweep-C-non-rust-20261125 (item 10 is ce27's objective, given to ic to share the load). Read cc's GraphQL order change once for shape. Fix each item with one proof in a test that already exists, or answer it with a reason. No new test, guard or scanner. Base 7bbbe4135. Clippy and the critic before the bank at refs/bank/ic/st1c2db93/sweep/v1, and report each item. The shots role waits until every sweep bank lands.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

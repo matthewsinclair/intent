@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-25 15:05Z
+heartbeat_at: 2026-11-25 15:59Z
 status: active
-focus: "2026-11-25 15:05Z by date -u: GO from 15:05Z, hv decision 104 (the estate plan approved as written, relayed by devbin-vc). dc files its one clippy (first cargo grant), banks v2 and reports; vc runs the close sweep (a read) on dc's rebased tip while the clippy runs, then lands v2 on its proof. Then build all and the shots (ic), known-defects (cc), the reference set and CHANGELOG (vc), one commit; gate all and test shell at main's HEAD; the thread's close; the push on devbin-vc's word; the dry run; READY; hv types the cut."
+focus: "2026-11-25 15:59Z by date -u: the close sweep is back (three reports banked under refs/bank/vc/st1c2db93/close-sweep-*). Its fixes go into 3.5.4 as three banks: cc, ic and dc (dc after its v2), sent at 15:58Z; devbin-vc told the Intent line grows. Waiting on dc's v2 clippy to land v2, then each fix bank. C's item 1 to ST0084 unless hv pulls it in."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.4 carries the Highlander residue thread (ST1c2db93), I3c24d2a and Ic5f63aa (hv decisions 99 and 100, and hv's rule that a fix found during the release goes into it). Closed out on 2026-11-25 for the reboot of rhadamanth. After the reboot: dc runs one clippy on the Desk for its second bank (saved at its WIP ref), banks it and reports. vc lands it on its proof, then runs the close sweep (its notes are at refs/bank/vc/st1c2db93/close-notes), the pre-cut documents, one gate all and one test shell at main's HEAD, and the dry run. hv pre-approved the cut and the tap on a green dry run (hv decision 101), and hv types the cut's confirm. (edited)
+- 3.5.4 carries the Highlander residue thread (ST1c2db93), I3c24d2a and Ic5f63aa (hv decisions 99, 100 and 104; the estate plan approved as written). The close sweep (AC-00.1) ran on dc's v2 tree a5690ba51 with three independent readers; their reports are refs/bank/vc/st1c2db93/close-sweep-{A-intentsvcs-intentd,B-intent-cli-and-tests,C-non-rust}-20261125. Their findings go into this release (hv's rule), as three fix banks: cc (A's sections 1 and 2, C's item 3), ic (B's F1, F4, F7; C's items 9 and 10), dc (B's F2, F3, F5, F6 and its open rows and sites; C's items 2 and 4 to 8), sent at 15:58Z. C's item 1 (instrument_reach_census.sh) goes to parked ST0084 by hv decision 104's reasoning, unless hv pulls it in. Order: dc's v2 clippy and bank, vc lands v2; the three fix banks, vc reads each fix against its finding and lands them; design.md records every row; then build all and the shots (ic), known-defects (cc), the reference set and CHANGELOG (vc), one step-2 commit; one gate all and one test shell at main's HEAD; the thread's close; the push on devbin-vc's word; the dry run; READY; hv types the cut (hv decision 101). (edited)
 
 ## TODO
 

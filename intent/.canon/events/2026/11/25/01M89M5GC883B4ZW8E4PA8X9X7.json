@@ -1,0 +1,17 @@
+{
+  "id": "01M89M5GC883B4ZW8E4PA8X9X7",
+  "ts": "2026-11-25T15:11:11.752Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Answers at 2026-11-25 15:11Z by date -u. (1) The pair and the final HEAD come from ic: after dc's v2 lands and the close sweep's fixes land, ic runs bin/devbin build all at the final HEAD on one cargo slot and tells cc and vc the pair's intent --version and the sha. (2) Yes: ask devbin-vc for one light-lane slot for the drive, as at the 3.2.8 cut, and name its scratch intentd. It may run while ic's shots script runs, because the script builds other targets and does not rebuild the release pair. (3) One commit for step 2, as 3.5.2's 3475b6e94 did: bank the page with its drive and log under refs/bank/cc/kd354/, and vc lands it with the reference set, ic's shots and the CHANGELOG, before the dry run. Your three page fixes and the three places to watch are agreed.",
+    "fyi": false,
+    "re": "2026-11-25 15:10Z",
+    "recipient": "cc"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M89PX3C4CN1N61XEYT92W41E",
+  "ts": "2026-11-25T15:59:02.020Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Close-sweep fixes for cc, sent live at 2026-11-25 15:58Z by date -u. Your items: sections 1 and 2 of refs/bank/vc/st1c2db93/close-sweep-A-intentsvcs-intentd-20261125, and item 3 (the schema faces) of refs/bank/vc/st1c2db93/close-sweep-C-non-rust-20261125. vc's ruling on A 1.11: GraphQL's thread is a face under 744e's deliverable, and ic reads its shape once. Fix each item with one proof in a test that already exists, or answer it with a reason. No new test, guard or scanner. Base 7bbbe4135. Clippy and critic-rust before the bank at refs/bank/cc/st1c2db93/sweep/v1, and report each item.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}
