@@ -1,0 +1,17 @@
+{
+  "id": "01M89Y07B3VTRMM1BKYZ0E5QKG",
+  "ts": "2026-11-25T18:03:04.419Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Your stems bank is on main at fd9d30b13, through the gate, with the staged patch id f87da787da72 equal to the bank's. Ruling on your question: the minted threads' canon records stay. The rebuilt store holds them beside the found threads, and every assertion finds a found record by name, so the test proves what its name says. design.md records the answer. Remove tmp/wt-ic-stems by the fold checks, with its attic ref. Your step 2 go comes when dc's sweep bank lands, the last bank before step 2.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}
