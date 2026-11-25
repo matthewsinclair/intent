@@ -2289,6 +2289,14 @@ pub enum LabelKind {
 }
 
 impl LabelKind {
+  /// **EVERY KIND OF LABEL, IN ONE LIST** (ST1c2db93, from critic-rust on ic's
+  /// efe0): [`label_kind`] and each scanner that walks the kinds take them
+  /// from here. This list is kept by hand beside the enum. The compiler makes
+  /// [`Self::head`] and [`Self::noun`] answer for a new variant, but nothing
+  /// makes this list carry it, so add a new kind to the enum and to this list
+  /// in the same change.
+  pub const ALL: [LabelKind; 2] = [LabelKind::Criterion, LabelKind::Test];
+
   /// The head a label of this kind opens with, before its dash.
   pub fn head(self) -> &'static str {
     match self {
@@ -2309,6 +2317,14 @@ impl LabelKind {
   pub fn form(self) -> String {
     format!("{}-<group>.<n>", self.head())
   }
+
+  /// The worked examples of a label of this kind, in both id families, for a
+  /// published description to quote: the zero family and the worked package,
+  /// eg `AC-0.0 or AC-c2e41a0b.1`. [`label_at`] reads both as examples, so a
+  /// scanner of published text does not count them.
+  pub fn examples(self) -> String {
+    format!("{0}-0.0 or {0}-{EXAMPLE_WP_HEX}.1", self.head())
+  }
 }
 
 /// **THE ONE READER OF A WHOLE LABEL'S SHAPE** (issues I91dd457 and I78176db).
@@ -2328,7 +2344,7 @@ impl LabelKind {
 /// a label.
 pub fn label_kind(label: &str) -> Option<LabelKind> {
   let (head, group, seq) = label_parts(label)?;
-  let kind = [LabelKind::Criterion, LabelKind::Test]
+  let kind = LabelKind::ALL
     .into_iter()
     .find(|kind| kind.head() == head)?;
   let digits = |text: &str| !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit());
