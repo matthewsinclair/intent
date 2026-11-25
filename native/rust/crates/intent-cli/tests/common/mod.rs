@@ -36,6 +36,65 @@ pub fn thread_canon_file(root: &std::path::Path, id: &str) -> std::path::PathBuf
     .thread_json(id)
 }
 
+/// A thread's realised directory under `root`, whether or not it is on disk,
+/// where the project names it (`Project::thread_dir`). A test that reads or
+/// writes a thread's files on disk takes their path from here or from the
+/// helpers below (ST1c2db93 WP-d0fd).
+pub fn thread_dir(root: &std::path::Path, id: &str) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .thread_dir(id)
+}
+
+/// [`thread_dir`] as a walk of the tree names it: project-relative and ended
+/// with `/`, so the prefix of one id never matches another id.
+pub fn thread_dir_prefix(root: &std::path::Path, id: &str) -> String {
+  format!(
+    "{}/",
+    intentsvcs::project::relative(root, &thread_dir(root, id))
+  )
+}
+
+/// A thread's generated cover under `root` (`Project::info_view`).
+pub fn info_view(root: &std::path::Path, id: &str) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .info_view(id)
+}
+
+/// A thread's generated acceptance view under `root`
+/// (`Project::acceptance_view`).
+pub fn acceptance_view(root: &std::path::Path, id: &str) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .acceptance_view(id)
+}
+
+/// A work package's generated cover under `root` (`Project::wp_info_view`).
+pub fn wp_info_view(
+  root: &std::path::Path,
+  id: &str,
+  pkg: intentsvcs::id::WpId,
+) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .wp_info_view(id, pkg)
+}
+
+/// The project's thread index under `root` (`Project::steel_threads_view`).
+pub fn steel_threads_view(root: &std::path::Path) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .steel_threads_view()
+}
+
+/// The project's flat todo view under `root` (`Project::todo_view`).
+pub fn todo_view(root: &std::path::Path) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .todo_view()
+}
+
 /// An issue's canon file under `root`, where the project names it
 /// (`Project::issue_json`).
 pub fn issue_canon_file(root: &std::path::Path, id: intentsvcs::id::IssueId) -> std::path::PathBuf {
@@ -1457,6 +1516,12 @@ pub fn created(out: &str) -> String {
 /// record, `fields` laid over the minimum every reader takes. The schema is the
 /// canon's own constant and the id is `id`, so no test spells either, and each
 /// caller sets only what its subject needs.
+///
+/// **THE WAIST WRITES THE BYTES** (ST1c2db93 WP-d0fd): the record is read by
+/// the one decoder of a thread (`ingest::decode_thread`) and written by the
+/// one encoder (`canon_format::encode_thread`), in 3.4.0's format. So the file
+/// holds the bytes Intent writes for that record, and a field no reader takes
+/// stops the test here, not at a later verb.
 pub fn thread_canon(id: &str, fields: serde_json::Value) -> String {
   let serde_json::Value::Object(mut canon) = serde_json::json!({
     "schema": intentsvcs::canon_format::THREAD_SCHEMA_V3,
@@ -1473,7 +1538,13 @@ pub fn thread_canon(id: &str, fields: serde_json::Value) -> String {
     panic!("thread_canon overlays an object of fields, got {fields}");
   };
   canon.extend(over);
-  format!("{:#}\n", serde_json::Value::Object(canon))
+  let thread =
+    intentsvcs::ingest::decode_thread("thread_canon's record", serde_json::Value::Object(canon))
+      .unwrap_or_else(|findings| {
+        panic!("thread_canon's record does not read as a thread: {findings:?}")
+      });
+  intentsvcs::canon_format::encode_thread(&thread, intentsvcs::canon_format::CanonFormat::V3)
+    .expect("a thread the decoder read encodes in 3.4.0's format")
 }
 
 /// Write [`thread_canon`] where the project keeps thread `id`'s canon.

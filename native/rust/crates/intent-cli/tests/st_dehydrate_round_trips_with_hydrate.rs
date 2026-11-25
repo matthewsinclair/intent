@@ -218,7 +218,7 @@ fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
 fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
   let (dir, gate, subject) = project();
   let root = dir.path();
-  let realised = format!("intent/st/{subject}/");
+  let realised = crate::common::thread_dir_prefix(root, &subject);
 
   ok(root, &["st", "hydrate", subject.as_str()]);
   let before = tree(root);
@@ -349,7 +349,7 @@ fn dehydrate_reports_every_removed_path_and_the_manifest_it_changed() {
 fn hydrate_reports_the_file_it_restored_apart_from_the_ones_already_there() {
   let (dir, _, subject) = project();
   let root = dir.path();
-  std::fs::remove_file(root.join(format!("intent/st/{subject}/acceptance.md")))
+  std::fs::remove_file(crate::common::acceptance_view(root, &subject))
     .expect("remove a realised file");
 
   // `acceptance.md` is an aggregate view no clone commits (ST0096, hv decision

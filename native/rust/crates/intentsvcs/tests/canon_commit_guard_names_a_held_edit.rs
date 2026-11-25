@@ -16,7 +16,6 @@
 use sha2::{Digest, Sha256};
 use std::path::Path;
 use std::process::Command;
-use testkit::repo_root;
 
 /// A child process that cannot be pointed at the real repository by a git
 /// environment inherited from a hook.
@@ -67,7 +66,11 @@ fn the_refusal_names_an_attachment_held_uncommitted_outside_this_commit() {
   git(root, &["add", "intent/.canon/st/ST0001.json"]);
 
   let out = command("bash", root)
-    .arg(repo_root().join("intent/st/ST0056/parity/tools/canon_commit_check.sh"))
+    .arg(
+      crate::common::real_project()
+        .thread_dir("ST0056")
+        .join("parity/tools/canon_commit_check.sh"),
+    )
     .arg("--staged")
     .env("ROOT", root)
     .output()

@@ -104,11 +104,18 @@ fn d57_8_collection_fence() -> Vec<String> {
 /// **Absent is not divergent.** When the thread is dehydrated there is no disk
 /// file to compare, and canon alone is the correct and complete answer.
 fn cross_check_against_disk(canon_sha: &str, canon_bytes: u64, canon_text: &str) {
-  let disk_path = repo_root().join("intent/st/ST0057/design.md");
-  let Ok(disk) = std::fs::read(&disk_path) else {
+  let disk_path = crate::common::real_project()
+    .thread_dir("ST0057")
+    .join("design.md");
+  let disk = match std::fs::read(&disk_path) {
+    Ok(disk) => disk,
     // Dehydrated, or never realised. Canon stands alone, which is the point of
     // sourcing from canon in the first place.
-    return;
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return,
+    Err(e) => panic!(
+      "{} is there and could not be read: {e}",
+      disk_path.display()
+    ),
   };
 
   let disk_sha = format!("{:x}", Sha256::digest(&disk));

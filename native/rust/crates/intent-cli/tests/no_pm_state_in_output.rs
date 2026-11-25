@@ -155,7 +155,12 @@ fn identifier_at(b: &[u8], i: usize, decisions: Decisions) -> Option<usize> {
   // `ST00567`, `WP-06`, and a hashed thread, package or issue, each read by the
   // waist (issue 0736). The word runs to the right boundary; a package's
   // heading keeps its `WP-`.
-  let from = if b[i..].starts_with(b"WP-") { i + 3 } else { i };
+  let wp = intentsvcs::id::WP_HEADING_PREFIX.as_bytes();
+  let from = if b[i..].starts_with(wp) {
+    i + wp.len()
+  } else {
+    i
+  };
   let end = (from..b.len())
     .find(|&at| !b[at].is_ascii_alphanumeric())
     .unwrap_or(b.len());

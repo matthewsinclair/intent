@@ -273,7 +273,7 @@ fn st_dehydrate_names_every_path_before_it_goes() {
 fn st_hydrate_refuses_a_view_it_would_write_over_and_names_it() {
   let (dir, doomed) = project();
   let root = dir.path();
-  let view = root.join(format!("intent/st/{doomed}/info.md"));
+  let view = crate::common::info_view(root, &doomed);
   let edited = format!(
     "{}\nA HAND EDIT THE STORE DOES NOT CARRY\n",
     std::fs::read_to_string(&view).expect("the view is realised")
@@ -352,7 +352,12 @@ fn a_realisation_verb_refuses_to_remove_and_names_what_it_would_have_taken() {
   let (dir, doomed) = project();
   let root = dir.path();
   // A view-shaped file under a realised thread that the store does not carry.
-  let stray = root.join(format!("intent/st/{doomed}/WP/99/info.md"));
+  let stray = crate::common::wp_info_view(
+    root,
+    &doomed,
+    // A package number the store does not carry.
+    intentsvcs::id::WpId::from_ordinal(99).expect("an ordinal package number"),
+  );
   std::fs::create_dir_all(stray.parent().expect("parent")).expect("mkdir");
   std::fs::write(&stray, "not anything the store renders\n").expect("plant");
 

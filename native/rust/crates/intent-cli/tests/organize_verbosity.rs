@@ -96,7 +96,7 @@ fn project() -> tempfile::TempDir {
   );
   // `st start` realises the thread it declares since issue 0079; the two
   // action rows this fixture needs are hydrations, so its views are removed.
-  let realised = root.join(format!("intent/st/{st}"));
+  let realised = crate::common::thread_dir(root, &st);
   std::fs::remove_dir_all(&realised).expect("unrealise the thread");
   assert!(
     intent(root, &["organize", "--default"]).status.success(),

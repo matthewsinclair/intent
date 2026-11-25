@@ -374,7 +374,7 @@ fn organize_names_what_it_hydrated_and_removed() {
   // carries the declaration (ST0096 WP-01), so `st hydrate` declares it and
   // its files are then taken off the disk by hand.
   setup(d, &["st", "hydrate", st.as_str()]);
-  std::fs::remove_dir_all(d.join(format!("intent/st/{st}"))).expect("unrealise it");
+  std::fs::remove_dir_all(crate::common::thread_dir(d, &st)).expect("unrealise it");
   crate::common::git_commit_all(d);
   names_what_it_wrote_and_removed(d, &["organize", "--apply"]);
   // Then undeclared while on disk: organize removes its views. `st cancel`
@@ -402,10 +402,10 @@ fn sync_names_what_it_wrote_in_each_direction() {
   let d = dir.path();
   let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
   setup(d, &["st", "hydrate", st.as_str()]);
-  std::fs::remove_file(d.join(format!("intent/st/{st}/info.md"))).expect("remove a view");
+  std::fs::remove_file(crate::common::info_view(d, &st)).expect("remove a view");
   crate::common::git_commit_all(d);
   names_what_it_wrote_and_removed(d, &["sync", "--to-disk"]);
-  let cover = d.join(format!("intent/st/{st}/info.md"));
+  let cover = crate::common::info_view(d, &st);
   let text = std::fs::read_to_string(&cover).expect("the cover");
   let edited = text.replacen(
     "## Objective\n\n",

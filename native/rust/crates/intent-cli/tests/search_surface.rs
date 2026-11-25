@@ -94,7 +94,7 @@ fn a_word_in_authored_thread_prose_is_found() {
   // disk for its prose.
   ok(root, &["st", "hydrate", st.as_str()]);
   std::fs::write(
-    root.join(format!("intent/st/{st}/design.md")),
+    crate::common::thread_dir(root, &st).join("design.md"),
     "# Notes\n\nThe kestrel combinator returns its first argument.\n",
   )
   .expect("author prose");
@@ -255,7 +255,7 @@ fn no_match_is_exit_zero_and_silent() {
   // disk for its prose.
   ok(root, &["st", "hydrate", st.as_str()]);
   std::fs::write(
-    root.join(format!("intent/st/{st}/design.md")),
+    crate::common::thread_dir(root, &st).join("design.md"),
     "# Design\n\nSomething.\n",
   )
   .expect("author prose");
@@ -337,7 +337,7 @@ fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
   // disk for its prose.
   ok(root, &["st", "hydrate", st.as_str()]);
   std::fs::write(
-    root.join(format!("intent/st/{st}/design.md")),
+    crate::common::thread_dir(root, &st).join("design.md"),
     "# Design\n\nSomething.\n",
   )
   .expect("author prose");
@@ -425,7 +425,7 @@ fn ordinary_punctuation_is_searched_literally_and_finds_what_it_names() {
   // disk for its prose.
   ok(root, &["st", "hydrate", st.as_str()]);
   std::fs::write(
-    root.join(format!("intent/st/{st}/design.md")),
+    crate::common::thread_dir(root, &st).join("design.md"),
     "# Notes\n\nThe family-root disclaimer lives in render.rs and shipped in v3.0.1.\n",
   )
   .expect("author prose");
@@ -539,7 +539,7 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
   let dir = project();
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
-  let design = root.join(format!("intent/st/{st}/design.md"));
+  let design = crate::common::thread_dir(root, &st).join("design.md");
   std::fs::create_dir_all(design.parent().expect("a thread dir")).expect("mkdir");
   std::fs::write(
     &design,
@@ -651,7 +651,7 @@ fn a_document_the_store_carries_is_not_indexed_again_from_the_disk() {
   let dir = project();
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
-  let design = root.join(format!("intent/st/{st}/design.md"));
+  let design = crate::common::thread_dir(root, &st).join("design.md");
   std::fs::create_dir_all(design.parent().expect("a thread dir")).expect("mkdir");
   std::fs::write(
     &design,

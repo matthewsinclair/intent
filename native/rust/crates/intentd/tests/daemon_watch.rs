@@ -330,6 +330,15 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
   // project is the difference between a save being free and a `git checkout`
   // pinning a core.
   const WRITES: u64 = 12;
+  // The burst's threads take ordinals from here on, which a fresh project
+  // never holds, each spelled by the id waist (ST1c2db93 WP-d0fd).
+  const FIRST_ORDINAL: u64 = 100;
+  let burst_id = |n: u64| {
+    let ordinal = u32::try_from(FIRST_ORDINAL + n).expect("a burst ordinal fits a u32");
+    intentsvcs::id::ThreadId::from_ordinal(ordinal)
+      .expect("a burst ordinal is a thread ordinal")
+      .stored()
+  };
 
   let daemon = RunningDaemon::start();
   let root = crate::common::project("Burst");
@@ -338,7 +347,7 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
   let before = arm(&daemon, &root);
 
   for n in 0..WRITES {
-    crate::common::write_thread(&root, &format!("ST01{n:02}"));
+    crate::common::write_thread(&root, &burst_id(n));
   }
 
   until("the burst was ingested", || {
@@ -359,7 +368,7 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
   // The state is still correct, which is the half debouncing must not cost.
   let ids = thread_ids(&daemon, &root);
   for n in 0..WRITES {
-    let id = format!("ST01{n:02}");
+    let id = burst_id(n);
     assert!(
       ids.contains(&id),
       "`{id}` was written during the burst and never reached the store, so the debounce dropped work rather than coalescing it: {ids:?}"
@@ -449,7 +458,12 @@ fn a_pulled_render_of_a_recorded_view_is_ingested_and_then_left_alone() {
   crate::common::facade_on(&ours)
     .hydrate(&address)
     .expect("the thread's views realise");
-  let rel = format!("intent/st/{id}/info.md");
+  let rel = intentsvcs::project::relative(
+    &ours,
+    &intentsvcs::project::Project::open(&ours)
+      .expect("the project opens")
+      .info_view(&id),
+  );
   assert!(
     ours.join(&rel).is_file(),
     "hydrating {id} realised no `{rel}`"

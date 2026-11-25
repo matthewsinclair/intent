@@ -574,7 +574,7 @@ fn a_pull_carries_a_hand_edited_cover_into_the_store() {
   team.forge.git_said(&alice, &["push", "-q"]);
   team.forge.git_said(&bob, &["pull", "-q"]);
 
-  let cover = bob.join(format!("intent/st/{onboarding}/info.md"));
+  let cover = crate::common::info_view(&bob, &onboarding);
   let text = std::fs::read_to_string(&cover).expect("the pulled cover is on disk");
   let from = text
     .find("## Objective\n\n")

@@ -29,7 +29,7 @@ use intentsvcs::{ingest, views};
 use testkit::repo_root;
 
 fn estate() -> (Project, ingest::Canon) {
-  let project = Project::open(&repo_root()).expect("the real project opens");
+  let project = crate::common::real_project();
   let canon = ingest::read(&project).expect("canon reads");
   (project, canon)
 }

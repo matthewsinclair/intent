@@ -128,7 +128,7 @@ fn tasks_prints_the_attachment_the_thread_carries() {
 fn acceptance_prints_the_rendered_contract() {
   let (dir, st) = seeded();
   ok(dir.path(), &["st", "edit", st.as_str(), "design", "--path"]);
-  let view = std::fs::read_to_string(dir.path().join(format!("intent/st/{st}/acceptance.md")))
+  let view = std::fs::read_to_string(crate::common::acceptance_view(dir.path(), &st))
     .expect("the realised acceptance view");
   let contract = ok(dir.path(), &["st", "show", st.as_str(), "acceptance"]);
   assert!(
@@ -163,7 +163,7 @@ fn a_store_only_attachment_answers() {
   ok(dir.path(), &["st", "edit", st.as_str(), "design", "--path"]);
   ok(dir.path(), &["st", "dehydrate", st.as_str()]);
   assert!(
-    !dir.path().join(format!("intent/st/{st}")).exists(),
+    !crate::common::thread_dir(dir.path(), &st).exists(),
     "dehydrate left the thread on disk, so this arm would not be reading the store alone"
   );
   assert_eq!(

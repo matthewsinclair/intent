@@ -62,7 +62,7 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
   // can still carry is a view from BEFORE that fix -- an older render the
   // store has moved past. Put the pre-change bytes back after the change, and
   // that is exactly the state.
-  let view = root.join(format!("intent/st/{st}/acceptance.md"));
+  let view = crate::common::acceptance_view(root, &st);
   let older_render = std::fs::read_to_string(&view).expect("the closed thread's view is on disk");
   step(
     root,
@@ -135,7 +135,7 @@ fn a_carriable_cover_edit_names_the_verb_that_keeps_it() {
   step(root, &["st", "start", st.as_str()]);
   step(root, &["organize", "--apply"]);
 
-  let cover = root.join(format!("intent/st/{st}/info.md"));
+  let cover = crate::common::info_view(root, &st);
   let text = std::fs::read_to_string(&cover).expect("the started thread's cover is on disk");
   let from = text
     .find("## Objective\n\n")

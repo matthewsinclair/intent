@@ -358,10 +358,9 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
   );
 
   let before = tree(root);
+  let undeclared = crate::common::thread_dir_prefix(root, &second);
   assert!(
-    before
-      .keys()
-      .any(|k| k.starts_with(&format!("intent/st/{second}/"))),
+    before.keys().any(|k| k.starts_with(&undeclared)),
     "the UNDECLARED thread must have REALISED files -- not merely canon -- or the \
      survival assertion below is about a population `--default` could never have \
      touched:\n{:?}",
@@ -469,15 +468,14 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
   );
   // `st start` realises the thread it declares since issue 0079, so the
   // declared-and-absent state this test needs is made by removing it.
-  std::fs::remove_dir_all(root.join(format!("intent/st/{first}")))
+  std::fs::remove_dir_all(crate::common::thread_dir(root, &first))
     .expect("unrealise the started thread");
   std::fs::remove_file(crate::common::manifest_file(root)).expect("make --default act");
 
   let before = tree(root);
+  let declared = crate::common::thread_dir_prefix(root, &first);
   assert!(
-    !before
-      .keys()
-      .any(|k| k.starts_with(&format!("intent/st/{first}/"))),
+    !before.keys().any(|k| k.starts_with(&declared)),
     "the DECLARED thread must be absent from disk, or there is nothing for an applying \
      `--default` to create and this test cannot fail:\n{:?}",
     before.keys().collect::<Vec<_>>()

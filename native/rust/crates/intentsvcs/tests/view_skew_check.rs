@@ -315,7 +315,7 @@ fn an_absent_or_unreadable_manifest_keeps_every_view_in_scope() {
   let fx = Fixture::new();
   let project = fx.project();
   views::write_all(&project, &canon(), &ctx()).expect("write");
-  std::fs::remove_file(project.root().join("intent/st/ST0056/info.md")).expect("remove");
+  std::fs::remove_file(project.info_view("ST0056")).expect("remove");
 
   for state in [Realised::NothingSaid, Realised::Unreadable] {
     let findings = skew(

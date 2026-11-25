@@ -316,7 +316,7 @@ const NOOP: fn(&Path, &Threads) = |_, _| {};
 /// absent"* is driven in the state that claim is about. **Driving it with the
 /// file present proves nothing: the generator and the reader look identical.**
 fn without_todo(root: &Path, _: &Threads) {
-  let p = root.join("intent/todo.md");
+  let p = crate::common::todo_view(root);
   if p.exists() {
     std::fs::remove_file(&p).expect("remove todo.md");
   }
@@ -368,7 +368,7 @@ fn started_first(root: &Path, threads: &Threads) {
 /// criterion on an empty set.
 fn stale_index(root: &Path, _: &Threads) {
   std::fs::write(
-    root.join("intent/st/steel_threads.md"),
+    crate::common::steel_threads_view(root),
     "# Steel Threads\n\nstale content this file did not have\n",
   )
   .expect("scribble the index");

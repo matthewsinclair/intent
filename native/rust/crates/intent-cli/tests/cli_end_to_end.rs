@@ -353,16 +353,13 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   // An upgraded project realises a thread on its record (ST0096 WP-01), and
   // `st new` does not, so the views are put on disk by `st hydrate`.
   ok(root, &["st", "hydrate", st.as_str()]);
+  assert!(crate::common::info_view(root, &st).is_file(), "cover view");
   assert!(
-    root.join(format!("intent/st/{st}/info.md")).is_file(),
-    "cover view"
-  );
-  assert!(
-    root.join(format!("intent/st/{st}/acceptance.md")).is_file(),
+    crate::common::acceptance_view(root, &st).is_file(),
     "contract view"
   );
-  assert!(root.join("intent/st/steel_threads.md").is_file(), "index");
-  assert!(root.join("intent/todo.md").is_file(), "todo view");
+  assert!(crate::common::steel_threads_view(root).is_file(), "index");
+  assert!(crate::common::todo_view(root).is_file(), "todo view");
 
   // `--status all` because bare `st list` shows WIP ONLY, as v2 does, and a
   // fresh thread is not WIP. The bare form used to list everything, which is
@@ -774,7 +771,7 @@ fn the_generated_index_is_written_and_carries_no_render_time() {
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "Add a Rust-based CLI"]));
 
-  let index = std::fs::read_to_string(root.join("intent/st/steel_threads.md")).expect("read index");
+  let index = std::fs::read_to_string(crate::common::steel_threads_view(root)).expect("read index");
   assert!(
     index.contains(&format!("| {} |", crate::common::shown(&st))),
     "{index}"
@@ -1272,7 +1269,7 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
 
   // The package's own canon file, where its body lives (ST0096 WP-05).
   let canon_path = crate::common::canon_file(root, &intentsvcs::project::canon_wp_rel(&st, &pkg));
-  let view_path = root.join(format!("intent/st/{st}/WP/{pkg}/info.md"));
+  let view_path = crate::common::wp_info_view(root, &st, crate::common::package_of(&wp));
   let authored = "## Why the incumbents go\n\nA section the template never named, carried verbatim.\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\n## The seams\n\nA `pipe | inside` prose, and _emphasis_ the formatter rewrites.";
   let text = std::fs::read_to_string(&canon_path).expect("canon");
   let edited = text.replace(

@@ -34,7 +34,7 @@ fn step(root: &Path, args: &[&str]) -> String {
 /// Replace the Objective on thread `st`'s cover with `text`, as a person in an
 /// editor would.
 fn type_an_objective(root: &Path, st: &str, text: &str) {
-  let cover = root.join(format!("intent/st/{st}/info.md"));
+  let cover = crate::common::info_view(root, st);
   let was = std::fs::read_to_string(&cover).expect("`st edit` realised the cover");
   let from = was.find("## Objective\n\n").expect("an Objective") + "## Objective\n\n".len();
   let to = was.find("## Context\n\n").expect("a Context");
@@ -75,8 +75,7 @@ fn a_write_refuses_over_a_carriable_cover_edit_and_its_remedy_keeps_the_edit() {
     shown.contains("Typed by hand into the cover."),
     "the edit did not survive the remedy and the re-run:\n{shown}"
   );
-  let cover =
-    std::fs::read_to_string(root.join(format!("intent/st/{st}/info.md"))).expect("the cover");
+  let cover = std::fs::read_to_string(crate::common::info_view(root, &st)).expect("the cover");
   assert!(cover.contains("Typed by hand into the cover."));
 }
 
@@ -93,7 +92,7 @@ fn an_edit_the_cover_cannot_carry_is_overwritten_with_the_warning() {
     &["st", "new", "A thread with a hand-added section"],
   ));
   step(root, &["st", "edit", st.as_str()]);
-  let cover = root.join(format!("intent/st/{st}/info.md"));
+  let cover = crate::common::info_view(root, &st);
   let was = std::fs::read_to_string(&cover).expect("the cover");
   let at = was.find("## Context\n\n").expect("a Context");
   std::fs::write(
@@ -191,7 +190,6 @@ fn a_set_goes_through_over_a_cover_whose_context_carries_an_h2() {
     ],
   );
 
-  let cover =
-    std::fs::read_to_string(root.join(format!("intent/st/{st}/info.md"))).expect("the cover");
+  let cover = std::fs::read_to_string(crate::common::info_view(root, &st)).expect("the cover");
   assert!(cover.contains("### Started, P0"), "{cover}");
 }

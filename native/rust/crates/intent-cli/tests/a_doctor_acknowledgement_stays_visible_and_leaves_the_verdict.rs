@@ -47,7 +47,7 @@ fn an_acknowledged_class_prints_its_reason_and_leaves_the_count_and_the_exit_cod
   // skew exactly one so the exit code below has one cause.
   let (ok, out) = intent(root, &["sync", "--to-disk"]);
   assert!(ok, "sync --to-disk failed: {out}");
-  std::fs::write(root.join("intent/todo.md"), "edited by hand\n").expect("skew one view");
+  std::fs::write(crate::common::todo_view(root), "edited by hand\n").expect("skew one view");
 
   // The fixture must exhibit the finding, or everything below passes vacuously.
   let (ok, before) = intent(root, &["doctor"]);

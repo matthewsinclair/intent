@@ -128,12 +128,30 @@ fn is_dev_id(w: &str) -> bool {
   // beside it a bare `AC-09` or `AT-3` with no sequence, which is no label but
   // is still a development id.
   intentsvcs::id::label_at(w.as_bytes(), 0).is_some()
-    || ["AC-", "AT-", "INV-", "WP-"].iter().any(|p| {
-      w.strip_prefix(p)
+    || dev_id_heads().iter().any(|p| {
+      w.strip_prefix(p.as_str())
         .is_some_and(|r| r.starts_with(|c: char| c.is_ascii_digit()))
     })
     || (w.len() == 5 && w.starts_with("TN") && w[2..].chars().all(|c| c.is_ascii_digit()))
     || w.split(['/', ':', '.']).any(names_a_record)
+}
+
+/// The heads a bare development id opens with, each before a digit: a
+/// criterion's and a test's, from the label grammar's own heads and the dash
+/// after them; a work package heading's (`id::WP_HEADING_PREFIX`); and `INV-`,
+/// a dispatch-table invariant's, which no waist names (ST1c2db93 WP-d0fd).
+fn dev_id_heads() -> Vec<String> {
+  [
+    intentsvcs::id::LabelKind::Criterion,
+    intentsvcs::id::LabelKind::Test,
+  ]
+  .into_iter()
+  .map(|kind| format!("{}-", kind.head()))
+  .chain([
+    "INV-".to_string(),
+    intentsvcs::id::WP_HEADING_PREFIX.to_string(),
+  ])
+  .collect()
 }
 
 /// A record's id as a face prints it, of either family, read by the waist

@@ -148,7 +148,7 @@ fn quiet_is_strictly_less_than_the_default() {
     "the thread must be realised for doctor to walk its directory: {}",
     String::from_utf8_lossy(&hydrated.stderr)
   );
-  let thread_dir = root.join(format!("intent/st/{st}"));
+  let thread_dir = crate::common::thread_dir(root, &st);
   assert!(
     thread_dir.is_dir(),
     "st new made no directory for the thread at {}",

@@ -61,6 +61,14 @@ fn a_thread_both_clones_hold_is_reminted_and_the_merge_is_clean_under_doctor() {
     "the refusal names `st remint` as its remedy:\n{err}"
   );
 
+  // Bob's record of the clashing id, where the project keeps it. It is on disk
+  // before the repair, so its absence after the repair is the move.
+  let bobs_record = crate::common::thread_canon_file(&bob, &bobs);
+  assert!(
+    bobs_record.exists(),
+    "bob's record of {bobs} is on disk before the remint"
+  );
+
   // The repair.
   let out = forge.intent_ok(&bob, &["st", "remint", bobs.as_str()]);
   let moved = reminted_to(&out);
@@ -73,8 +81,11 @@ fn a_thread_both_clones_hold_is_reminted_and_the_merge_is_clean_under_doctor() {
     out.contains(&format!("moved: intent/st/{bobs} -> intent/st/{moved}")),
     "the realised directory moves and says so:\n{out}"
   );
-  assert!(!bob.join(format!("intent/.canon/st/{bobs}.json")).exists());
-  assert!(bob.join(format!("intent/st/{moved}/info.md")).exists());
+  assert!(
+    !bobs_record.exists(),
+    "the remint leaves no record of {bobs} on bob's side"
+  );
+  assert!(crate::common::info_view(&bob, &moved).exists());
   forge.commit_all(&bob, "bob: remint");
 
   // The merge now touches canon cleanly, and nothing conflicts: the two lists

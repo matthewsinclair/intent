@@ -331,19 +331,26 @@ impl Drop for RunningDaemon {
 /// Write thread `id`'s canon straight onto disk, as an external editor would:
 /// bytes appearing in the tree with the daemon uninvolved. The one copy every
 /// daemon test writes (ST0095 WP-10, T1); its schema is the canon's constant.
+///
+/// **THE WAIST WRITES THE BYTES** (ST1c2db93 WP-d0fd): the record is read by
+/// the one reader of a thread file (`ingest::read_thread`) and written by the
+/// one encoder (`canon_format::encode_thread`), in 3.4.0's format. So the file
+/// holds the bytes Intent writes for that record.
 pub fn write_thread(root: &Path, id: &str) {
-  let path = intentsvcs::project::Project::open(root)
-    .expect("a project with its config")
-    .thread_json(id);
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  let path = project.thread_json(id);
+  let record = format!(
+    "{{\"schema\": \"{}\", \"id\": \"{id}\", \"title\": \"Written by hand\", \"status\": \"wip\", \"created\": \"2026-08-30\", \"objective\": \"\", \"context\": \"\"}}",
+    intentsvcs::canon_format::THREAD_SCHEMA_V3
+  );
+  let thread = intentsvcs::ingest::read_thread(&project, id, &record).unwrap_or_else(|findings| {
+    panic!("write_thread's record does not read as a thread: {findings:?}")
+  });
+  let bytes =
+    intentsvcs::canon_format::encode_thread(&thread, intentsvcs::canon_format::CanonFormat::V3)
+      .expect("a thread the reader read encodes in 3.4.0's format");
   std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
-  std::fs::write(
-    &path,
-    format!(
-      "{{\n  \"schema\": \"{}\",\n  \"id\": \"{id}\",\n  \"title\": \"Written by hand\",\n  \"status\": \"wip\",\n  \"created\": \"2026-08-30\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n",
-      intentsvcs::canon_format::THREAD_SCHEMA_V3
-    ),
-  )
-  .expect("write the thread file");
+  std::fs::write(&path, bytes).expect("write the thread file");
 }
 
 /// A facade on the project at `root`, as a test opens one: the shipped

@@ -127,7 +127,8 @@ fn stderr(out: &Output) -> String {
   String::from_utf8_lossy(&out.stderr).into_owned()
 }
 
-/// Every file under `intent/st`, project-relative, in order.
+/// Every file under the project's thread directory (`Project::st_dir`),
+/// project-relative, in order.
 ///
 /// The store is excluded: it is per-machine truth, it changes on every command,
 /// and this verb's subject is the realised form on disk.
@@ -146,9 +147,17 @@ fn realised(root: &Path) -> Vec<String> {
     }
   }
   let mut out = Vec::new();
-  walk(&root.join("intent/st"), root, &mut out);
+  let threads = intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .st_dir();
+  walk(&threads, root, &mut out);
   out.sort();
   out
+}
+
+/// `id`'s generated cover as [`realised`] names it.
+fn cover_of(root: &Path, id: &str) -> String {
+  intentsvcs::project::relative(root, &crate::common::info_view(root, id))
 }
 
 /// The ids `st new` minted for [`project`]'s three threads, by the part each
@@ -232,7 +241,7 @@ fn project(satisfied: bool) -> (tempfile::TempDir, Threads) {
   // `st start` realises the thread it declares since issue 0079; the thread to
   // create must start UNrealised, so its files are removed rather than never
   // written.
-  std::fs::remove_dir_all(root.join(format!("intent/st/{to_create}")))
+  std::fs::remove_dir_all(crate::common::thread_dir(root, &to_create))
     .expect("unrealise the thread to create");
   (
     dir,
@@ -262,8 +271,8 @@ fn regenerates_then_applies_in_the_same_run() {
     },
   ) = project(true);
   let root = dir.path();
-  let to_remove_dir = format!("intent/st/{to_remove}/");
-  let to_create_dir = format!("intent/st/{to_create}/");
+  let to_remove_dir = crate::common::thread_dir_prefix(root, &to_remove);
+  let to_create_dir = crate::common::thread_dir_prefix(root, &to_create);
 
   // Before: the thread to remove is on disk and the thread to create is not.
   // Asserted rather than assumed, because every claim below is a claim about a
@@ -302,7 +311,7 @@ fn regenerates_then_applies_in_the_same_run() {
   // note: removal is gated and hydration is not, so this is the arm that reds
   // under an implementation that regenerates and applies nothing.
   assert!(
-    after.contains(&format!("intent/st/{to_create}/info.md")),
+    after.contains(&cover_of(root, &to_create)),
     "the declared-but-unrealised thread must have been realised in the same run: {after:?}\n{said}"
   );
   assert!(
@@ -310,7 +319,7 @@ fn regenerates_then_applies_in_the_same_run() {
     "no file of the undeclared realised thread may survive the destructive arm: {after:?}\n{said}"
   );
   assert!(
-    after.contains(&format!("intent/st/{gate}/info.md")),
+    after.contains(&cover_of(root, &gate)),
     "the declared and already-realised thread is the unchanged control and must still be here: {after:?}"
   );
 
@@ -359,12 +368,15 @@ fn a_refused_removal_names_the_thread_and_the_precondition() {
 
   let after = realised(root);
   assert!(
-    after.contains(&format!("intent/st/{to_remove}/info.md"))
-      && after.contains(&format!("intent/st/{to_remove}/acceptance.md")),
+    after.contains(&cover_of(root, &to_remove))
+      && after.contains(&intentsvcs::project::relative(
+        root,
+        &crate::common::acceptance_view(root, &to_remove)
+      )),
     "not one file of the blocked thread may be removed: {after:?}\n{said}"
   );
   assert!(
-    after.contains(&format!("intent/st/{to_create}/info.md")),
+    after.contains(&cover_of(root, &to_create)),
     "the ungated half of the run must still have happened, or this test cannot tell a \
      refusal from a run that did nothing: {after:?}\n{said}"
   );
