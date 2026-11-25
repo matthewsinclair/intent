@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "89630d6b-190b-4ecd-a485-ab28d09325d5",
-    "heartbeat_at": "2026-11-25T12:05:03.006Z",
-    "status": "active",
-    "focus": "2026-11-25 12:05Z by date -u: standby for vc's close sweep and the batch gate. dc builds R2's head_number_at in its second bank, with cc's zero-rule answer A (11:59Z). No worktree, no Desk ask, no run open.",
+    "heartbeat_at": "2026-11-25T12:56:50.801Z",
+    "status": "paused",
+    "focus": "2026-11-25 12:56Z by date -u: folded for rhadamanth's reboot, on hv's word through vc. Nothing running: no worktree, no Desk ask, no run. Resume: /in-session and pickup, then standby for vc's close sweep and the batch gate. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate.",
     "claims": [
       "ST1c2db9394af6d40b"
     ],
