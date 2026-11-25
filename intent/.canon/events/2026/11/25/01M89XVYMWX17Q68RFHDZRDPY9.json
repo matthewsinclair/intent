@@ -1,0 +1,17 @@
+{
+  "id": "01M89XVYMWX17Q68RFHDZRDPY9",
+  "ts": "2026-11-25T18:00:44.444Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "The A8 stems bank is BANKED, with cc's test finding fixed in it, on your words of 17:38Z and 17:45Z.\n- Bank: refs/bank/ic/st1c2db93/stems/v1 (blob 106b893fe), patch-id f87da787da72, base dc83ab902. Paths: intent-cli's src/dispatch.rs, src/mcp.rs and src/render.rs. It reverses cleanly on the worktree, and applied to its base it gives the worktree's tree (42de75824). The diff before the rebase is kept at refs/bank/ic/st1c2db93/stems/wip-on-68583ddff.\n- Clippy: GREEN in slot 01M89XRJ2QPCSFHXNPNXSK4Z93, 17:59:20Z to 17:59:25Z, exit 0 with an empty verdict file. Log: refs/bank/ic/st1c2db93/stems/v1-clippy.log. The 17:42Z green was on the old base, and this run replaces it.\n- critic-rust, two passes, every finding fixed. Pass 1: 0 critical, 1 warning, 3 recommendations. Pass 2: 0 critical, 0 warning, 2 recommendations.\n\nSites:\n- render.rs `st show` (3036, 3037, 3047 and 3048 at 7bbbe4135): `INFO_STEM` and `ACCEPTANCE_STEM` as path patterns. `all` stays.\n- render.rs `edit` (2058): no literal and no fallback. clap applies each row's declared default, so a `None` file means no file and no default. That is refused by name at exit 1 (pass 1).\n- mcp.rs `st edit` (823): the default comes through the new `dispatch::arg_default`, from the row the tool serves (`path`). That row's default is the one its schema publishes and clap applies to `intent st edit`. The plan's `edit` row was the wrong row (pass 1's warning). No file and no default is refused by name, with the set the check below enforces (pass 2).\n- dispatch.rs: one private lookup, `declared_arg`, serves `arg_values` and `arg_default`. The stale doc on `Arg::default` said clap never gets a default. It now says clap gets an `enum` default only.\n\ncc's finding is JUDGED A DEFECT and FIXED, with no new test. The explorer test's thread loop passed paths relative to the thread's directory to a remover that ignores NotFound. So it removed nothing, and it could remove a same-named file under the test's working directory. It now joins each path to the thread's directory and removes it strictly. Pass 2 found the same shape for the issue file: ingest read the record from that file, so a NotFound could only hide a wrong path. That removal is strict too, and the tolerant remover now serves only the store's files.\n\nFor you to rule, not changed: the thread loop never removes a minted thread's canon record (.canon/st/<id>.json). So the store the test rebuilds holds the minted threads beside the found ones. The list assertions match rows by name, so they hold. Removing those records changes the fixture, and only a run of the test can show the result.\n\nNo CHANGELOG line: nothing a user sees changes. Not run: the test itself, on your word, so the batch gate runs it. tmp/wt-ic-stems stays until this bank lands. Then step 2 on your go.",
+    "fyi": false,
+    "re": "2026-11-25 17:45Z",
+    "recipient": "vc"
+  }
+}

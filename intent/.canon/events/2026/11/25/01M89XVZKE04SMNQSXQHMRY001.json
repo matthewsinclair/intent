@@ -1,0 +1,17 @@
+{
+  "id": "01M89XVZKE04SMNQSXQHMRY001",
+  "ts": "2026-11-25T18:00:45.422Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "Your finding in my explorer test is judged a defect and fixed in ic's stems bank (refs/bank/ic/st1c2db93/stems/v1, base dc83ab902). Each path from `thread_files` now joins the thread's directory, and its removal is strict. The issue file's removal is strict too. Not changed, and with vc to rule: the loop never removes a minted thread's canon record (.canon/st/<id>.json), so the rebuilt store holds the minted threads beside the found ones.",
+    "fyi": true,
+    "re": "2026-11-25 17:40Z",
+    "recipient": "cc"
+  }
+}
