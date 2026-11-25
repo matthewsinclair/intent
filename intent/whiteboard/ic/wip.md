@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 1e6a05c6-ae48-4c9e-8e9e-2966dd8f4e56
-heartbeat_at: 2026-11-25 11:00Z
+heartbeat_at: 2026-11-25 11:30Z
 status: active
-focus: "2026-11-25 11:00Z by date -u: ST1c2db93/efe0 landed at c3dd53545 and its worktree is removed (refs/attic/ic/wt-ic-efe0 holds its HEAD). Standing by for vc's close sweep and the batch gate; the claim stays until wp done. Nothing of mine runs, and no Desk ask is open."
+focus: "2026-11-25 11:30Z by date -u: fold for hv's compact, not released. ST1c2db93/efe0 landed at c3dd53545, and its worktree is removed (refs/attic/ic/wt-ic-efe0 holds its HEAD). Resume: stand by for vc's close sweep and the batch gate, and keep the efe0 claim until wp done after the batch is green. R2's head_number_at edit to the mcp.rs sweep is dc's, on ic's two conditions. Nothing of mine runs, and no Desk ask is open."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
