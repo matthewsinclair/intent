@@ -5974,10 +5974,13 @@ fn upgrade() -> Result<(), Failure> {
   // **COUNTED, NOT NAMED** (ST0078 P1's backfill): a file per event the store
   // already held, which is a project's whole history on its first run and
   // nothing after, and an event's id names nothing a reader would look up.
+  // The directory is the project's own, so a project with its own intent_dir
+  // is told where its event files went.
   if done.events_backfilled > 0 {
     eprintln!(
-      "backfilled: {} event file(s) under intent/.canon/events/ for the history this store held -- commit them and it travels with the project",
-      done.events_backfilled
+      "backfilled: {} event file(s) under {}/ for the history this store held -- commit them and it travels with the project",
+      done.events_backfilled,
+      project.relative(&project.events_dir())
     );
   }
   // Issue 0551: the ignore rule this run wrote does not untrack a store git
@@ -5987,7 +5990,8 @@ fn upgrade() -> Result<(), Failure> {
       "untrack: git tracks {path}, and the ignore rule this upgrade wrote does not untrack it -- run `git rm --cached {path}` and commit that with this upgrade, or every commit carries this machine's store"
     ),
     intentsvcs::facade::StoreTracking::Unasked(cause) => eprintln!(
-      "note: git was not asked whether it tracks the store: {cause} -- `git ls-files intent/.cache` answers it"
+      "note: git was not asked whether it tracks the store: {cause} -- `git ls-files {}` answers it",
+      project.relative(&project.cache_dir())
     ),
     intentsvcs::facade::StoreTracking::Untracked => {}
   }
@@ -6805,8 +6809,9 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
 /// after it: `AC-17.8` requires the refusal to NAME what authors the view, and
 /// a label the operator may not have read is not a refusal.
 fn artefact_rows(table: &crate::dispatch::Table, kind: &str) -> Vec<tui::layout::Row> {
+  use intentsvcs::id::IdKind;
   use intentsvcs::project::{EditDisposition, Project};
-  if kind != "thread" {
+  if kind != IdKind::Thread.wire() {
     return Vec::new();
   }
   crate::dispatch::arg_values(table, "edit", "file")
@@ -7272,6 +7277,7 @@ impl tui::run::Source for Live {
   /// keystrokes away. The kinds come from the form declaration -- the same
   /// derivation the views walk -- never from a typed list.
   fn index(&mut self) -> Vec<tui::omnibox::Entry> {
+    use intentsvcs::id::IdKind;
     use intentsvcs::nav::View;
     use tui::omnibox::Entry;
     let mut out: Vec<Entry> = intentsvcs::nav::kinds(&self.declaration)
@@ -7290,7 +7296,7 @@ impl tui::run::Source for Live {
       title: t.title.clone(),
       status: intentsvcs::form::field(&serde_json::json!({ "status": t.status }), "status"),
       door: View::Item {
-        kind: "thread".into(),
+        kind: IdKind::Thread.wire().into(),
         id: t.id.stored(),
       },
     }));
@@ -7301,7 +7307,7 @@ impl tui::run::Source for Live {
         title: i.title.clone(),
         status: intentsvcs::form::field(&serde_json::json!({ "status": i.status }), "status"),
         door: View::Item {
-          kind: "issue".into(),
+          kind: IdKind::Issue.wire().into(),
           id,
         },
       }
@@ -7517,6 +7523,7 @@ fn rows_for(
   table: &crate::dispatch::Table,
   view: &intentsvcs::nav::View,
 ) -> Vec<tui::layout::Row> {
+  use intentsvcs::id::IdKind;
   use intentsvcs::nav::View;
   use tui::layout::Row;
   match view {
@@ -7553,14 +7560,14 @@ fn rows_for(
     // where the row type is already being opened up. Ordering and the seam
     // are shared today (`views::open_run`), so nothing diverges in the
     // meantime.
-    View::Collection { kind } if kind == "thread" => {
+    View::Collection { kind } if kind == IdKind::Thread.wire() => {
       let threads = facade.st_list();
       let open = intentsvcs::views::open_run(&threads);
       seamed(
         open,
         threads.iter().map(|t| {
           Row::new(t.id.shown(), t.title.clone(), "button").opening(View::Item {
-            kind: "thread".into(),
+            kind: IdKind::Thread.wire().into(),
             id: t.id.stored(),
           })
         }),
@@ -7569,14 +7576,14 @@ fn rows_for(
     // **`/issues` DRAWS WHAT `/threads` DRAWS** (hv, 2026-09-14): open issues
     // first, newest first, a rule, then the closed ones. The order and the
     // boundary come from `views`, as the thread arm's do.
-    View::Collection { kind } if kind == "issue" => {
+    View::Collection { kind } if kind == IdKind::Issue.wire() => {
       let issues = facade.issue_index();
       let open = intentsvcs::views::issue_open_run(&issues);
       seamed(
         open,
         issues.iter().map(|i| {
           Row::new(i.number.shown(), i.title.clone(), "button").opening(View::Item {
-            kind: "issue".into(),
+            kind: IdKind::Issue.wire().into(),
             id: i.number.stored(),
           })
         }),
@@ -7647,7 +7654,7 @@ fn rows_for(
       }
       rows
     }
-    View::Children { kind, id, field } if kind == "thread" => {
+    View::Children { kind, id, field } if kind == IdKind::Thread.wire() => {
       // **A LEVEL THIS BUILD DOES NOT RENDER SAYS SO, RATHER THAN LOOKING
       // EMPTY.** `AC-17.7` puts a view that cannot load on an error row, and an
       // unbuilt descent is that case: without this the operator cannot tell a
@@ -7672,7 +7679,7 @@ fn rows_for(
       id,
       field,
       item,
-    } if kind == "thread" => match children_of(facade, declaration, kind, id, field) {
+    } if kind == IdKind::Thread.wire() => match children_of(facade, declaration, kind, id, field) {
       None => vec![tui::layout::Row::new(
         "error",
         format!("`{field}` is a level this build does not render yet"),
@@ -7753,7 +7760,10 @@ fn children_of(
                 field: field.to_string(),
                 item: w.seq.stored(),
               });
-              match (declaration.form("wp"), serde_json::to_value(w).ok()) {
+              match (
+                declaration.form(intentsvcs::id::IdKind::WorkPackage.wire()),
+                serde_json::to_value(w).ok(),
+              ) {
                 (Some(form), Some(entity)) => row.expanding_to(tui::views::rows_for(form, &entity)),
                 _ => row,
               }
@@ -9224,7 +9234,7 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
     Some(("update", _)) => {
       let mut f = open()?;
       f.todo_update().map_err(fail)?;
-      println!("ok: todo.md regenerated");
+      println!("ok: {} regenerated", intentsvcs::project::TODO_VIEW);
       Ok(())
     }
     Some(("done", a)) => todo_done(a),
@@ -16290,6 +16300,7 @@ pub(crate) fn address_of(
   raw: &str,
 ) -> Result<intentsvcs::address::Address, Failure> {
   use intentsvcs::address::{Entity, SCHEME};
+  use intentsvcs::id::IdKind;
 
   let Some(kind) = kind else {
     if raw.starts_with(SCHEME) {
@@ -16312,10 +16323,13 @@ pub(crate) fn address_of(
     return resolved_against_the_project(raw);
   };
 
-  let wanted = match kind {
-    "st" => "thread",
-    "wp" => "wp",
-    "issue" => "issue",
+  // The verb's kind word names a family, read once here. An address's entity
+  // form is that family's wire spelling, which `IdKind` owns, and the entity
+  // built below is that family's.
+  let family = match kind {
+    "st" => IdKind::Thread,
+    "wp" => IdKind::WorkPackage,
+    "issue" => IdKind::Issue,
     // Unreachable while `enum_arg` guards the caller; a refusal rather than a
     // panic because an unguarded caller must not be the thing that finds out.
     other => {
@@ -16328,7 +16342,7 @@ pub(crate) fn address_of(
   if raw.starts_with(SCHEME) {
     let address = address::parse(raw).map_err(|e| Failure::Error(e.render()))?;
     let got = address.entity.form();
-    if got != wanted {
+    if got != family.wire() {
       return Err(Failure::Error(format!(
         "error: you named `{kind}` and the address names a {got}\n  remedy: drop the kind or name the one the address carries -- resolving this by precedence would answer about an entity you did not name"
       )));
@@ -16344,19 +16358,18 @@ pub(crate) fn address_of(
   // authority comes first agrees with the grammar exactly until one of them
   // moves. Building the `Entity` states the SUBJECT and leaves every question
   // about spelling to `address`.
-  let entity = match kind {
-    "st" => Entity::Thread {
+  let entity = match family {
+    IdKind::Thread => Entity::Thread {
       id: thread_spec(raw)?,
     },
     // `thread_spec` normalises the thread half and passes the tail through
-    // UNTOUCHED, so the composite arrives as `ST0000/03` and splits here.
-    "wp" => {
+    // UNTOUCHED, so the composite arrives as `ST0000/03` and splits here. A
+    // spec with no package part is the waist's one refusal of a target that
+    // names no work package, whose remedy is the address form of both families.
+    IdKind::WorkPackage => {
       let spec = thread_spec(raw)?;
-      let (thread, wp) = intentsvcs::id::split_wp_address(&spec).ok_or_else(|| {
-        Failure::Error(format!(
-          "error: `{raw}` does not name a work package\n  remedy: name it as `<thread>/<NN>`, eg `<thread>/03`"
-        ))
-      })?;
+      let (thread, wp) = intentsvcs::id::split_wp_address(&spec)
+        .ok_or_else(|| refused(&intentsvcs::id::not_a_package(raw)))?;
       // The package part is read by the operator's package door, so the
       // entity carries it typed (ST1c2db93 P9).
       let wp = intentsvcs::id::read_wp(wp)
@@ -16366,7 +16379,7 @@ pub(crate) fn address_of(
         wp,
       }
     }
-    _ => Entity::Issue {
+    IdKind::Issue => Entity::Issue {
       id: issue_id(raw)?.stored(),
     },
   };

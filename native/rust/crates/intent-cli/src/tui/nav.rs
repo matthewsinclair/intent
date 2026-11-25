@@ -44,7 +44,7 @@ impl Stack {
   /// entries so every other kind is one word away.
   pub fn explore() -> Self {
     Self::rooted_at(View::Collection {
-      kind: "thread".into(),
+      kind: intentsvcs::id::IdKind::Thread.wire().into(),
     })
   }
 

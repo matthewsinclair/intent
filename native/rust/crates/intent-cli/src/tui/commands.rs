@@ -282,7 +282,7 @@ fn acts() -> Vec<Command> {
       name: "threads".into(),
       blurb: "every steel thread".into(),
       act: Act::Collection {
-        kind: "thread".into(),
+        kind: intentsvcs::id::IdKind::Thread.wire().into(),
         cli: None,
       },
     },
@@ -290,7 +290,7 @@ fn acts() -> Vec<Command> {
       name: "issues".into(),
       blurb: "every issue -- with arguments, runs `intent issues ...`".into(),
       act: Act::Collection {
-        kind: "issue".into(),
+        kind: intentsvcs::id::IdKind::Issue.wire().into(),
         cli: Some("issues".into()),
       },
     },

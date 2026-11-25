@@ -62,7 +62,7 @@ Why it matters — four failure modes that manifest together:
 
 Reference: the Lamplight ST0121/WP/24 incident (commits 75706c18 → 98616a0c, 2026-04-08). A 24-hour window existed where every top-level session doc lied about the steel thread state — `wip.md`, `intent/restart.md`, `.claude/restart.md`, and `impl.md` all claimed ST0121 was complete before `feedback-report.md` existed. A full doc-reconciliation commit was required to repair the damage.
 
-**If you have already started wrong** (the audit is a WP inside the audited thread): provision the dedicated thread (`intent st new "TCA: <scope>" --start`, then its work packages as in §0.3), copy each captured report into the matching new `WP/NN/socrates.md` and record it with `intent st attach`, then cancel the misplaced WP with `intent wp cancel <ST>/<NN> --reason "<why>"`.
+**If you have already started wrong** (the audit is a WP inside the audited thread): provision the dedicated thread (`intent st new "TCA: <scope>" --start`, then its work packages as in §0.3), copy each captured report into the matching new `WP/<pkg>/socrates.md` and record it with `intent st attach`, then cancel the misplaced WP with `intent wp cancel <address> --reason "<why>"`, where `<address>` is that WP's address in the audited thread.
 
 ### Invariant 2: Work packages are flat
 
@@ -71,7 +71,7 @@ Every component audit is a top-level `WP/<pkg>` directly under the TCA steel thr
 Correct layout for a fresh TCA:
 
 ```
-intent/st/<thread id>/          <- the TCA as its own dedicated steel thread
+intent/st/<thread>/             <- the TCA as its own dedicated steel thread
 ├── info.md                     <- TCA objective and context (generated view)
 ├── acceptance.md               <- TCA acceptance criteria (generated view)
 ├── design.md                   <- rule set + FP Guidance + component map
@@ -293,28 +293,30 @@ Create the thread and its work packages through the CLI, one WP per component an
 
 ```bash
 intent st new "TCA: <project and scope>" --start   # writes info.md and acceptance.md
-intent wp new ST{NNNN} "<Component name>"          # once per component, in order
-intent wp new ST{NNNN} "Cross-Component Synthesis" # always last
+intent wp new <thread> "<Component name>"          # once per component, in order
+intent wp new <thread> "Cross-Component Synthesis" # always last
 ```
 
-`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent st done` refuses while the thread has no criteria or any criterion is unsatisfied. It also refuses while any work package is still open (Not Started or WIP), the synthesis WP included: close each with `intent wp start` then `intent wp done` (`wp done` refuses a WP that was never started), or drop one with `intent wp cancel ST{NNNN}/{NN} --reason "<why>"`. `intent wp done` checks only a work package's own criteria (those numbered for it, `AC-<NN>.n`): a WP with none closes without a contract check once the thread has any criterion, while a thread with no criteria at all refuses it too, and a WP whose own criteria are all descoped or withdrawn is refused. Give each component WP its own criteria if its close should mean anything. The audit's own documents are files you write into the thread directory and then record in the store with `intent st attach ST{NNNN} <file> --from intent/st/ST{NNNN}/<file>`; until they are attached, `intent organize --verbose` counts them as unclaimed, one line per directory (`unclaimed: <dir>/ (<n> file(s))`):
+`<thread>` is the thread's id as `st new` printed it on its `created:` line. `<pkg>` is a work package's own id: the part of `wp new`'s `created:` line after the slash.
+
+`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent st done` refuses while the thread has no criteria or any criterion is unsatisfied. It also refuses while any work package is still open (Not Started or WIP), the synthesis WP included: close each with `intent wp start` then `intent wp done` (`wp done` refuses a WP that was never started), or drop one with `intent wp cancel <thread>/<pkg> --reason "<why>"`. `intent wp done` checks only a work package's own criteria (those grouped under its id, `AC-<pkg>.n`): a WP with none closes without a contract check once the thread has any criterion, while a thread with no criteria at all refuses it too, and a WP whose own criteria are all descoped or withdrawn is refused. Give each component WP its own criteria if its close should mean anything. The audit's own documents are files you write into the thread directory and then record in the store with `intent st attach <thread> <file> --from intent/st/<thread>/<file>`; until they are attached, `intent organize --verbose` counts them as unclaimed, one line per directory (`unclaimed: <dir>/ (<n> file(s))`):
 
 ```
-intent/st/ST{NNNN}/
+intent/st/<thread>/
 ├── info.md          # Generated: objective, context, WP table
 ├── acceptance.md    # Generated: acceptance criteria
 ├── design.md        # Rule set, component map, parallelization plan
 ├── tasks.md         # Phase checklist with all WPs
 ├── impl.md          # Implementation notes (optional)
 └── WP/
-    ├── 01/
+    ├── <pkg>/          # One directory per WP, named by its id
     │   ├── info.md      # Generated: the WP's objective and body
     │   └── socrates.md  # Audit output
-    ├── 02/
+    ├── <pkg>/
     │   ├── info.md
     │   └── socrates.md
     ...
-    └── 15/             # Synthesis WP (always last)
+    └── <pkg>/          # Synthesis WP (always last)
         ├── info.md
         └── socrates.md
 ```
@@ -323,14 +325,14 @@ Head design.md's rule-pack section `## The rule set`: the synthesis and the feed
 
 ### WP body template
 
-Write each WP's objective and body with `intent set`, addressing the WP as `intent:///threads/ST{NNNN}/wp/{NN}`; both render into that WP's `info.md`. Set its T-shirt size with `intent wp rescope ST{NNNN}/{NN} <size>`.
+Write each WP's objective and body with `intent set`, addressing the WP as `intent:///threads/<thread>/wp/<pkg>`; both render into that WP's `info.md`. Set its T-shirt size with `intent wp rescope <thread>/<pkg> <size>`.
 
 ```bash
-intent set intent:///threads/ST{NNNN}/wp/{NN} objective "{1-2 sentence description of what this component covers}"
-intent set intent:///threads/ST{NNNN}/wp/{NN} body --from wp-{NN}-body.md
+intent set intent:///threads/<thread>/wp/<pkg> objective "{1-2 sentence description of what this component covers}"
+intent set intent:///threads/<thread>/wp/<pkg> body --from wp-<pkg>-body.md
 ```
 
-With `wp-{NN}-body.md` carrying:
+With `wp-<pkg>-body.md` carrying:
 
 ```markdown
 ## Files
@@ -423,10 +425,10 @@ At the default `severity_min: warning` a critic lists only CRITICAL and WARNING 
 
 ### Capturing the report
 
-The critic writes its report directly to its return value. The auditing session writes the verbatim report to `WP/{NN}/socrates.md` with a small header:
+The critic writes its report directly to its return value. The auditing session writes the verbatim report to `WP/<pkg>/socrates.md` with a small header:
 
 ```markdown
-# WP-{NN} {Component Name} -- Critic Audit
+# WP-<pkg> {Component Name} -- Critic Audit
 
 **Critic**: critic-<lang> (review + test-check)
 **Files**: {N} ({code count} code, {test count} test)
@@ -478,7 +480,7 @@ Polyglot projects dispatch one critic per language per WP. For pre-audit reconna
 2. **Verify file manifest** -- confirm all files listed in the WP's `info.md` actually exist (`ls` each file). Missing files indicate stale provisioning.
 3. **Verify the previous WP is committed** (no uncommitted audit files)
 4. **Check context usage** -- if above 70%, consider starting a fresh session
-5. **Start the WP in the store**: `intent wp start ST{NNNN}/{NN}`
+5. **Start the WP in the store**: `intent wp start <thread>/<pkg>`
 
 ### During Each WP
 
@@ -487,12 +489,12 @@ The critic dispatch runs autonomously. It will:
 1. Re-read the rule library (no caching across invocations)
 2. Apply each rule's Detection heuristic to each listed file
 3. Emit a severity-grouped report (CRITICAL / WARNING / RECOMMENDATION / STYLE) with a `Summary:` line
-4. Return the report; the audit wrapper writes it verbatim to `WP/{NN}/socrates.md`
+4. Return the report; the audit wrapper writes it verbatim to `WP/<pkg>/socrates.md`
 
 ### After Each WP
 
-1. **Record it in the store**: `intent st attach ST{NNNN} WP/{NN}/socrates.md --from intent/st/ST{NNNN}/WP/{NN}/socrates.md`, then `intent wp done ST{NNNN}/{NN}`. Without these the store's WP status never moves.
-2. **Commit immediately**: `git add intent/st/ST{NNNN}/WP/{NN}/socrates.md && git commit`
+1. **Record it in the store**: `intent st attach <thread> WP/<pkg>/socrates.md --from intent/st/<thread>/WP/<pkg>/socrates.md`, then `intent wp done <thread>/<pkg>`. Without these the store's WP status never moves.
+2. **Commit immediately**: `git add intent/st/<thread>/WP/<pkg>/socrates.md && git commit`
 3. **Log the summary** in your running tally
 4. **Move to the next WP**
 
@@ -741,7 +743,7 @@ After remediation, add enforcement:
 
 ## 4.5 The Feedback Report
 
-The audit closes on `feedback-report.md`, a top-level file of the TCA thread and never a work package, recorded with `intent st attach ST{NNNN} feedback-report.md --from intent/st/ST{NNNN}/feedback-report.md`. It carries the audit statistics with a per-WP breakdown (files, raw findings, false positives), the rule analysis (which rules produced the most findings and which the most false positives), the WP sizing assessment, how the critic dispatch performed, the process improvements this document should take for next time, a comparison with earlier audits where there is one, and the metrics summary (raw findings, unique after deduplication, fixed, false positives, deferred). Write it after remediation and before the thread closes, so no session doc claims the audit complete while the report does not exist (Invariant 1).
+The audit closes on `feedback-report.md`, a top-level file of the TCA thread and never a work package, recorded with `intent st attach <thread> feedback-report.md --from intent/st/<thread>/feedback-report.md`. It carries the audit statistics with a per-WP breakdown (files, raw findings, false positives), the rule analysis (which rules produced the most findings and which the most false positives), the WP sizing assessment, how the critic dispatch performed, the process improvements this document should take for next time, a comparison with earlier audits where there is one, and the metrics summary (raw findings, unique after deduplication, fixed, false positives, deferred). Write it after remediation and before the thread closes, so no session doc claims the audit complete while the report does not exist (Invariant 1).
 
 # Appendix A: Scaling Considerations
 
@@ -823,22 +825,22 @@ For a new project audit, follow this checklist:
 - [ ] Calculate effective file counts using weight table
 - [ ] Identify Ash DSL resources, emission/struct files, dead stubs
 - [ ] Map files into 8-15 WPs (12-20 effective files each)
-- [ ] Create the steel thread with `intent st new "TCA: <scope>" --start`; write design.md and tasks.md into its directory; mint acceptance criteria with `intent ac new`; record design.md and tasks.md with `intent st attach ST{NNNN} <file> --from intent/st/ST{NNNN}/<file>`
+- [ ] Create the steel thread with `intent st new "TCA: <scope>" --start`; write design.md and tasks.md into its directory; mint acceptance criteria with `intent ac new`; record design.md and tasks.md with `intent st attach <thread> <file> --from intent/st/<thread>/<file>`
 - [ ] Create each WP with `intent wp new`, synthesis last; write each WP's objective and body with `intent set` (§0.3)
 - [ ] Run Phase 0.5 pre-filtering (grep for IN-EX-CODE-002 / -003 / debug artifacts)
 - [ ] Verify file manifests (all listed files exist)
 - [ ] Confirm critics are registered (restart session if any installed mid-session)
 - [ ] For each WP:
   - [ ] Run `/compact` first
-  - [ ] `intent wp start ST{NNNN}/{NN}` before the dispatch
+  - [ ] `intent wp start <thread>/<pkg>` before the dispatch
   - [ ] Dispatch `Task(subagent_type="critic-<lang>", prompt="review <files>")` (+ `test-check` for test files)
-  - [ ] Capture critic report verbatim into WP/{NN}/socrates.md with the wrapper header
-  - [ ] `intent st attach ST{NNNN} WP/{NN}/socrates.md --from intent/st/ST{NNNN}/WP/{NN}/socrates.md`, then `intent wp done ST{NNNN}/{NN}`
+  - [ ] Capture critic report verbatim into WP/<pkg>/socrates.md with the wrapper header
+  - [ ] `intent st attach <thread> WP/<pkg>/socrates.md --from intent/st/<thread>/WP/<pkg>/socrates.md`, then `intent wp done <thread>/<pkg>`
   - [ ] Commit socrates.md immediately after completion
 - [ ] Write synthesis WP: cluster by root cause across IN-\* IDs, 5-tier priority
 - [ ] Review with project owner
 - [ ] Execute remediation batches in main conversation with verification gates
-- [ ] Wrap up: write `feedback-report.md` (§4.5); satisfy the criteria and run `intent ac gate ST{NNNN}` until it no longer reports BLOCKED; close every WP, then `intent st done ST{NNNN}`; update the ST docs.
+- [ ] Wrap up: write `feedback-report.md` (§4.5); satisfy the criteria and run `intent ac gate <thread>` until it no longer reports BLOCKED; close every WP, then `intent st done <thread>`; update the ST docs.
 
 # Appendix D: Reference Implementations
 
@@ -847,10 +849,10 @@ For a new project audit, follow this checklist:
 ## Example A -- Single-App Elixir
 
 ```
-intent/st/STNNNN/                # Steel thread root
+intent/st/<thread>/              # Steel thread root
 ├── design.md               # R-numbered rule set, component map, parallelization plan
 ├── tasks.md                # Phase checklist with violation counts
-├── WP/NN/socrates.md      # Individual component audits
+├── WP/<pkg>/socrates.md   # Individual component audits
 └── WP/<last>/socrates.md  # Cross-component synthesis
 ```
 
@@ -861,11 +863,11 @@ Dominant rule: R6 (Highlander) at 32% of all violations
 ## Example B -- Umbrella Elixir
 
 ```
-intent/st/STNNNN/                # Steel thread root
+intent/st/<thread>/              # Steel thread root
 ├── design.md                # R-numbered rule set, component map, batches, execution protocol
 ├── tasks.md                 # 5-phase checklist (incl. regression prevention)
-├── WP/NN/info.md            # Component scope with cross-WP Highlander dependencies
-├── WP/NN/socrates.md        # Audit prompts with V{N} format + anti-hallucination
+├── WP/<pkg>/info.md         # Component scope with cross-WP Highlander dependencies
+├── WP/<pkg>/socrates.md     # Audit prompts with V{N} format + anti-hallucination
 └── WP/<last>/socrates.md    # Cross-component synthesis (4-tier P0-P3 priority)
 ```
 
@@ -883,10 +885,10 @@ Innovations over Example A:
 ## Example C -- Polyglot (Elixir + Rust + Swift + Lua)
 
 ```
-intent/st/STNNNN/                # Steel thread root
+intent/st/<thread>/              # Steel thread root
 ├── design.md               # Per-ecosystem rule sets + X-rules, component map
 ├── tasks.md                # Phase checklist with per-ecosystem tracking
-├── WP/NN/socrates.md      # Component audits (grouped by ecosystem)
+├── WP/<pkg>/socrates.md   # Component audits (grouped by ecosystem)
 └── WP/<last>/socrates.md  # Cross-ecosystem synthesis
 ```
 

@@ -514,7 +514,12 @@ mod tests {
   /// wrong target, something a length never could.
   #[test]
   fn the_transcription_carries_every_row_the_design_ratifies() {
-    let path = testkit::repo_root().join("intent/st/ST0056/tui-design.md");
+    // The design is an attachment of ST0056, read where the project realises
+    // that thread.
+    let path = intentsvcs::project::Project::open(&testkit::repo_root())
+      .expect("this repository opens")
+      .thread_dir("ST0056")
+      .join("tui-design.md");
     let text =
       std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     let ratified = parse_ratified(&text);

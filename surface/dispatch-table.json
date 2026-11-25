@@ -7029,7 +7029,7 @@
           "name": "id",
           "type": "address-or-id",
           "arity": "0..1",
-          "note": "The id to open. With `st`, `0`, `ST0000`, `st0` and `ST0` all name one thread; with `wp`, the work package is `<thread>/<NN>`, as in `ST0000/03`. An id that does not parse is refused with the form to use, never reported as not found. It is left out only when the first argument is a whole `intent://` address; a kind with no id is refused."
+          "note": "The id to open. With `st`, a steel-thread id is ST followed by four digits, eg ST0000, or a hashed id or a unique prefix of its hex, eg ST3f9a2c1; `0`, `st0`, and `ST0` name `ST0000` too. With `wp`, a work package's address is its thread's id, a slash and its own id, eg ST0000/01 or ST3f9a2c1/c2e4. An id that does not parse is refused with the form to use, never reported as not found. It is left out only when the first argument is a whole `intent://` address; a kind with no id is refused."
         },
         {
           "name": "file",
@@ -7292,7 +7292,7 @@
           "name": "id",
           "type": "address-or-id",
           "arity": "1",
-          "note": "The id to open. With `st`, `0`, `ST0000`, `st0` and `ST0` all name one thread; with `wp`, `<thread>/<NN>`; with `issue`, its number. An id that does not parse is refused with the form to use, never reported as not found."
+          "note": "The id to open. With `st`, a steel-thread id is ST followed by four digits, eg ST0000, or a hashed id or a unique prefix of its hex, eg ST3f9a2c1; `0`, `st0`, and `ST0` name `ST0000` too. With `wp`, a work package's address is its thread's id, a slash and its own id, eg ST0000/01 or ST3f9a2c1/c2e4. With `issue`, an issue id is four digits, eg 0001, or a hashed id or a unique prefix of its hex, eg I3f9a2c1. An id that does not parse is refused with the form to use, never reported as not found."
         }
       ],
       "flags": [],
@@ -7689,7 +7689,7 @@
           "name": "token",
           "type": "string",
           "arity": "1..n",
-          "note": "An id in any spelling the commands take, eg `ST0000`, `s12`, `i7` or `12`, a work package's address, eg `ST0000/01`, or an `intent:///` address of any of them."
+          "note": "An id in any spelling the commands take, eg `ST3f9a2c1`, `I3f9a2c1`, `ST0000`, `s12`, `i7`, or `12`, a work package's address, eg `ST3f9a2c1/c2e4` or `ST0000/01`, or an `intent:///` address of any of them."
         }
       ],
       "flags": [

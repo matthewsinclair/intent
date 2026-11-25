@@ -552,9 +552,10 @@ pub fn freshness_note(answer: &intentsvcs::search::SearchAnswer) -> Option<Strin
 fn door_for(hit: &intentsvcs::search::Hit) -> Option<View> {
   use intentsvcs::search::HitKind;
   let id = hit.owner.as_deref()?;
+  // A hit's kind and a view's kind are one wire spelling, which `IdKind` owns
+  // and `HitKind::as_str` gives.
   let kind = match hit.kind {
-    HitKind::Thread => "thread",
-    HitKind::Issue => "issue",
+    HitKind::Thread | HitKind::Issue => hit.kind.as_str(),
     // **A WORK PACKAGE IS ADDRESSED BY TWO COMPONENTS AND A HIT CARRIES ONE
     // STRING**, which is the exact collision `View::Child` was built for. The
     // owner id of a wp section is not split here on a guess: until the envelope

@@ -59,14 +59,20 @@ fn assert_states(rel: &str, text: &str, phrase: &str) {
 }
 
 /// The prefix rule: the fewest hex a typed prefix carries, and the more it
-/// needs when it is all digits, read from `prefix_floor` itself.
-fn prefix_phrase() -> String {
+/// needs when it is all digits, read from `prefix_floor` itself. `of` follows
+/// "hex" where the prose says whose hex they are.
+fn prefix_rule(of: &str) -> String {
   let all_digits = prefix_floor(&"0".repeat(MIN_PREFIX_HEX), THREAD_DIGITS);
   format!(
-    "any unique prefix of at least {} hex of a git-style id, or {} if they are all digits",
+    "any unique prefix of at least {} hex{of}, or {} if they are all digits",
     word(MIN_PREFIX_HEX),
     word(all_digits)
   )
+}
+
+/// The prefix rule as the template and the essentials skill state it.
+fn prefix_phrase() -> String {
+  prefix_rule(" of a git-style id")
 }
 
 /// A thread's, a package's and an issue's id as a face shows them, and as an
@@ -167,6 +173,127 @@ fn the_canon_ignore_guard_probes_the_worked_example() {
   ] {
     assert_states(CANON_IGNORE_GUARD, &text, &phrase);
   }
+}
+
+/// The register. `gen_reference.sh` publishes its argument notes into
+/// `docs/reference`, and `--help` does not print them.
+const REGISTER: &str = "surface/dispatch-table.json";
+
+/// The note the register gives one argument of one command, read from the
+/// table the binary carries.
+fn register_note(path: &str, arg: &str) -> String {
+  let table: serde_json::Value = serde_json::from_str(intent_cli::dispatch::TABLE)
+    .unwrap_or_else(|e| panic!("{REGISTER} does not parse: {e}"));
+  table["families"]
+    .as_array()
+    .into_iter()
+    .flatten()
+    .flat_map(|family| family["entries"].as_array().into_iter().flatten())
+    .chain(table["new_surface"].as_array().into_iter().flatten())
+    .filter(|entry| entry["path"] == path)
+    .flat_map(|entry| entry["args"].as_array().into_iter().flatten())
+    .find(|a| a["name"] == arg)
+    .and_then(|a| a["note"].as_str())
+    .unwrap_or_else(|| panic!("{REGISTER} has no note on `{path}`'s `{arg}`"))
+    .to_string()
+}
+
+/// The register's notes on an id argument quote each family's form sentence
+/// whole, so the reference teaches both families as every refusal does. The
+/// `id` command's note gives a git-style example of each kind, and an ordinal
+/// thread and package.
+#[test]
+fn the_register_notes_state_the_id_forms() {
+  use intentsvcs::id::{ISSUE_ID_FORM, THREAD_ID_FORM, WP_ADDRESS_FORM};
+  for (path, forms) in [
+    ("edit", &[THREAD_ID_FORM, WP_ADDRESS_FORM][..]),
+    (
+      "browse",
+      &[THREAD_ID_FORM, WP_ADDRESS_FORM, ISSUE_ID_FORM][..],
+    ),
+  ] {
+    let note = register_note(path, "id");
+    for form in forms {
+      assert_states(REGISTER, &note, form);
+    }
+  }
+  let token = register_note("id", "token");
+  for example in [
+    shown_thread(),
+    shown_issue(),
+    shown_package(),
+    ordinal_thread(),
+    ordinal_package(),
+  ] {
+    assert_states(REGISTER, &token, &format!("`{example}`"));
+  }
+}
+
+/// The user docs a reader learns ids from.
+const README: &str = "README.md";
+const GETTING_STARTED: &str = "docs/getting-started.md";
+const TEAM_DOC: &str = "docs/concepts/working-in-a-team.md";
+const CRITERIA_DOC: &str = "docs/concepts/criteria-and-tests.md";
+
+/// The user docs and the tech note each restate some of the prefix rule, the
+/// shown widths, a label's group and a claim's issue form, in their own words.
+/// Each phrase is built from the constants.
+#[test]
+fn the_user_docs_state_the_id_constants() {
+  use intentsvcs::id::{CLAIM_ISSUE_PREFIX, THREAD_GROUP};
+  let states = |rel: &str, phrases: &[String]| {
+    let text = read(rel);
+    for phrase in phrases {
+      assert_states(rel, &text, phrase);
+    }
+  };
+  let prefix = prefix_rule("");
+  let ordinal_group = format!("and {} digits for one made before", word(WP_DIGITS));
+
+  states(README, std::slice::from_ref(&prefix));
+  states(
+    GETTING_STARTED,
+    &[
+      prefix.clone(),
+      ordinal_group.clone(),
+      format!("The {} hex the tables print", word(WP_SHOWN_HEX)),
+      format!("`AC-{THREAD_GROUP}.*` belong to the thread"),
+    ],
+  );
+  states(
+    TEAM_DOC,
+    &[
+      prefix,
+      format!(
+        "{} hex for a thread or an issue, {} for a work package",
+        word(SHOWN_HEX),
+        word(WP_SHOWN_HEX)
+      ),
+      format!("A thread's or an issue's {} hex", word(SHOWN_HEX)),
+      format!("or an issue as `{CLAIM_ISSUE_PREFIX}` and its id"),
+    ],
+  );
+  states(
+    CRITERIA_DOC,
+    &[
+      ordinal_group,
+      format!("the package's {} shown hex", word(WP_SHOWN_HEX)),
+      format!("`AC-{THREAD_GROUP}.*` are thread-level"),
+    ],
+  );
+  states(
+    LLM_NOTE,
+    &[
+      format!("`{THREAD_GROUP}` for the thread as a whole"),
+      format!("{} digits for a package made before", word(WP_DIGITS)),
+      format!(
+        "the package's {} shown hex, `AC-{}.1`",
+        word(WP_SHOWN_HEX),
+        &EXAMPLE_WP_HEX[..WP_SHOWN_HEX]
+      ),
+      format!("`AC-{EXAMPLE_WP_HEX}.1`"),
+    ],
+  );
 }
 
 /// The tech note teaches a claim's address in both families by quoting

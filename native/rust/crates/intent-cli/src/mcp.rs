@@ -1200,7 +1200,7 @@ fn tool_answer(
     "todo" | "todo list" => val(path, &f.todo_buckets()?),
     "todo update" => {
       f.todo_update()?;
-      Ok(json!({ "ok": true, "regenerated": "todo.md" }))
+      Ok(json!({ "ok": true, "regenerated": intentsvcs::project::TODO_VIEW }))
     }
 
     // ----- doctor / agents -----
