@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "1d312e21-e59b-4085-8f87-1ac3574a0b61",
-    "heartbeat_at": "2026-11-25T10:55:25.331Z",
+    "heartbeat_at": "2026-11-25T11:30:49.176Z",
     "status": "active",
-    "focus": "2026-11-25 10:55Z by date -u: cc's b2 (to 06cfc796c) and dc's bank v1 (to b8284ce8b) are on main. Now: ic builds efe0; dc builds its second bank (fixture literals, hand counts, record paths, critic fixes). Then the close sweep and one batch gate.",
+    "focus": "2026-11-25 11:30Z by date -u: localfold for hv's second compact, not released. Resume: hold for devbin-vc's word, then land dc's second bank on its proof, then the close sweep (brief and pending design.md rows in vc's scratchpad), one batch gate, the pre-cut and READY.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -3199,17 +3199,18 @@
       "node": "vc",
       "kind": "doing",
       "seq": 69,
-      "text": "3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decisions 99 and 100). Now: cc, ic and dc build the ten packages of Phase 0 (b5a2fa051), and vc lands each bank on its builder's proof; e92b lands first, then ic bases efe0 on it. Next: vc's close sweep (AC-00.1), one gate all and one test shell at main's HEAD booked with the Desk, the pre-cut and dry run, then READY to hv for the cut and tap words.",
+      "text": "3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decisions 99 and 100). Now: dc builds its second bank: d0fd's fixture literals and record paths, the hand-written counts, id::head_number_at for efe0's R2 (cc's meaning, ic's agreement) and the critics' fixes. Next: vc's close sweep (AC-00.1), one gate all and one test shell at main's HEAD booked with the Desk, the pre-cut and dry run, then READY to hv for the cut and tap words.",
       "state": "live",
       "recorded_at": "2026-11-25T07:47:01.289Z",
-      "edited_at": "2026-11-25T08:32:06.177Z"
+      "edited_at": "2026-11-25T11:30:31.409Z"
     },
     {
       "node": "vc",
       "kind": "decision",
       "seq": 134,
       "text": "(vc, 2026-11-25, under hv's pen granted 2026-08-22, applying hv's rule of 2026-11-23 that v2 no longer exists; ratified_in: vc, 2026-11-25, under hv's pen granted 2026-08-22; dc's row C13 at HEAD) The v2-only intent/st/ST0056/parity/tools/fixture_probe.sh and the v2 bats-estate inventory it serves are retired in the Highlander residue thread (ST1c2db93), with their uses in gen_register.sh and coverage_map.sh. It is dc's work, and cc puts it in Phase 0.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-25T11:30:33.189Z",
       "recorded_at": "2026-11-25T07:55:51.239Z"
     }
   ],

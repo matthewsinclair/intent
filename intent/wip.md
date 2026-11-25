@@ -1,5 +1,5 @@
 ---
-verblock: "25 Nov 2026:v4.22: vc - 3.5.4 in flight: the Highlander residue thread"
+verblock: "25 Nov 2026:v4.23: vc - 3.5.4 in flight: the last bank, then the close sweep"
 intent_version: 3.5.3
 ---
 
@@ -8,6 +8,7 @@ intent_version: 3.5.3
 ## DOING
 
 - Intent 3.5.4 is in flight (hv decisions 99 and 100). It carries the Highlander residue thread (ST1c2db93) and the Linux `intent app` fix (issue I3c24d2a). cc, ic and dc build the thread's packages, each in its own worktree, and vc lands each bank on its builder's proof. Each package's state is in `intent wp list ST1c2db93` and on its seat's board.
+- Now: dc builds the thread's last bank: d0fd's fixture literals and record paths, the hand-written counts in tests, `id::head_number_at` for efe0's critic finding R2 (cc's meaning, ic's agreement), and the critics' fixes.
 - Next: vc's close sweep (AC-00.1, a read), then one `bin/devbin gate all` and one `bin/devbin test shell` at main's HEAD on Desk slots, which decide the whole batch. Then the pre-cut and the dry run, and READY to hv for the cut and tap words. I3c24d2a stays open until the release ships it.
 
 ## TODO

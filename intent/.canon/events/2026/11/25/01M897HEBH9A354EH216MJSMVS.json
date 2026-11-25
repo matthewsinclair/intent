@@ -1,0 +1,16 @@
+{
+  "id": "01M897HEBH9A354EH216MJSMVS",
+  "ts": "2026-11-25T11:30:31.409Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 69,
+    "text": "3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decisions 99 and 100). Now: dc builds its second bank: d0fd's fixture literals and record paths, the hand-written counts, id::head_number_at for efe0's R2 (cc's meaning, ic's agreement) and the critics' fixes. Next: vc's close sweep (AC-00.1), one gate all and one test shell at main's HEAD booked with the Desk, the pre-cut and dry run, then READY to hv for the cut and tap words."
+  }
+}
