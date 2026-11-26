@@ -34,7 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The agent guide gives the format of a project's commit guards.** `intent guards` had no text on when to use it, and the format of the `guards` array was only in a document that a project does not get. The guide now gives the array's shape: `run` is an argv whose first entry is a path from the project root, and `when` is an optional path. It also gives the exit codes, the line that the verb prints, and what it refuses.
 - **The agent guide says that an acceptance test goes red before it goes green.** `intent at red` and `intent at green` had no text on when to use them. The guide now says to run the test first on the code as it was before the change, and to record a failure with `intent at red`. If the test has no red on that code, the test's note says so. The guide tells you never to plant a fault to make a red.
 - **The agent guide says how to re-cite tests after a merge moves their lines.** `intent ac gate` and `intent at edit` had no text on when to use them. The guide now says to run `intent ac status <ST>`, which gives the lines that now carry each test's id. Then run `intent at edit <ST> <AT> --file <file>:<line>` for each row, and `intent ac gate <ST>` again. When no line carries the id, put the id on the line over the test, then re-cite that line.
-- **Intent.app's menu shows its icon in the top row on macOS 27.** macOS 27 draws a menu item's image only when the item asks for it, and the top row did not ask, so it showed no icon. Intent.app now uses arca_swift 0.3.0, whose top row asks macOS to draw its image.
+
+### Changed
+
+- **Intent.app builds with arca_swift 0.3.0, the latest release.** Nothing changes for a user. The menu's top row already showed its icon on macOS 27, because Intent.app has asked macOS to draw that image since 3.2.5.
 
 ## [3.5.3] - 2026-11-24
 
