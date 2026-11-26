@@ -1977,14 +1977,41 @@ cmd_app_build() {
   printf 'built %s\n' "$(app_bundle "$config")"
 }
 
-# --- app-run: build Debug, quit any running copy, exec the binary directly -----
+# app_require_intent: the CLI that app_stop_running runs. app-run and app-install
+# check for it first, so a missing CLI stops them before a build and before any
+# write into /Applications.
+app_require_intent() {
+  require_tool intent "app-run and app-install stop the running Intent.app with it. Install it with: brew install $BREW_TAP/intent"
+}
+
+# app_stop_running: stop the running copy of the app, if there is one, and return
+# only when its process has exited (issue I8b74f2a).
+#
+# THE NEW COPY RUNS ONLY IF THE OLD COPY HAS GONE. From 3.5.6 the app holds
+# ArcaLaunch's instance lock (issue I5169c5b), a flock on its instance.lock
+# file, for as long as it runs, and the kernel releases the lock only when that
+# process exits. A copy that starts while the old copy is still exiting finds
+# the lock held, hands over and quits, and then no copy runs. An osascript quit
+# returns when the app has the message, not when the app has exited, so it
+# cannot be the wait.
+#
+# `intent app stop` IS THE ONE HOME OF QUIT AND WAIT (intentsvcs::macapp::stop).
+# It sends the quit and waits until no process holds the bundle id. It fails with
+# the pid and a remedy when the app has not gone, and it succeeds and says so
+# when no copy runs.
+app_stop_running() {
+  intent app stop
+}
+
+# --- app-run: build Debug, stop any running copy, exec the binary directly -----
 # `open` resolves by bundle id and can launch the INSTALLED copy instead of the
 # one just built; two menubar turtles is the wrong kind of surprise.
 cmd_app_run() {
+  app_require_intent
   cmd_app_build Debug
-  osascript -e "tell application id \"$APP_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
   local exe; exe="$(app_bundle Debug)/Contents/MacOS/Intent"
   [ -x "$exe" ] || die "no executable at $exe"
+  app_stop_running || die "the running Intent.app did not stop, so app-run started no new copy (intent app stop says why above)"
   nohup "$exe" >/dev/null 2>&1 &
   printf 'running %s\n' "$exe"
   printf "logs: log stream --predicate 'subsystem == \"com.matthewsinclair.intent.macos\"'\n"
@@ -2046,6 +2073,7 @@ cmd_app_test() {
 # app-sign + app-notarize leave in APP_DIST_DIR. ditto preserves the bundle;
 # lsregister claims the intent:// scheme for THIS copy.
 cmd_app_install() {
+  app_require_intent
   cmd_app_build Release
   local src dst lsr tmp
   src="$(app_bundle Release)"; dst="/Applications/Intent.app"
@@ -2057,7 +2085,7 @@ cmd_app_install() {
   tmp="$dst.new-$$"
   rm -rf "$tmp"
   ditto "$src" "$tmp" || { rm -rf "$tmp"; die "ditto failed copying $src -> $tmp"; }
-  osascript -e "tell application id \"$APP_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
+  app_stop_running || { rm -rf "$tmp"; die "the running Intent.app did not stop, so app-install changed nothing in /Applications (intent app stop says why above)"; }
   [ -d "$dst" ] && { "$lsr" -u "$dst" >/dev/null 2>&1 || true; rm -rf "$dst"; }
   mv "$tmp" "$dst" || { rm -rf "$tmp"; die "could not move $tmp -> $dst"; }
   "$lsr" -f "$dst" >/dev/null 2>&1 || true
@@ -2475,13 +2503,15 @@ bin/devbin macos <subcommand>
   app-build    xcodegen-if-stale + xcodebuild (Debug default; app-build release
                for Release). Unsigned; products land off the synced tree so
                synced xattrs cannot break a later codesign
-  app-run      Build Debug, quit any running copy, and launch the built binary
-               directly in the background (never open, which can launch the
-               installed copy); prints the log stream command
+  app-run      Build Debug, stop any running copy and wait for it to exit, then
+               launch the built binary directly in the background (never open,
+               which can launch the installed copy); prints the log stream
+               command
   app-test     xcodebuild test -- the IntentTests target, summarised from the
                run's result bundle: every test framework, each suite's verdict
-  app-install  Build Release, install to /Applications, register intent://,
-               launch. An unsigned dev build, never the distributable
+  app-install  Build Release, stop any running copy and wait for it to exit,
+               install to /Applications, register intent://, launch. An
+               unsigned dev build, never the distributable
   app-verify   [debug|release|dist] (Debug default). Checks on a bundle:
                executable present, LSUIElement set; prints the Info.plist
                version stamps and names a bundle stamped with Xcode's dev
