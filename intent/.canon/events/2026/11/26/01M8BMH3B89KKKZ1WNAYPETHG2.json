@@ -1,0 +1,15 @@
+{
+  "id": "01M8BMH3B89KKKZ1WNAYPETHG2",
+  "ts": "2026-11-26T09:56:00.488Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read at the time above on vc's date -u; hv's words 'yes' and 'yes, go with your rec'; the options' wording vc's and dc's) TWO 3.5.5 RULINGS. (1) /in-autopsy (STee6564b): every recommendation in dc's Phase 0 design is accepted. It is an Elixir script, not a Rust verb. All the checks ship in 3.5.5 (L, three WPs). banned-words.txt goes, and the scan reads the live rules. The report goes to the mediator only, and the skill files no issue. One run reads one seat by default, widened by a flag. Subagent transcripts are read only with --subagents. The three v2 reports in intent/autopsy/ are removed under hv's rule that v2 no longer exists. (2) Item 2's guide text: when the behaviour already worked before the change, record that with intent ac withdraw <ST> <AC> --reason. ac satisfy takes a non-test AC only, so vc's first route was wrong."
+  }
+}
