@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "ef5e3583-d397-41cc-b149-e2db78caa1ce",
-    "heartbeat_at": "2026-11-26T10:44:32.843Z",
+    "heartbeat_at": "2026-11-26T11:14:29.927Z",
     "status": "active",
     "focus": "2026-11-26 10:44Z by date -u: localfold for hv's cycle 5 compact, no release. 3.5.5 items 3 and 4 are on main (f38550bf2, a4bfe4e72). Holding until vc's word after the 3.5.5 gate. No slot, claim or worktree.",
     "claims": [],
