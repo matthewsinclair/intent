@@ -17,10 +17,10 @@
 # every project's config stays readable in the same shape.
 #
 # An unknown key is an error, not a warning. A BOOLEAN key -- `enabled`,
-# `in_all`, an option's `flag` -- takes `true`, `yes` or `1`, or `false`, `no`
-# or `0`, and nothing else: `enabled: off` is neither, and only `devbin doctor`
-# says so, because the command you run does not validate the file (the `release`
-# verbs aside). Run doctor after editing it.
+# `in_all`, `takes_args`, an option's `flag` -- takes `true`, `yes` or `1`,
+# or `false`, `no` or `0`, and nothing else: `enabled: off` is neither, and
+# only `devbin doctor` says so, because the command you run does not validate
+# the file (the `release` verbs aside). Run doctor after editing it.
 
 # --- project identity ------------------------------------------------------
 
@@ -536,6 +536,10 @@ commands:
         # Excluded from `test all`, and REPORTED AS SKIPPED rather than dropped
         # silently. The reference case: this gate has no CI counterpart.
         in_all: false
+        # Whether the option takes arguments. `<cmd> all <args>` hands each
+        # option it runs the same arguments, so with `false` it refuses them
+        # before any option runs, and names this one. Default true.
+        # takes_args: false
         # Run on macOS alone. The platform words an option runs on, `macos`
         # and `linux`, read from `uname -s`; absent, it runs everywhere. On a
         # host whose word the list leaves out, the option is INACTIVE HERE, as
@@ -659,7 +663,7 @@ release:
   # repo: owner/name         # object: local or ci. Undeclared: read off the url of the first declared remotes entry, else origin, else the only remote
   # object_wait: 20m         # object: ci only -- how long to wait for the workflow's release object
   formula: false             # true: the formula step, once the object step has succeeded and before after:, runs formula publish --pull under the cut's yes; needs a formula command
-  # after:                   # commands run after the release object, reported, outside the core's guarantees
+  # after:                   # commands run in order after the release object, reported, outside the core's guarantees; the first that fails stops the rest
   #   - bin/announce
   verbs:                     # the verbs of release this project offers; one left out is refused, exit 2
     - cut                    # a cut: release <--patch|--minor|--major|vX.Y.Z>

@@ -26,7 +26,7 @@ A `run:` line is split into words and never handed to a shell, so quoting, pipes
 
 Declare `commands.precommit.log: true` beside the `run:` and it becomes a sealed gate: its output is logged to `tmp/precommit/<stamp>.PRECOMMIT.out` under the project root, beside an `.errors` file that is empty exactly when a completed run passed, it prints `verdict: <path>`, and it exits with the command's own status. devbin's own flags, such as `--purge`, are then devbin's and do not reach the command.
 
-With options declared and neither a `run:` nor a handler, a bare `precommit` prints its usage and exits 1, because naming no option is a usage error, and `precommit --help` prints the same usage and exits 0. `precommit all` runs every active option not marked `in_all: false`, in the order config declares them, does not stop at a failure, and exits non-zero if any failed. With a handler as well, each option is passed to the handler as its first word and its `run:` is not used, so `all` calls the handler once per option.
+With options declared and neither a `run:` nor a handler, a bare `precommit` prints its usage and exits 1, because naming no option is a usage error, and `precommit --help` prints the same usage and exits 0. `precommit all` runs every active option not marked `in_all: false`, in the order config declares them, does not stop at a failure, and exits non-zero if any failed. Arguments after `all` go to each option it runs. An option declared with `takes_args: false` takes none, and `all` given arguments then refuses before any option runs, naming it. With a handler as well, each option is passed to the handler as its first word and its `run:` is not used, so `all` calls the handler once per option.
 
 ## No git hook
 

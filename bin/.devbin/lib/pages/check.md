@@ -30,6 +30,8 @@ The `.errors` file starts as an in-flight marker and is sealed when the run ends
 
 `bin/devbin check all` runs every active option not marked `in_all: false`, those named in config first and then the rest in the order above, and does not stop at the first breach. It ends with a count of the options that ran, were inactive here and were skipped, then `FAILED:` naming each failed option and its seal, or `all check options passed`. The summary is a convenience; the seals are the record. It exits non-zero if any option failed, and refuses a verdict if no option ran.
 
+Arguments after `all` go to each option it runs, so `all` refuses them, with exit 1 and before any option runs, when an option it would run takes none. `format`, `toolchain`, `autotests` and `targetdir` take none. The refusal names each of them and the options that take arguments: give the arguments to one of those by name, eg `bin/devbin check critic --files <path>`. devbin's own flags, such as `--purge`, are not arguments here. A project's own option takes arguments unless it declares `takes_args: false`.
+
 ## Adding, replacing and dropping options
 
 In `bin/.devbin/config.yaml`:

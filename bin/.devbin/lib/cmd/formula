@@ -423,7 +423,7 @@ source_filled() {
 #
 # A SOURCE FORMULA'S INSTALL RUNS bin/devbin, which refuses any bash below 5,
 # and Homebrew's build on macOS has /bin/bash, 3.2, unless the formula depends
-# on a newer one. Molt 1.4.8's install failed there. So render writes the
+# on a newer one. A source formula's install failed there. So render writes the
 # dependency itself, the one place it is kept, wherever the template does not
 # already depend on bash at runtime (a runtime dependency is there at the build
 # too, as devbin's own formula.bash one is), and a source template holding its

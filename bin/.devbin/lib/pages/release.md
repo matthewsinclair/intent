@@ -79,7 +79,12 @@ Cut a release: confirm once, then stamp, commit, run every leg (the gates, here 
                  confirm step's yes, the formula pushed to its tap and this
                  machine's clone of the tap pulled; a failure stops the cut
                  here, the release standing, and after: does not run
-    after        the declared after: commands
+    after        the declared after: commands, in order; the first that
+                 fails stops the step, the release standing, and each
+                 command after it is named as not run. The remedy prints
+                 the failed command and each one not run as a line to run
+                 by hand from the project root, handing it the release's
+                 target and quoting each word
 
 The push step reads each remote back after pushing to it, and a remote is slowest straight after a push, so a read that does not answer is asked again every 15 seconds for about 2 minutes, the bound the push itself has. A remote that answers without the release fails the step at once, as one that does not hold the release after the push. An answer that cannot be read here, such as a branch moved to a commit this checkout does not hold, fails it at once too, as a read that could not tell whether the remote holds the release, since no later ask can clear it. One that has not answered in that time fails it as a read that could not tell, never as a remote without the release: running the same command again reads it back.
 
@@ -132,7 +137,7 @@ The bump is the one judgement in a release, so nothing infers it from commits. N
 
 `--dry-run` makes no stamp, commit, tag, push or release object, and runs no gate and no `after:`. It runs `release.preflight`'s commands as the cut does, so it refuses wherever the cut would. It prints each step as what it would do, naming anything it could not predict. Where it would make the release commit, it names that commit as the one the commit step makes, never HEAD, and plans its push to every remote, one already at HEAD included. Where the release commit exists already, its gates row reads the record a cut reads: `already` where a sealed green stands for that commit on this platform, and otherwise what the cut would run. When no step failed, its last line is its verdict, saying so and whether the cut stops to ask at the confirm step.
 
-The confirm step asks a person, once, before anything runs, and everything after it runs under that answer. `--yes` answers it. The `after:` commands run under the same yes: they are handed `DEVBIN_RELEASE_CONFIRMED`, naming the tag, whenever the confirm step was answered, at its prompt or by `--yes`, so `formula publish` as an `after:` command pushes to the tap the question named. A confirm step with nothing left to ask about gives no yes. With neither a terminal nor `--yes`, the cut stops there, before anything is stamped, committed or run, and exits 1, its row saying nobody was there to ask. It never guesses consent.
+The confirm step asks a person, once, before anything runs, and everything after it runs under that answer. `--yes` answers it. The `after:` commands run under the same yes: they are handed `DEVBIN_RELEASE_CONFIRMED`, naming the tag, whenever the confirm step was answered, at its prompt or by `--yes`, so `formula publish` as an `after:` command pushes to the tap the question named. A line the remedy prints for a hand run of an `after:` command does not carry that yes, since a hand run is a new run: a command that asks asks the person who runs it. A confirm step with nothing left to ask about gives no yes. With neither a terminal nor `--yes`, the cut stops there, before anything is stamped, committed or run, and exits 1, its row saying nobody was there to ask. It never guesses consent.
 
 Under `release.publish.url`, a dry run whose release commit exists already makes the snapshot in its own scratch, reads the public repository and the candidate on the snapshot, and pushes nothing.
 

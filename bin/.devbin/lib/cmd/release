@@ -2540,8 +2540,8 @@ object_title() {
 # terminal, which runs every check render makes of the templates that needs no
 # tag and writes nothing. Prints the refusal and returns 1 when it fails.
 #
-# A CUT FOUND ITS FORMULA COULD NOT RENDER ONLY ONCE IT WAS PUBLIC: Molt's 1.4.7
-# tagged, pushed and made its release object, and then its after: step's
+# A CUT FOUND ITS FORMULA COULD NOT RENDER ONLY ONCE IT WAS PUBLIC: a tool's
+# cut tagged, pushed and made its release object, and then its after: step's
 # formula publish refused a template holding no @@INSTALL@@, leaving a published
 # release and no formula. Nothing such a refusal turns on depends on the tag, so
 # pre-flight asks it before anything is stamped.
@@ -4210,10 +4210,16 @@ cut_tail() {
 
   # --- after ------------------------------------------------------
   # Each command in order, reported. Outside the core's guarantees: the
-  # release is published by now, so a failure is reported and undoes nothing,
-  # and the next command still runs. This step has no
-  # postcondition, so a re-run of a finished release runs them again.
-  local after="$after_list" cmd after_failed="" ran=0
+  # release is published by now, so a failure is reported and undoes nothing.
+  # BUT IT STOPS THE STEP (issue I900790a). A later command can depend on an
+  # earlier one, as a formula publish does on the publish of the asset its
+  # formula names, and run past a failure it acts on work that failed, after
+  # the tag is public, where nothing takes it back. So no command after a
+  # failure runs, and each is named as not run. A line that holds no words is
+  # a failure too, though config validation refuses one before a cut starts.
+  # This step has no postcondition, so a re-run of a finished release runs
+  # them all again.
+  local after="$after_list" cmd after_failed="" after_unrun="" after_hand="" ran=0
   local -a aw=()
   # A mark inherited from whatever started this cut is not this cut's yes.
   unset DEVBIN_RELEASE_CONFIRMED
@@ -4224,8 +4230,18 @@ cut_tail() {
   else
     while IFS= read -r cmd <&3; do
       [ -n "$cmd" ] || continue
+      # Past a failure every line is named, and none is run. One a line, and
+      # each with the shell line a hand run of it takes (issue I050cf9c): its
+      # words as the cut would split them here, at the project root.
+      if [ -n "$after_failed" ]; then
+        after_unrun+="${after_unrun:+$'\n'}$cmd"
+        if run_words aw release.after "$cmd" 2>/dev/null; then
+          after_hand+="${after_hand:+$'\n'}not run: $(release_target_line "$v" "$tag" "${aw[@]}")"
+        fi
+        continue
+      fi
       run_words aw release.after "$cmd" 2>/dev/null || {
-        after_failed+=", after: $cmd holds no words"
+        after_failed="after: $cmd holds no words"
         continue
       }
       printf '\nrelease: after: %s\n' "$cmd"
@@ -4257,13 +4273,14 @@ cut_tail() {
       if [ "$arc" -eq 0 ]; then
         ran=$((ran + 1))
       else
-        after_failed+=", after: $cmd failed (exit $arc)"
+        after_failed="after: $cmd failed (exit $arc)"
+        after_hand="failed: $(release_target_line "$v" "$tag" "${aw[@]}")"
       fi
     done 3<<<"$after"
     if [ -z "$after_failed" ]; then
       cut_row after "done" "$ran command(s) ran"
     else
-      cut_row after FAILED "${after_failed#, }; $ran ran -- the release is published and nothing was undone"
+      cut_row after FAILED "$after_failed; $ran ran before it${after_unrun:+; not run: ${after_unrun//$'\n'/, }} -- the release is published and nothing was undone"
     fi
   fi
 
@@ -4275,12 +4292,30 @@ cut_tail() {
   if [ -n "$after_failed" ] || [ -n "$LEGS_CAND_LEFT" ]; then
     # THE RELEASE STANDS, and saying so is half the message: nothing here is
     # undone, and the tag is never moved. The other half is the remedy,
-    # which is forward: what failed, run by hand, and a candidate that would
-    # not go, deleted by hand.
+    # which is forward: what failed, run by hand, then each after: command it
+    # stopped, in order, and a candidate that would not go, deleted by hand.
+    # By hand, since a run of the cut again runs every after: command again,
+    # the ones that passed too.
     printf '\nrelease: %s is published, and the tag and the release stand.\n' "$tag"
     [ -z "$after_failed" ] ||
-      printf 'release: %s -- after: runs outside the core'"'"'s guarantees; run what failed by hand.\n' "${after_failed#, }"
-    # The command is the line's last word, so a copy of it takes no full stop.
+      printf 'release: %s -- after: runs outside the core'"'"'s guarantees; from %s, run by hand what failed%s, each as its line below gives it, since a run of the cut again runs every after: command again.\n' \
+        "$after_failed" "$PROJECT_ROOT" "${after_unrun:+, then each command not run, in its order}"
+    # EACH LINE IS THE RUN THE CUT WOULD HAVE MADE (issue I050cf9c), from the
+    # root the line above names: the release's target in front, as
+    # release_target_run hands it, and every word quoted, so a shell runs the
+    # cut's words and evaluates nothing in them (release_target_line). The
+    # confirm step's yes is NOT on it: that yes was given to the cut's run, a
+    # hand run is a new one, so a command that asks (formula publish) asks the
+    # person who runs it, at the terminal, and the core never guesses consent.
+    # A command is the line's last word, so a copy of it takes no full stop.
+    # And each command has a line of its own: one line pasted into a shell
+    # runs one command, never the next whatever the one before it did, which
+    # is the behaviour the stop removes.
+    if [ -n "$after_hand" ]; then
+      while IFS= read -r cmd; do
+        printf 'release: %s\n' "$cmd"
+      done <<<"$after_hand"
+    fi
     [ -z "$LEGS_CAND_LEFT" ] || printf 'release: %s\n' "$LEGS_CAND_LEFT"
     exit 1
   fi

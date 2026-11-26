@@ -24,6 +24,11 @@ set -euo pipefail
 
 # builtin_docs_agents -- regenerate AGENTS.md from project state.
 builtin_docs_agents() {
+  # It regenerates the whole file, so an argument would be dropped unread and
+  # the run would read as if it had used it (issue If738d64).
+  [ $# -eq 0 ] ||
+    die "docs agents takes no arguments (got: $*)
+       It regenerates AGENTS.md whole, from the project's state."
   require_tool intent "Install Intent: see intent/docs at the Intent install"
   # The warning is not decoration. AGENTS.md looks like an ordinary Markdown
   # file, and a hand edit to it is destroyed here without comment. Every project

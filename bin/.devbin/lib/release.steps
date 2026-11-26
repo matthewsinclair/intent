@@ -744,6 +744,24 @@ release_target_run() {
   DEVBIN_RELEASE_VERSION="$_rt_version" DEVBIN_RELEASE_TARGET_TAG="$_rt_tag" "$@"
 }
 
+# release_target_line <version> <tag> <word>... -- the shell line that runs
+# <word>... as release_target_run runs it, for a person to run by hand (issue
+# I050cf9c): the pair in front, then each word, every value quoted with printf
+# %q, so a shell runs the same words with the same target and evaluates nothing
+# in them. The cut hands a command its words split on blanks and never
+# evaluated (run_words), so a `$`, a quote or a `;` is a literal character, and
+# a paste of the bare words would hand the shell another argv. It carries the
+# pair alone: the gate's marks are a gate's, and outside one a command reads
+# the person from its own stdin. Beside release_target_run, so the pair's names
+# are spelled in one file.
+release_target_line() {
+  local _rl_version="$1" _rl_tag="$2"
+  shift 2
+  printf 'DEVBIN_RELEASE_VERSION=%q DEVBIN_RELEASE_TARGET_TAG=%q' "$_rl_version" "$_rl_tag"
+  [ "$#" -eq 0 ] || printf ' %q' "$@"
+  printf '\n'
+}
+
 # release_tree_target -- `<version><TAB><tag>`, the release's target as the
 # tree declares it (issue 0327): the version read_version reads and the tag
 # release.tag makes of it, which on the release commit, carrying the stamp,

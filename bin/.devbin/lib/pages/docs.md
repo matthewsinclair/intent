@@ -13,7 +13,7 @@ It warns before it runs `intent agents sync`: `AGENTS.md is generated -- a hand 
 
 It needs `intent` on PATH and refuses without it. If `intent agents sync` fails, its exit status is passed through and a second warning says AGENTS.md was NOT regenerated, so a failed run cannot read as a successful one. In a project with no `intent` directory it is inactive, and since it is the only option `docs` ships, `docs` itself is unavailable there: `bin/devbin help --why docs` says why. Declaring `commands.docs.options.agents` runs it anyway.
 
-`docs agents` is a sealed gate, run at the project root: its verdict goes to a log file (suffix `DOCSAGENT`) rather than scrolling past, and an empty verdict file means it passed.
+`docs agents` is a sealed gate, run at the project root: its verdict goes to a log file (suffix `DOCSAGENT`) rather than scrolling past, and an empty verdict file means it passed. It takes no arguments: named directly it refuses them, and `docs all` given arguments refuses before any option runs, and names it.
 
 ## What is not here
 

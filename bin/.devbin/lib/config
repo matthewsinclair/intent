@@ -561,7 +561,9 @@ _cfg_path_known() {
         return 1
       fi
       if [ "$n" -eq 5 ] && [ "${p[2]}" = options ]; then
-        case "${p[4]}" in run | grammar | log | in_all | summary | args | enabled) return 0 ;; esac
+        # `takes_args` (issue If738d64): false when the option takes no
+        # arguments, so `<cmd> all <args>` refuses before it runs any option.
+        case "${p[4]}" in run | grammar | log | in_all | takes_args | summary | args | enabled) return 0 ;; esac
         return 1
       fi
       # `platforms` (ST0011 WP-17): the list of platform words an option runs
@@ -1847,7 +1849,7 @@ _cfg_path_boolean() {
   IFS='.' read -ra p <<<"$1"
   case "${#p[@]}:${p[0]}" in
     3:commands) [ "${p[2]}" = enabled ] ;;
-    5:commands) [ "${p[2]}" = options ] && case "${p[4]}" in enabled | in_all) return 0 ;; *) return 1 ;; esac ;;
+    5:commands) [ "${p[2]}" = options ] && case "${p[4]}" in enabled | in_all | takes_args) return 0 ;; *) return 1 ;; esac ;;
     3:options) [ "${p[2]}" = flag ] ;;
     2:formula) [ "${p[1]}" = bash ] ;;
     *) return 1 ;;

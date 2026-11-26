@@ -164,8 +164,8 @@ tool_runtime_set() {
 # A DIRECTORY SHIPS WHAT GIT TRACKS BELOW IT, as macos.pack.files packs one,
 # never a `cp -R` of whatever lies there: a dirty dev tree's untracked files,
 # its ignored build output and the tests a tool keeps beside its code stayed
-# out of no install that way, and a runtime set such as Utilz's (every tracked
-# file under opt/ but each utility's test/) could only be listed file by file.
+# out of no install that way, and a runtime set such as every tracked file
+# under opt/ but each utility's test/ could only be listed file by file.
 # Each exclude is a glob below <from>, read as git reads `:(exclude,glob)`
 # pathspecs: `*` stays within a directory and `**` crosses them.
 _tool_set_file() {

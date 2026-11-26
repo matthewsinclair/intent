@@ -666,6 +666,30 @@ option_in_all() {
   ! is_false_word "$(cfg_get "commands.$1.options.$2.in_all" "$(builtin_option_in_all "$1" "$2")")"
 }
 
+# option_takes_args <command> <option> -- true when the option takes arguments
+# (issue If738d64): config's `takes_args:` where it says, else the built-in's
+# declaration, else true, as a project's own option has always taken them.
+option_takes_args() {
+  ! is_false_word "$(cfg_get "commands.$1.options.$2.takes_args" "$(builtin_option_takes_args "$1" "$2")")"
+}
+
+# all_args_refused <command> <torun> [args...] -- each option of <torun>, a
+# space-led list, that takes no arguments, one a line, when [args] holds a word
+# that is not one of devbin's wrapper flags; nothing otherwise. The wrapper
+# flags are devbin's own, typed for the seals, so they never count.
+all_args_refused() {
+  local cmd="$1" torun="$2" a opt given=""
+  shift 2
+  for a in "$@"; do
+    is_gate_flag "$a" || given=yes
+  done
+  [ -n "$given" ] || return 0
+  for opt in $torun; do
+    option_takes_args "$cmd" "$opt" || printf '%s\n' "$opt"
+  done
+  return 0
+}
+
 # all_partition <command> <run-var> <skipped-var> -- WHAT `<command> all`
 # SWEEPS, stated once (issue 0134): the command's active options, in
 # command_options' order, split into those it runs and those in_all keeps out,
@@ -1232,7 +1256,7 @@ run_all() {
   local cmd="$1"
   shift
   local opt failed="" skipped="" rc=0 ledger="" label path srr why disagreed=""
-  local executed=0 offered="" inactive="" ran="" gap="" torun=""
+  local executed=0 offered="" inactive="" ran="" gap="" torun="" refused="" takers=""
   # Read by _run_line's bare branch and by run_option's run tier, which see this
   # local because bash scopes it to every call made from here: inside `all` a
   # wrapper flag was typed for the sealed options, so an unsealed one drops it
@@ -1280,6 +1304,30 @@ run_all() {
     print_option_count "$cmd" "" "$offered" "$inactive" ""
     return 1
   fi
+  all_partition "$cmd" torun skipped
+  # ARGUMENTS GO ONLY TO OPTIONS THAT TAKE THEM (issue If738d64). Every option
+  # gets the same arguments, so when one this would run takes none, `all` is
+  # refused before any option runs and before any seal or ledger is written.
+  # Running the others with the arguments and that one without them would
+  # narrow the sweep in silence, so the refusal names each such option and
+  # sends the arguments to the options that take them, by name.
+  refused="$(all_args_refused "$cmd" "$torun" "$@")"
+  if [ -n "$refused" ]; then
+    for opt in $torun; do
+      case $'\n'"$refused"$'\n' in
+        *$'\n'"$opt"$'\n'*) ;;
+        *) takers="$takers, $opt" ;;
+      esac
+    done
+    warn "'$DEVBIN_INVOKE $cmd all' was given arguments ($*), and these options take none: ${refused//$'\n'/, } -- nothing ran"
+    if [ -n "$takers" ]; then
+      warn "give the arguments to an option that takes them (${takers#, }): $DEVBIN_INVOKE $cmd <option> <args>"
+    else
+      warn "no option of '$cmd' that all runs takes arguments: run '$DEVBIN_INVOKE $cmd all' without them"
+    fi
+    warn "commands.$cmd.options.<option>.takes_args in $(devbin_dir_shown)/config.yaml says whether an option takes arguments"
+    return 1
+  fi
   # The seal ledger (lib/runlog): each gate appends its seal path when it fails,
   # so the summary below can point at every failure's artifact in one block.
   # Across a ten-option `all` the per-gate `verdict:` lines have scrolled away by
@@ -1296,7 +1344,6 @@ run_all() {
     DEVBIN_SEAL_LEDGER_RUN="$(run_identity)"
     export DEVBIN_SEAL_LEDGER_RUN
   fi
-  all_partition "$cmd" torun skipped
   for opt in $torun; do
     executed=$((executed + 1))
     ran="$ran $opt"

@@ -394,14 +394,31 @@ def shown: if . == null then "absent" elif . == "" then "none" else . end;
 # the same (issue 0147).
 def sig: (.result | shown) + " d=" + (.domain | shown) + " s=" + (.selector | shown);
 
+# One SPF check: its result, then the domain it was for (d=). A forger passes
+# SPF for its own domain, so without d= the row read as a pass for the header
+# From (issue I986862a).
+def spf_check: (.result | shown) + " d=" + (.domain | shown);
+
+# Each check as printed, or `absent` for a record with none. A join of an
+# empty list is "", which no `// "absent"` replaces (issue I986862a).
+def checks(f): if length == 0 then "absent" else map(f) | join(", ") end;
+
+# The verdict of DMARC itself on each identifier (policy_evaluated): pass only
+# when that identifier authenticated and aligned with the header From. A raw
+# pass for another domain reads pass beside it and fail here (issue I986862a).
+def verdicts: "dkim_aligned=" + (.dkim_evaluated | shown) + " spf_aligned=" + (.spf_evaluated | shown);
+
+# The header From, named only where it is not the policy domain, eg a
+# subdomain under the sp= of the policy (issue I986862a).
+def from_field: if .header_from == .policy_domain then "" else "  from=" + (.header_from | shown) end;
+
 def row:
   "  " + (.policy_domain | pad(22)) + (.source_ip | pad(18))
   + ((.count | tostring) + " msg" + plural(.count) | pad(11))
-  + (if (.dkim_auth | length) == 0
-     then "dkim=absent  spf=" + ((.spf_auth | map(.result) | join(",")) // "absent")
-     else "dkim=" + (.dkim_auth | map(sig) | join(", "))
-          + "  spf=" + ((.spf_auth | map(.result) | join(",")) // "absent")
-     end);
+  + "dkim=" + (.dkim_auth | checks(sig))
+  + "  spf=" + (.spf_auth | checks(spf_check))
+  + "  " + verdicts
+  + from_field;
 
 def block($title; $rows):
   ([$title] + (if ($rows | length) == 0 then ["  none"] else ($rows | map(row)) end) + [""]);

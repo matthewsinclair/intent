@@ -177,6 +177,16 @@ unset _bi_name _bi_rest
 # one naming nothing.
 _DEVBIN_BUILTIN_NOT_IN_ALL="db.reset"
 
+# WHICH BUILT-IN OPTIONS TAKE NO ARGUMENTS (issue If738d64), one
+# `<command>.<option>` a word. `<command> all <args>` hands every option the
+# same arguments, so run_all asks this before any option runs, and refuses when
+# an option it would run is here: the four check gates refuse arguments
+# themselves, and `docs agents` and `fmt swift` would drop them unread. Every
+# other option takes them, a catalogue line by appending them. Config's
+# `takes_args:` wins, and this is only the default its silence gets. Beside the
+# table for the reason _DEVBIN_BUILTIN_NOT_IN_ALL is.
+_DEVBIN_BUILTIN_TAKES_NO_ARGS="check.format check.toolchain check.autotests check.targetdir docs.agents fmt.swift"
+
 # WHAT A BUILT-IN OPTION NEEDS IN THE PROJECT'S TREE (issue 0156), one
 # `<command>.<option> <path>` a line. Where <path> is not there the option is
 # INACTIVE, as one whose language is undeclared is: `all` counts it inactive (or,
@@ -448,6 +458,15 @@ builtin_has_default_run() {
 # runs this option when config says nothing about it (issue 0132).
 builtin_option_in_all() {
   case " $_DEVBIN_BUILTIN_NOT_IN_ALL " in
+    *" $1.$2 "*) printf 'false\n' ;;
+    *) printf 'true\n' ;;
+  esac
+}
+
+# builtin_option_takes_args <command> <option> -- `true` or `false`: whether
+# the option takes arguments when config says nothing about it (issue If738d64).
+builtin_option_takes_args() {
+  case " $_DEVBIN_BUILTIN_TAKES_NO_ARGS " in
     *" $1.$2 "*) printf 'false\n' ;;
     *) printf 'true\n' ;;
   esac

@@ -37,6 +37,14 @@ _fmt_skip_without() {
 # twin's breakage went unseen for so long: the two lines no longer looked like
 # a pair, so nothing invited the comparison that would have caught `--lint`.
 builtin_fmt_swift() {
+  # It formats every *.swift under the root, so a path would be dropped unread
+  # and the run would read as if it had formatted only that path (issue
+  # If738d64). Refused before the skip, so a host without swift-format refuses
+  # it too.
+  [ $# -eq 0 ] ||
+    die "fmt swift takes no arguments (got: $*)
+       It formats every *.swift under the root. Format one file with
+       swift-format itself, eg 'swift-format format --in-place <path>'."
   _fmt_skip_without swift-format "brew install swift-format; on Linux it ships with the Swift toolchain, swift.org/install" || return 0
   # Build directories hold generated and vendored sources; formatting those
   # churns files nobody edits and can fight the build system.

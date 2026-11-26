@@ -268,6 +268,31 @@ fi
 # one every notarisation submits under, an app's and a binary's alike, and the
 # team picks the Developer ID identity when the keychain holds more than one.
 NOTARY_PROFILE="$(macos_key notary_profile)"
+# THE PROFILE IS READ FROM THE LOGIN KEYCHAIN FILE, NAMED (issue I7679181).
+# With --keychain-profile alone, notarytool keeps the profile in the
+# data-protection keychain, which macOS makes unreadable while the screen is
+# locked: a cut whose screen locked after its pre-flight failed at its submit
+# with "No Keychain password item found", the profile stored all along. The
+# login keychain file stays unlocked under a screen lock, as the Developer ID
+# key in it does. So every notarytool call, store-credentials included, names
+# the file through notary_auth, and doctor reads the profile as a submit does.
+# notary_auth -- NOTARY_AUTH set to the options that name the notary profile
+# and the keychain that holds it, for every notarytool call. The file is the
+# one macOS names as the login keychain, `security login-keychain` (issue
+# I7679181), never a path written here: the default keychain is a setting a
+# person can point elsewhere, and the login keychain is the one the session
+# unlocks. `-d user` is not passed, since with it macOS names nothing.
+notary_auth() {
+  local said
+  said="$(security login-keychain 2>/dev/null)" || said=""
+  NOTARY_KEYCHAIN="$(awk -F'"' 'NF >= 3 && $2 != "" { print $2; exit }' <<<"$said")"
+  case "$NOTARY_KEYCHAIN" in
+    /?*) ;;
+    *) die "macos: 'security login-keychain' names no login keychain file, so the notary profile cannot be read from it -- check the login keychain in Keychain Access" ;;
+  esac
+  NOTARY_AUTH=(--keychain "$NOTARY_KEYCHAIN" --keychain-profile "$NOTARY_PROFILE")
+}
+
 MACOS_TEAM="$(macos_key team)"
 APP_NAME="${APP_SRC##*/}"
 # The zip's name, the one derivation a cut's object step reads too.
@@ -372,7 +397,8 @@ require_identity() {
 # notary_submit <zip> -- <zip> submitted to Apple under the notary profile,
 # waiting for the verdict: 0 when it is Accepted; 1 when it is anything else,
 # NOTARY_STATUS holding it and notarytool's log printed; 3 when notarytool gave
-# no submission id, as it gives none for a profile the keychain does not hold
+# no submission id, as it gives none for a profile it cannot read, its Error:
+# line kept in NOTARY_REASON
 # (3, never 2, which is the dispatcher's word under lib/cmd).
 # notarytool's report is printed, and it exits non-zero on an Invalid verdict,
 # so the verdict is read from the report. Every notarisation goes through here,
@@ -380,23 +406,28 @@ require_identity() {
 # what it did not do.
 notary_submit() {
   local zip="$1" out id
-  out="$(xcrun notarytool submit "$zip" --keychain-profile "$NOTARY_PROFILE" --wait 2>&1)" || true
+  notary_auth
+  out="$(xcrun notarytool submit "$zip" "${NOTARY_AUTH[@]}" --wait 2>&1)" || true
+  NOTARY_REASON="$(awk '/^Error: / { s = $0 } END { print s }' <<<"$out")"
   printf '%s\n' "$out"
   NOTARY_STATUS="$(awk '/^  status: / { s = $2 } END { print s }' <<<"$out")"
   id="$(awk '/id: [0-9a-f-]+/ { print $2; exit }' <<<"$out")"
   [ -n "$id" ] || return 3
   if [ "$NOTARY_STATUS" != Accepted ]; then
-    xcrun notarytool log "$id" --keychain-profile "$NOTARY_PROFILE" 2>&1 | sed -n '1,40p' || true
+    xcrun notarytool log "$id" "${NOTARY_AUTH[@]}" 2>&1 | sed -n '1,40p' || true
     return 1
   fi
   return 0
 }
 
 # notary_refused <rc> <what was not done> -- the stop for notary_submit's
-# non-zero answer, naming the profile when there was no submission at all.
+# non-zero answer. With no submission at all it names the profile, the
+# keychain file and notarytool's reason, and sends the person to doctor before
+# store-creds: a profile doctor reads PRESENT is stored, and storing it again
+# changes nothing.
 notary_refused() {
   case "$1" in
-    3) die "macos: notarytool gave no submission id under the notary profile $NOTARY_PROFILE -- $2; store the profile with: $ME store-creds (see: $ME doctor)" ;;
+    3) die "macos: notarytool gave no submission id under the notary profile $NOTARY_PROFILE in $NOTARY_KEYCHAIN -- $2; notarytool said: ${NOTARY_REASON:-no Error: line}; run $ME doctor, and store the profile with $ME store-creds only if doctor reads it NOT USABLE" ;;
     *) die "macos: notarisation was not Accepted (status: ${NOTARY_STATUS:-unknown}) -- $2" ;;
   esac
 }
@@ -1375,25 +1406,28 @@ cmd_doctor() {
   # it, which asks Apple, as the test-sign's timestamp above does; its output
   # is never printed, so no value can be.
   printf '\nnotary profile (its values are never printed):\n'
-  if xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" >/dev/null 2>&1; then
+  notary_auth
+  if xcrun notarytool history "${NOTARY_AUTH[@]}" >/dev/null 2>&1; then
     printf '  %-21s PRESENT\n' "$NOTARY_PROFILE"
   else
-    printf '  %-21s NOT USABLE (notarytool could not query Apple under it: store it with %s store-creds, or check the network)\n' "$NOTARY_PROFILE" "$ME"
+    printf '  %-21s NOT USABLE (notarytool could not query Apple under it: store it in %s with %s store-creds, or check the network)\n' "$NOTARY_PROFILE" "$NOTARY_KEYCHAIN" "$ME"
     ok=0
   fi
   [ "$ok" = 1 ] || die "macos: incomplete -- see MISSING, NOT USABLE, FAILED and REFUSED above"
 }
 
 # store-creds: notarytool store-credentials itself prompts for each value and
-# checks them with Apple before it saves the profile to the login keychain, so
+# checks them with Apple before it saves the profile to the login keychain
+# file notary_auth names, where every other notarytool call reads it, so
 # no value passes through this command, its arguments or its output.
 cmd_store_creds() {
   [ -t 0 ] || die "macos: store-creds is interactive and reads the terminal; stdin is not one -- run it yourself in a terminal"
-  printf 'Storing the notary profile "%s" in the login keychain, through notarytool.\n' "$NOTARY_PROFILE"
+  notary_auth
+  printf 'Storing the notary profile "%s" in %s, through notarytool.\n' "$NOTARY_PROFILE" "$NOTARY_KEYCHAIN"
   printf 'It prompts for the Apple ID, the team id and an app-specific password (not the\n'
   printf 'account password), checks them with Apple, and saves them; nothing is written to\n'
   printf 'the tree.\n\n'
-  xcrun notarytool store-credentials "$NOTARY_PROFILE" ||
+  xcrun notarytool store-credentials "$NOTARY_PROFILE" --keychain "$NOTARY_KEYCHAIN" ||
     die "macos: notarytool could not store the notary profile $NOTARY_PROFILE"
   printf '\nStored. Check with: %s doctor\n' "$ME"
 }
