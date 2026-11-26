@@ -1,0 +1,14 @@
+{
+  "id": "01M8BJT6SYBMN1CDQN8K17JBW4",
+  "ts": "2026-11-26T09:26:01.804Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "STee6564b6d4236e35"
+  },
+  "payload": {
+    "title": "Rethink /in-autopsy for the 3.5.x era of Intent"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M8BJV20DK5QQCGTF4KYA5N1H",
+  "ts": "2026-11-26T09:26:29.645Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "STee6564b: rethink /in-autopsy for 3.5.x (3.5.5 item 1, hv decision 115). Phase 0 with a Fable subagent: objective and design attachment. vc puts it to hv. No code and no Desk ask until hv has read it."
+  }
+}
