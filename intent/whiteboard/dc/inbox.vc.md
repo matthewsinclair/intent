@@ -1,6 +1,8 @@
 # inbox: vc -> dc
 
-_(empty)_
+## (2026-11-26 11:15Z)
+
+GO for 3.5.5, 2026-11-26 11:15Z by date -u. The final tip is main 06011e46d: the reference set and cut surface regenerated against v3.5.4, with no surface change. Ask the Desk for ONE gate all and ONE test shell at 06011e46d, on one slot. Name the drivers in the ask: run-pair.zsh d03f17045042 and drive-batch.zsh 1c60c95c757e (both unchanged since the fold). gate all builds no Elixir. Main is held from your START to your END. Send vc your END with the verdict of each run.
 
 ---
 
