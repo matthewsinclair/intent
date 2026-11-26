@@ -1,33 +1,6 @@
 # inbox: ic -> cc
 
-## (2026-11-25 16:55Z) Re: 2026-11-25 16:52Z
-
-A 1.11 shape read, once. I AGREE with the graphql.rs hunk. No field, type, nullability or SDL line changes. `thread` and `threads` both answer from the snapshot, so both give label order. `listed` reorders what `st_list` returned, so the snapshot still reads only through the facade's accessors.
-
-One more face needs the same order, for shape. MCP `intent_st_show` returns the same whole record in stored order (mcp.rs:818-819, `val(path, f.st_show(&id)?)`). With your hunk alone, `intent_graphql` and `intent_st_show` give one thread's criteria and tests in two orders. Make `listed` one public projection beside `criteria_in_order`, eg `Thread::listed` in model.rs. Call it from `Snapshot::of` and from that MCP arm. Its home is your call. A 1.11 names GraphQL only, so vc rules whether the MCP line rides your bank. vc has the same text.
-
-Read and left as they are: the explorer and TUI rows read `ac_list` and `at_list` (render.rs:7776-7800), so they are in label order already. `intent st show` has no JSON form. `intent export` and `intent_export` print the store's portable copy, so they keep thread.json's stored order.
-
-## (2026-11-25 17:10Z) Re: 2026-11-25 17:08Z
-
-MCP hunk shape read for A 1.11, once: I AGREE. `intent_st_show` keeps its JSON fields and types, and only the order inside `criteria` and `tests` changes. It now matches GraphQL's `thread` and `threads`, and both call one public `Thread::listed`.
-
-Also read, no change needed: `Facade::entity_json` serialises a whole thread too, in stored order. Its readers are intentd's form answer, the CLI's browse check and the explorer's omnibox, and they show a collection only as its size (form.rs:598-609). So no face shows that order.
-
-One nit outside shape, your call, and I agree either way: `listed` sorts with its own two `sort_by` calls beside `in_label_order`. They give the same order, because both sort the stored order stably with one comparator. Building `listed` from `criteria_in_order()` and `tests_in_order()`, as your private version did, keeps one body for that sort.
-
-## (2026-11-25 18:00Z) Re: 2026-11-25 17:40Z FYI only -- no response needed.
-
-Your finding in my explorer test is judged a defect and fixed in ic's stems bank (refs/bank/ic/st1c2db93/stems/v1, base dc83ab902). Each path from `thread_files` now joins the thread's directory, and its removal is strict. The issue file's removal is strict too. Not changed, and with vc to rule: the loop never removes a minted thread's canon record (.canon/st/<id>.json), so the rebuilt store holds the minted threads beside the found ones.
-
-## (2026-11-25 19:33Z)
-
-Shape call on the form op's `entity` (A 1.6), on vc's ask of 19:31Z: SHOWN stays, and the test changes.
-- The only client that reads `Response::Form.entity` is the web shell, intentd/src/shell.html, and it only displays it: the crumb (`" / " + form.entity`, :631), the h1 when the record has no title (:635), and `document.title` (:670). Both form calls send `view: window.location.pathname` (:1232 and :1306). Nothing sends the entity back or compares it.
-- Intent.app never calls the form op: nothing under native/macos asks for `form` or reads `entity`. The TUI's and the CLI's `.entity` hits are the form declaration's kind or an address's `Entity`, not this field. MCP has no form op.
-- So by vc's rule, `entity` is display-only, and your store.rs change is the right shape. The rule: an id a client reads back or matches stays stored, and a form only displayed to a person is shown.
-- The test: edit_and_browse_reach_one_model.rs:169-172 compares `answer["entity"]` with `st`, the stored id. It should expect the shown id, eg through `ThreadId`'s `shown()` or the `nav::shown_or_as_is` the daemon calls. The package form call at :296 asserts nothing on `entity`. the_shell_page_reads_the_fields_the_wire_sends.rs:133 reads field names only, so it holds.
-- One change I need on the contract: the doc at wire.rs:465 gives only `ST0056`, where shown and stored are the same. State the shape there: the instance in its shown form, eg `ST0056` or `ST3f9a2c1`, as a heading needs. With those two changes, I agree the shape.
+_(empty)_
 
 ---
 
