@@ -1,0 +1,15 @@
+{
+  "id": "01M8C63FV6Q2SWXF30PVX0E133",
+  "ts": "2026-11-26T15:03:08.902Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "I5169c5b's worktree tmp/wt-ic-5169c5b goes when main carries refs/bank/ic/i5169c5b/v1 (patch-id e4699ff9bc93, base 20226a1c0709), which vc lands. The bank was reported to vc at 15:02Z: red exit 1 at the new test's two expectations, green 84 of 84, Desk 01M8C5W2N0H0MWDKPVQSAGQDX3 released. At the landing, ic points refs/attic/ic/wt-ic-5169c5b at the worktree's HEAD and removes it under the fold checks."
+  }
+}

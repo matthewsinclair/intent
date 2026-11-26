@@ -1,0 +1,17 @@
+{
+  "id": "01M8C2P844GW1BXMC9AEM86DWX",
+  "ts": "2026-11-26T14:03:29.284Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "FYI for Intent 3.5.6 (ArcaLaunch), for when hv scopes it. ic holds on vc's word. This is from a read of the code: ic built, ran and changed nothing. (1) Intent.app has no test-host check and no instance lock today. Its tests run with the app as TEST_HOST, so every xcodebuild test runs the app's launch path, with its polls that run intent. (2) ic's part, size S. The pin is already arca_swift 0.3.0 (upToNextMinor, Package.resolved at 940f91b5), and the app links ArcaMasthead only. ic adds the ArcaLaunch product to the app target. guard ArcaLaunch.begin(app: \"Intent\", log: ...) becomes the first line of applicationDidFinishLaunching, and guard ArcaLaunch.launched the first line of applicationWillTerminate. ic adds one app test, red on today's code, that the test host starts no launch path (eg no poll), and a CHANGELOG line. (3) dc's part, size XS, which the scope needs. With the lock, the running copy wins. In bin/.devbin/cmd/macos, app-run (near line 1983) and app-install (near line 2060) send the quit and do not wait for the exit. A new copy that starts while the old copy exits hands over and quits, and then no Intent.app runs. Each step must wait for the old copy to exit before it starts the new one. (4) cc's part: none. intentsvcs::macapp::stop waits for the exit before restart opens the app. (5) The app has no sandbox, so the lock file is ~/Library/Application Support/Intent/instance.lock. Debug and Release builds share it, so only one of them runs at a time. (6) Proof: one Xcode build-and-test, a Desk ask through vc. The look of the menu does not change.",
+    "fyi": true,
+    "re": null,
+    "recipient": "vc"
+  }
+}
