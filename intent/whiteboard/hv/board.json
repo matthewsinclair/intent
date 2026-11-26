@@ -1145,6 +1145,14 @@
       "text": "(hv, 2026-11-26, in devbin-vc's window, on devbin's own late finding; relayed by devbin-vc at 05:58Z on its date -u and read by vc by 05:59Z on vc's date -u; not heard first-hand by vc; hv's words as relayed) \"Yes, please fix. We can wait. I want to close these outstanding niggles out completely.\" devbin-vc's reading, which it is confirming with hv: Intent 3.5.4 takes the attendee fixes 1 (the guards format in the guide), 2 (doctor's root-file-behind after --skip-settings, if cc's drive is red), 3's fix (autopsy counts skill bodies) and 4's text (AT red by mutation). gate all and test shell run again at the final tip, after the devbin 0.1.34 sweep. Parked for hv as design questions: 3's recall, 4's undo or new path, and 5 (done on an unmerged branch). 6 closes as fixed in 3.5.3.",
       "state": "live",
       "recorded_at": "2026-11-26T05:59:17.053Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 112,
+      "text": "(hv, 2026-11-26, by selection in devbin-vc's window; relayed by devbin-vc at 06:42Z on its date -u and read by vc by 06:43Z on vc's date -u; not heard first-hand by vc; the option's wording devbin-vc's from vc's rule, the choice hv's) A3(b) IS IN 3.5.4: \"In 3.5.4 (Recommended)\". When a test row's cited line no longer carries its AT id and exactly one line of the same file carries it for the thread, the gate counts the row there and prints the at edit command that records the move. Zero lines, or more than one, still block, and the gate never rewrites the row. cc builds it (refs/bank/cc/i354c), and ic owns the output shape. In the same relay hv refuted vc's arca_swift claim: Intent.app's menu icon showed on macOS 27 before 0.3.0. vc corrected the CHANGELOG forward at bed2fdc44.",
+      "state": "live",
+      "recorded_at": "2026-11-26T06:44:39.443Z"
     }
   ],
   "sent": [],

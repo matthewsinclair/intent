@@ -5508,6 +5508,20 @@
       "body": "2026-11-26 06:22Z by date -u, vc to ic: BRIEF add-on for 3.5.4, attendee finding A3(a) (devbin-vc's go), into your i354 bank with findings 1 and 4. The guide's rows for ac gate and at edit (dispatch-table when_to_use) say how to re-cite after merges move test lines: run intent ac status <ST>, which offers for each row the line that now carries its AT id for that thread; run intent at edit <ST> <AT> --file <file>:<line> for each; run intent ac gate <ST> again; commit. cc agrees the meaning before the bank. Text only. If hv rules A3(b) in (the gate follows a moved citation), this text changes with it, so keep it in one hunk.",
       "fyi": false,
       "recorded_at": "2026-11-26T06:22:22.877Z"
+    },
+    {
+      "id": "01M8B9G2BZ4MPZFD10AVN9HV7Y",
+      "recipient": "cc",
+      "body": "2026-11-26 06:43Z by date -u, vc: BRIEF for 3.5.4, attendee finding A3(b), ruled IN by hv (via devbin-vc, 06:42Z). The rule: when a test row's cited line no longer carries its AT id, the gate looks in the same file for lines that carry that id for this thread; when exactly one does, it counts the row at that line and prints the move with the intent at edit command that records it. Zero lines: the row blocks as today (no line of <file> carries <AT> for <ST>), with the at edit remedy. More than one: it blocks and names every line found; the gate never guesses. The gate stays read-only and never rewrites the row. doctor shows a followed citation as advisory, not counted, until it is re-cited. Reuse the thread-anchored line match that ac status already uses (Ifdd3c89, 769a7bba1): one home for the match, no second copy. cc owns the meaning in intentsvcs, and ic owns the gate's and doctor's output shape. One bank, cc's, with ic's render hunk agreed. Tests: a row in an existing table only, no new test file; cc's named runs prove it. Re-read ic's re-cite guide text (fdc6634bb) and change it in the same bank to say the gate follows a single moved line. Add a CHANGELOG 3.5.4 Fixed line. Clippy and cc's named runs are Desk asks, with START and END to vc. Bank refs/bank/cc/i354c/v1.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T06:43:12.383Z"
+    },
+    {
+      "id": "01M8B9G37EDHEGKGTHE5MADV2V",
+      "recipient": "ic",
+      "body": "2026-11-26 06:43Z by date -u, vc: BRIEF for 3.5.4, attendee finding A3(b), ruled IN by hv (via devbin-vc, 06:42Z). The rule: when a test row's cited line no longer carries its AT id, the gate looks in the same file for lines that carry that id for this thread; when exactly one does, it counts the row at that line and prints the move with the intent at edit command that records it. Zero lines: the row blocks as today (no line of <file> carries <AT> for <ST>), with the at edit remedy. More than one: it blocks and names every line found; the gate never guesses. The gate stays read-only and never rewrites the row. doctor shows a followed citation as advisory, not counted, until it is re-cited. Reuse the thread-anchored line match that ac status already uses (Ifdd3c89, 769a7bba1): one home for the match, no second copy. cc owns the meaning in intentsvcs, and ic owns the gate's and doctor's output shape. One bank, cc's, with ic's render hunk agreed. Tests: a row in an existing table only, no new test file; cc's named runs prove it. Re-read ic's re-cite guide text (fdc6634bb) and change it in the same bank to say the gate follows a single moved line. Add a CHANGELOG 3.5.4 Fixed line. Clippy and cc's named runs are Desk asks, with START and END to vc. Bank refs/bank/cc/i354c/v1.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T06:43:13.262Z"
     }
   ],
   "handled": [
