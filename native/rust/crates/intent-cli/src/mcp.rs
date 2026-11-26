@@ -1077,6 +1077,7 @@ fn tool_answer(
           "no_readable_citation": report.unexamined.no_readable_citation,
         },
         "closed_contract_drift": drift,
+        "followed": followed_json(&report.followed),
       }))
     }
     "at green" | "at red" | "at na" => {
@@ -2052,8 +2053,26 @@ fn verdict_json(verdict: &Verdict, line: &str) -> Value {
       Verdict::Blocked { unsatisfied, .. } => unsatisfied.clone(),
       _ => Vec::new(),
     },
+    "followed": followed_json(verdict.followed()),
     "line": line,
   })
+}
+
+/// The rows the gate followed to another line (3.5.4 attendee finding A3(b)),
+/// one object each: the `followed:` lines the CLI prints, as fields.
+fn followed_json(rows: &[intentsvcs::contract::Followed]) -> Vec<Value> {
+  rows
+    .iter()
+    .map(|row| {
+      json!({
+        "at": row.at,
+        "file": row.file,
+        "cited": row.cited,
+        "line": row.line,
+        "command": row.command(),
+      })
+    })
+    .collect()
 }
 
 // ---------------------------------------------------------------------------

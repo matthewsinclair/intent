@@ -446,11 +446,16 @@ fn an_id_on_a_line_naming_another_thread_is_not_coverage() {
 /// reporter's shape: a green row citing `<file>:<line>` whose id now sits on
 /// another line of the same file.
 ///
-/// **Two rows, and only one has drifted**, so a lint that named every green
-/// row, or a verdict that counted the examined rows as drifted, reads wrong
-/// here. The verdict and the exit code stay as 0665 left them.
+/// **Two rows, and only one has moved**, so a lint that named every green
+/// row reads wrong here. The verdict and the exit code stay as 0665 left them.
+///
+/// **SINCE 3.5.4 THE MOVED ROW IS FOLLOWED, NOT DRIFTED** (attendee finding
+/// A3(b)): its id sits on one line of the file, so the lint prints the
+/// `followed:` line with the command that records the move, and counts no
+/// drift. A row whose id left the file is still drift
+/// (`doctor_names_closed_contract_drift`).
 #[test]
-fn a_completed_threads_drift_is_named_as_advisory_and_does_not_gate() {
+fn a_completed_threads_moved_row_is_followed_and_does_not_gate() {
   let dir = project();
   let root = dir.path();
   std::fs::create_dir_all(root.join("t")).expect("mkdir");
@@ -478,14 +483,14 @@ fn a_completed_threads_drift_is_named_as_advisory_and_does_not_gate() {
   let out = run(root, &["at", "lint", "ST0001"]);
   assert_eq!(
     stdout(&out),
-    "advisory: t/moved.rs:1 cites line 1, which does not carry AT-01.2; the lines that carry \
-     it are 3, so re-cite the row as `t/moved.rs:<line>` at the line over its own arm\n\
+    "followed: ST0001/AT-01.2 cites t/moved.rs:1, which no longer carries AT-01.2; line 3 is \
+     the one line that carries it for ST0001, and the gate counts the row there. Record it: \
+     intent at edit ST0001 AT-01.2 --file t/moved.rs:3\n\
      lint: ST0001 ok -- 2 of 2 AT row(s) examined and conforming; ST0001 is Completed, so \
-     whether a citation carries its row's id is advisory: 1 row(s) drifted, named above and \
-     by `intent doctor --scope closed`",
-    "the drifted row is named as advisory, and the verdict says why it does not count"
+     whether a citation carries its row's id is advisory: 0 row(s) drifted",
+    "the moved row is followed with the command that records it, and no drift is counted"
   );
-  assert_eq!(out.status.code(), Some(0), "the drift gates nothing");
+  assert_eq!(out.status.code(), Some(0), "the followed row gates nothing");
 }
 
 /// **The control the single-fixture test cannot be.** Two threads, two row

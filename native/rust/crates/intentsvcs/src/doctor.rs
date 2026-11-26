@@ -763,6 +763,7 @@ fn examine(
   // check that does not run looks the same as one that found nothing.
   status_gate_disagreement(&canon, project, &mut report);
   closed_contract_drift(&canon, project, &mut report);
+  followed_citations(&canon, project, &mut report);
   // The id checks that span records (ST0095 WP-09) read canon only, for the
   // reason above.
   id_family_findings(&canon, project, &mut report);
@@ -844,6 +845,26 @@ fn closed_contract_drift(canon: &Canon, project: &Project, report: &mut Report) 
           ),
         )
       })
+      .collect();
+    report.admit(thread, found);
+  }
+}
+
+/// Every test row the gate follows to another line (3.5.4 attendee finding
+/// A3(b)), one advisory per row until it is re-cited.
+///
+/// **SHOWN AND NOT COUNTED.** The gate counts the row where its id now stands
+/// and passes, so nothing is wrong that blocks; the row's citation is still the
+/// old line, and this says so with the command that records the move. The rule
+/// is [`crate::contract::followed_rows`], and it reads canon and the tree only,
+/// so it sits beside [`closed_contract_drift`] for the reason given there.
+fn followed_citations(canon: &Canon, project: &Project, report: &mut Report) {
+  let refs = crate::contract::ProjectRefs::new(project.root(), &canon.threads);
+  for thread in &canon.threads {
+    let files = ThreadFiles::of(project, thread);
+    let found = crate::contract::followed_rows(thread, &refs)
+      .into_iter()
+      .map(|row| Finding::new(files.at(&row.at), FindingClass::Advisory, row.advisory()))
       .collect();
     report.admit(thread, found);
   }

@@ -3489,6 +3489,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // reading the other; the pre-commit gate is such a consumer. It also
       // dumped the full unsatisfied enumeration, which is `ac list`'s job --
       // `status` is the count.
+      print_followed(verdict.followed());
       println!("{}", verdict.status_line());
       Ok(())
     }
@@ -3766,6 +3767,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       for finding in &report.findings {
         println!("{finding}");
       }
+      print_followed(&report.followed);
       // **A COMPLETED THREAD'S DRIFT PRINTS WHERE A LIVE THREAD'S FINDING WOULD,
       // MARKED AS NOT GATING** (issue 0698, hv decision 58). The close gate does
       // not ask a Completed thread's rows whether their citation still carries
@@ -9990,6 +9992,7 @@ fn gate_verdict(target: &str) -> Result<(), Failure> {
   let (st, scope) = target_of(target)?.gate();
   let f = open()?;
   let verdict = f.gate(&st, scope).map_err(fail)?;
+  print_followed(verdict.followed());
   println!("{}", verdict.line(target));
   if verdict.is_pass() {
     Ok(())
@@ -9997,6 +10000,15 @@ fn gate_verdict(target: &str) -> Result<(), Failure> {
     // The gate's own line IS the message; it went to stdout because the
     // gate is read by machines via the exit code (v2 does the same).
     Err(Failure::Verdict)
+  }
+}
+
+/// Each row the gate followed to another line (3.5.4 attendee finding A3(b)),
+/// one `followed:` line each, on stdout before the verdict it does not change:
+/// `ac gate`, `wp gate`, `ac status` and `at lint` print it through here.
+fn print_followed(rows: &[intentsvcs::contract::Followed]) {
+  for row in rows {
+    println!("{}", row.gate_line());
   }
 }
 

@@ -294,8 +294,14 @@ pub enum Carries {
   Ambiguous(Vec<String>),
   /// The row cites `<file>:<line>`, and that line does not carry the id: the
   /// line asked for, and the lines of the file that carry it and name no other
-  /// thread, each 1-based.
+  /// thread, each 1-based. Never exactly one such line, which is
+  /// [`Carries::Moved`].
   NotOnLine { line: usize, carrying: Vec<usize> },
+  /// The row cites `<file>:<line>`, that line does not carry the id, and
+  /// exactly one line of the file carries it for this thread: the line asked
+  /// for and that one line, each 1-based. The gate counts the row there and
+  /// never rewrites it (3.5.4 attendee finding A3(b), hv's ruling).
+  Moved { line: usize, to: usize },
 }
 
 /// A row's citation, `<file>` or `<file>:<line>` (issue `0670`).
@@ -385,15 +391,33 @@ fn judge_text(
       // The lines offered for a re-cite are the ones the cited line would
       // pass on: a line naming only other threads is theirs, so `ST0006
       // AT-01.1` is never offered to another thread's AT-01.1 (issue Ifdd3c89).
-      _ => Carries::NotOnLine {
-        line: n,
-        carrying: text
+      _ => {
+        let carrying: Vec<usize> = text
           .lines()
           .enumerate()
           .filter(|(_, l)| crate::id::carries_token(l, at_id) && !names_another_thread(l, thread))
           .map(|(i, _)| i + 1)
-          .collect(),
-      },
+          .collect();
+        match carrying.as_slice() {
+          // **ONE LINE IS FOLLOWED, AND ONLY WHEN IT IS THIS THREAD'S** (A3(b)).
+          // A line that names no thread is this row's only while no other
+          // thread arms the same id in the file: the rule a row citing a whole
+          // file is read by. With a rival, the gate would be choosing whose arm
+          // that line is, so it blocks and says why.
+          [to] => {
+            let named = text
+              .lines()
+              .nth(to - 1)
+              .is_some_and(|l| crate::id::thread_ids_in(l).iter().any(|t| t.names(thread)));
+            if named || rivals.is_empty() {
+              Carries::Moved { line: n, to: *to }
+            } else {
+              Carries::Ambiguous(rivals.to_vec())
+            }
+          }
+          _ => Carries::NotOnLine { line: n, carrying },
+        }
+      }
     };
   }
   let carrying: Vec<&str> = text
@@ -585,6 +609,9 @@ pub enum Verdict {
     /// **Zero on the WP-lenient rollup**, which has no in-scope criteria to
     /// have closed by any means.
     fiat: usize,
+    /// The rows this verdict counted at a line other than the one they cite
+    /// (A3(b)), which the faces print before the verdict.
+    followed: Vec<Followed>,
   },
   Exempt {
     detail: Detail,
@@ -615,6 +642,9 @@ pub enum Verdict {
     /// try, which is [`Detail`]'s rule for the same reason, so the arm that
     /// knows why it blocked says what to do about it.
     remedy: String,
+    /// As on [`Verdict::Pass`]: a block on another row still shows the rows
+    /// the gate followed.
+    followed: Vec<Followed>,
   },
 }
 
@@ -658,6 +688,24 @@ impl Verdict {
       detail: Detail::Diagnosis(detail.into()),
       unsatisfied: Vec::new(),
       remedy: remedy.into(),
+      followed: Vec::new(),
+    }
+  }
+
+  /// This verdict with the rows the contract walk followed, which every arm
+  /// after the walk carries. An exemption walked nothing and carries none.
+  fn following(mut self, rows: Vec<Followed>) -> Self {
+    if let Self::Pass { followed, .. } | Self::Blocked { followed, .. } = &mut self {
+      *followed = rows;
+    }
+    self
+  }
+
+  /// The rows the gate counted at a line other than the one they cite.
+  pub fn followed(&self) -> &[Followed] {
+    match self {
+      Self::Pass { followed, .. } | Self::Blocked { followed, .. } => followed,
+      Self::Exempt { .. } => &[],
     }
   }
 
@@ -861,9 +909,16 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
         report.findings.join("; ")
       ),
       "correct each row the gate names, or the test file it cites, then close again -- `intent at lint <STID>` lists every finding, and `intent at edit <STID> <ATID>` re-cites a row",
-    );
+    )
+    .following(report.followed);
   }
 
+  tally(thread, wanted, thread_total).following(report.followed)
+}
+
+/// The criteria's arithmetic over the scope, once the contract walk found
+/// nothing: the WP-lenient rollup, the emptied contract and the tally.
+fn tally(thread: &Thread, wanted: Option<crate::id::Group>, thread_total: usize) -> Verdict {
   // The order acceptance.md shows (ST1c2db93 744e), so the unsatisfied list
   // this verdict names agrees with `ac list` and the view.
   let in_scope: Vec<&Criterion> = thread
@@ -880,6 +935,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     // the thread's contract. Announced, never inferred -- same rule as EXEMPT.
     return Verdict::Pass {
       fiat: 0,
+      followed: Vec::new(),
       detail: Detail::Diagnosis(format!(
         "no ACs in scope; rolls up to the {} contract ({thread_total} AC(s))",
         thread.id.shown()
@@ -961,12 +1017,14 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     Verdict::Pass {
       detail: tally,
       fiat,
+      followed: Vec::new(),
     }
   } else {
     Verdict::Blocked {
       detail: tally,
       unsatisfied: unsatisfied.iter().map(|id| (*id).to_string()).collect(),
       remedy: SATISFY_THE_REMAINING.to_string(),
+      followed: Vec::new(),
     }
   }
 }
@@ -1094,12 +1152,17 @@ pub fn contract_report(
       .filter(|(at, _)| in_scope(at))
       .collect()
   });
+  let followed = followed_rows(thread, refs)
+    .into_iter()
+    .filter(|f| in_scope(&f.at))
+    .collect();
   ContractReport {
     findings: out,
     rows,
     examined,
     unexamined: un,
     closed_contract_drift,
+    followed,
   }
 }
 
@@ -1116,8 +1179,12 @@ pub fn literal_id_finding(
   thread_id: &str,
   refs: &dyn References,
 ) -> Option<String> {
+  // The thread as a person writes it on a line: its shown id.
+  let st = crate::nav::shown_or_as_is(thread_id);
   match refs.carries_id(path, at_id, thread_id) {
-    Carries::Yes => None,
+    // A followed row is counted where its id now stands and is no finding:
+    // [`followed_rows`] names it instead, and the gate prints it (A3(b)).
+    Carries::Yes | Carries::Moved { .. } => None,
     Carries::Absent => Some(format!("{path} does not carry the literal id {at_id}")),
     Carries::OnlyUnder(others) => Some(format!(
       "{path} carries {at_id} only on lines naming another thread ({}); at least one line carrying the id must not name a different thread, and a line naming no thread at all counts",
@@ -1127,17 +1194,18 @@ pub fn literal_id_finding(
     Carries::Ambiguous(rivals) => {
       let file = citation(path).path;
       Some(format!(
-        "{file} carries {at_id} only on lines that name no thread, and {} also has a green or red {at_id} citing it, so no such line says whose arm it is over; name {thread_id} on the line that carries the id over this row's own arm, or cite that line as `{file}:<line>`",
+        "{file} carries {at_id} only on lines that name no thread, and {} also has a green or red {at_id} citing it, so no such line says whose arm it is over; name {st} on the line that carries the id over this row's own arm, or cite that line as `{file}:<line>`",
         rivals.join(", ")
       ))
     }
     Carries::NotOnLine { line, carrying } => {
       let file = citation(path).path;
+      // Never one line: one line of this thread's is [`Carries::Moved`].
       let lines = if carrying.is_empty() {
-        format!("no line of the file carries it for {thread_id}")
+        format!("no line of the file carries it for {st}")
       } else {
         format!(
-          "the lines that carry it are {}",
+          "the lines that carry it for {st} are {}, and the gate does not choose between them",
           carrying
             .iter()
             .map(usize::to_string)
@@ -1186,6 +1254,99 @@ pub fn completed_thread_drift(thread: &Thread, refs: &dyn References) -> Vec<(St
     .collect()
 }
 
+/// A test row the gate counts at a line other than the one it cites: its cited
+/// line no longer carries its id, and exactly one line of the same file carries
+/// it for this thread (3.5.4 attendee finding A3(b), hv's ruling).
+///
+/// **COUNTED, SHOWN AND NEVER WRITTEN.** The gate stays a read: it counts the
+/// row at `line`, prints the move with the command that records it, and leaves
+/// the row as it is. `doctor` shows it as an advisory until the row is re-cited.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Followed {
+  /// The thread, in its shown form.
+  pub st: String,
+  /// The row's AT id.
+  pub at: String,
+  /// The cited file, without its line.
+  pub file: String,
+  /// The line the row cites, 1-based.
+  pub cited: usize,
+  /// The one line that carries the id for the thread, 1-based.
+  pub line: usize,
+}
+
+impl Followed {
+  /// The command that records the move on the row.
+  pub fn command(&self) -> String {
+    format!(
+      "intent at edit {} {} --file {}:{}",
+      self.st, self.at, self.file, self.line
+    )
+  }
+
+  /// The gate's line for the row: `ac gate`, `ac status` and `at lint` print
+  /// it before their verdict, behind a fixed `followed:` prefix.
+  pub fn gate_line(&self) -> String {
+    format!(
+      "followed: {}/{} cites {}:{}, which no longer carries {}; line {} is the one line that carries it for {}, and the gate counts the row there. Record it: {}",
+      self.st,
+      self.at,
+      self.file,
+      self.cited,
+      self.at,
+      self.line,
+      self.st,
+      self.command()
+    )
+  }
+
+  /// `doctor`'s advisory for the row.
+  pub fn advisory(&self) -> String {
+    format!(
+      "{}/{} cites {}:{}, which no longer carries {}; the gate counts the row at line {}, the one line that carries it, until it is re-cited: {}",
+      self.st,
+      self.at,
+      self.file,
+      self.cited,
+      self.at,
+      self.line,
+      self.command()
+    )
+  }
+}
+
+/// Every armed test row of `thread` that the gate follows to another line, in
+/// the order `at list` lists them.
+///
+/// **THE ONE HOME OF WHICH ROWS ARE FOLLOWED.** The gate, `at lint` and doctor
+/// ask it, and the line match it reads is `judge_text`'s, the one a refusal
+/// offers its lines from (issue Ifdd3c89), so a row is followed only to a line
+/// the refusal would have offered. A row whose file is missing is L2's, and is
+/// not followed.
+pub fn followed_rows(thread: &Thread, refs: &dyn References) -> Vec<Followed> {
+  thread
+    .tests_in_order()
+    .into_iter()
+    .filter(|t| t.kind == AtKind::Test && matches!(t.status, AtStatus::Green | AtStatus::Red))
+    .filter_map(|t| {
+      let path = t.file.as_deref()?;
+      if !refs.resolves(path) {
+        return None;
+      }
+      match refs.carries_id(path, &t.id, &thread.id) {
+        Carries::Moved { line: cited, to } => Some(Followed {
+          st: thread.id.shown(),
+          at: t.id.clone(),
+          file: citation(path).path.to_string(),
+          cited,
+          line: to,
+        }),
+        _ => None,
+      }
+    })
+    .collect()
+}
+
 /// What the AT contract check examined and what it found.
 ///
 /// **The row count is not decoration on the clean path, it is the clean path's
@@ -1227,6 +1388,10 @@ pub struct ContractReport {
   /// counted them examined and conforming, so its reader could not tell
   /// checked and true from true at close and unchecked since.
   pub closed_contract_drift: Option<Vec<(String, String)>>,
+  /// The rows walked that the gate follows to another line (A3(b)), from
+  /// [`followed_rows`]. Never among `findings`: a followed row conforms where
+  /// its id now stands, and its citation is still to be recorded.
+  pub followed: Vec<Followed>,
 }
 
 /// Why a walked row was never examined. **Three reasons, reported apart,

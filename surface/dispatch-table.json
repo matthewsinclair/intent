@@ -1719,7 +1719,7 @@
         {
           "path": "ac gate",
           "help": "Close-gate: exit non-zero + BLOCKED if unsatisfied",
-          "when_to_use": "USE IT before you close a thread, to see whether its criteria and tests let it close. AFTER A MERGE MOVES TEST LINES, a row that cites `<file>:<line>` can cite a line that no longer carries its AT id, and the gate blocks. To re-cite: run `intent ac status <ST>`, which gives for each such row the lines of the file that now carry its AT id for that thread. For each row, run `intent at edit <ST> <AT> --file <file>:<line>` with the line over the row's own test. When no line carries the id, put the AT id on the line over the row's own test, then re-cite that line. Then run `intent ac gate <ST>` again, and commit.",
+          "when_to_use": "USE IT before you close a thread, to see whether its criteria and tests let it close. AFTER A MERGE MOVES TEST LINES, a row that cites `<file>:<line>` can cite a line that no longer carries its AT id. When exactly one line of the file carries the id for that thread, the gate counts the row at that line and prints a `followed:` line with the `intent at edit` command that records the move. The gate never rewrites the row: run that command, and commit. When no line or more than one line carries the id, the gate blocks and names the lines it found. Run `intent at edit <ST> <AT> --file <file>:<line>` with the line over the row's own test. When no line carries the id, put the AT id on that line first. Then run `intent ac gate <ST>` again, and commit.",
           "args": [
             {
               "name": "stid",
@@ -2410,7 +2410,7 @@
         {
           "path": "at edit",
           "help": "Re-cite an acceptance test; a field you do not name is a field it does not change",
-          "when_to_use": "USE IT to change what a row cites, its kind, the criteria it covers or its note. AFTER A MERGE MOVES TEST LINES, re-cite each row that `intent ac status <ST>` names: run `intent at edit <ST> <AT> --file <file>:<line>` with a line it gives that now carries the AT id, over the row's own test. When no line carries the id, put the AT id on the line over the row's own test, then re-cite that line. Then run `intent ac gate <ST>` again, and commit.",
+          "when_to_use": "USE IT to change what a row cites, its kind, the criteria it covers or its note. AFTER A MERGE MOVES TEST LINES, re-cite each row that `intent ac gate <ST>` follows or blocks on. For a followed row, run the command that its `followed:` line gives. For a row that blocks, use the line over the row's own test, and when no line carries the id, put the AT id on that line first. Then run `intent ac gate <ST>` again, and commit.",
           "args": [
             {
               "name": "stid",

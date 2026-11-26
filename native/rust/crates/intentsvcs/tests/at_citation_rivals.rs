@@ -9,7 +9,9 @@
 //! fixture and asks `literal_id_finding`, the one place the refusals are
 //! worded, through `ProjectRefs`, which every production reader builds.
 use crate::common::{Fixture, sample_thread};
-use intentsvcs::contract::{Carries, ProjectRefs, References, citation, literal_id_finding};
+use intentsvcs::contract::{
+  Carries, Followed, ProjectRefs, References, citation, followed_rows, literal_id_finding,
+};
 use intentsvcs::id::ThreadId;
 use intentsvcs::model::{AcceptanceTest, AtKind, AtStatus, Thread, ThreadStatus};
 
@@ -142,8 +144,11 @@ fn a_row_citing_its_line_is_read_at_that_line_and_a_bare_id_there_counts_despite
   assert_eq!(literal_id_finding(&cited, "AT-3.5", "ST0011", &refs), None);
 }
 
+/// A3(b): the gate follows a row only to a line that is its thread's. In the
+/// exhibit the one line carrying the id is bare and ST0007 arms the same id in
+/// the file, so following it would choose ST0007's arm for ST0011: it refuses.
 #[test]
-fn a_cited_line_that_does_not_carry_the_id_is_refused_with_the_lines_that_do() {
+fn a_cited_line_whose_one_carrying_line_is_bare_beside_a_rival_is_refused_and_not_followed() {
   let fx = Fixture::new();
   let mut threads = exhibit(&fx, AtStatus::Green, AtStatus::Green);
   let cited = format!("{FILE}:4");
@@ -151,17 +156,15 @@ fn a_cited_line_that_does_not_carry_the_id_is_refused_with_the_lines_that_do() {
   let refs = ProjectRefs::new(fx.root(), &threads);
   assert_eq!(
     refs.carries_id(&cited, "AT-3.5", "ST0011"),
-    Carries::NotOnLine {
-      line: 4,
-      carrying: vec![8]
-    }
+    Carries::Ambiguous(vec!["ST0007".to_string()])
   );
   let finding =
     literal_id_finding(&cited, "AT-3.5", "ST0011", &refs).expect("line 4 carries no id");
   assert!(
-    finding.contains("cites line 4") && finding.contains("the lines that carry it are 8"),
-    "the refusal names the line asked for and the lines that carry the id: {finding}"
+    finding.contains("name ST0011 on the line") && finding.contains(&format!("`{FILE}:<line>`")),
+    "the refusal says how to make the line this thread's: {finding}"
   );
+  assert!(followed_rows(&threads[1], &refs).is_empty());
 }
 
 #[test]
@@ -192,19 +195,21 @@ fn the_one_parser_reads_a_line_only_from_a_positive_decimal_suffix() {
   assert_eq!(citation("tests/a:b.bats").path, "tests/a:b.bats");
 }
 
-/// Issue Ifdd3c89: a cited line that does not carry the id is refused with the
-/// lines that do, and a line naming another thread's AT of the same id is not
-/// among them: it is that thread's arm, never this row's.
+/// Issue Ifdd3c89 and A3(b): a line naming another thread's AT of the same id
+/// is that thread's arm, never this row's, so it is neither offered nor
+/// followed. The one line that carries the id for this thread is followed: the
+/// row is counted there, and the gate gives the command that records it. Two
+/// such lines are refused, and the gate does not choose.
 #[test]
-fn a_cited_lines_refusal_never_offers_a_line_naming_another_thread() {
+fn a_cited_line_is_followed_to_its_threads_one_line_and_never_to_another_threads() {
   let fx = Fixture::new();
   let lines = [
     "# the arm with no id over it",
     "@test \"x\" {",
     "# ST0007 AT-3.5",
     "@test \"the other thread's arm\" {",
-    "# AT-3.5",
-    "@test \"a bare arm\" {",
+    "# ST0011 AT-3.5",
+    "@test \"this thread's arm\" {",
   ];
   fx.write_file(FILE, &(lines.join("\n") + "\n"));
   let at = |text: &str| {
@@ -228,12 +233,42 @@ fn a_cited_lines_refusal_never_offers_a_line_naming_another_thread() {
     ),
   ];
   let refs = ProjectRefs::new(fx.root(), &threads);
+  let own = at("# ST0011 AT-3.5");
+  assert_eq!(
+    refs.carries_id(&cited, "AT-3.5", "ST0011"),
+    Carries::Moved {
+      line: at(lines[0]),
+      to: own
+    },
+    "the line naming ST0007 is not followed"
+  );
+  assert_eq!(literal_id_finding(&cited, "AT-3.5", "ST0011", &refs), None);
+  let followed = followed_rows(&threads[1], &refs);
+  assert_eq!(
+    followed.iter().map(Followed::command).collect::<Vec<_>>(),
+    vec![format!("intent at edit ST0011 AT-3.5 --file {FILE}:{own}")]
+  );
+
+  // The file again with this thread's arm a second time below it.
+  let twice = [&lines[..], &lines[4..]].concat();
+  fx.write_file(FILE, &(twice.join("\n") + "\n"));
+  let carrying: Vec<usize> = twice
+    .iter()
+    .enumerate()
+    .filter(|(_, l)| **l == lines[4])
+    .map(|(i, _)| i + 1)
+    .collect();
   assert_eq!(
     refs.carries_id(&cited, "AT-3.5", "ST0011"),
     Carries::NotOnLine {
       line: at(lines[0]),
-      carrying: vec![at("# AT-3.5")]
-    },
-    "the line naming ST0007 is not offered"
+      carrying
+    }
   );
+  let finding = literal_id_finding(&cited, "AT-3.5", "ST0011", &refs).expect("two lines carry it");
+  assert!(
+    finding.contains("the gate does not choose between them"),
+    "the refusal says the gate does not choose: {finding}"
+  );
+  assert!(followed_rows(&threads[1], &refs).is_empty());
 }
