@@ -1,0 +1,16 @@
+{
+  "id": "01M8B6Y1Y12A6Y4YGSM6TWR845",
+  "ts": "2026-11-26T05:58:24.961Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 69,
+    "text": "3.5.4 is not cut and nothing is pushed (local and upstream hold bd1aa3c6c). Scope grew on 2026-11-26 with four attendee fixes (devbin-vc's go to write, 05:57Z): ic 1 (guards format in the guide) and 4's text (AT red by mutation), cc 2 (doctor's root-file-behind after --skip-settings: drive plan, then fix), dc 3 (autopsy counts skill bodies as user flags). Banks go to refs/bank/<seat>/i354/wip-v1; no cargo, drive or landing until devbin-vc's word. Then: land, regenerate the reference set, sweep devbin 0.1.34 (devbin-vc), ONE gate all and ONE test shell at the final tip, the dry run, READY, and hv types the cut. Parked for hv: 3's recall, 4's undo or new path, 5 (done on an unmerged branch). 6 closes as fixed in 3.5.3."
+  }
+}

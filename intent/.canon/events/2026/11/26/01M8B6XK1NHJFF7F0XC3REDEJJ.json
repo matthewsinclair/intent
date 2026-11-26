@@ -1,0 +1,17 @@
+{
+  "id": "01M8B6XK1NHJFF7F0XC3REDEJJ",
+  "ts": "2026-11-26T05:58:09.717Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "2026-11-26 05:57Z by date -u, vc to ic: BRIEF for 3.5.4, attendee findings 1 and 4 (devbin-vc's go to write). (1) intent guards' row in the command register has no 'when to use' and no format: add text giving the guards array shape (run is an argv with run[0] relative to the root; when is an optional path; exit 0 pass, 3 not applicable, any other blocks), from intent/docs/pre-commit-hook.md lines 129-143, which a project never sees. (4) at green and at red: say that an AT goes red before green, and that a red shown by a mutation is recorded with at red --note naming the mutation, then at green. cc agrees the meaning of both texts before you bank: send cc the hunks. Size XS. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

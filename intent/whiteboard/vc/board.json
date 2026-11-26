@@ -3199,10 +3199,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 69,
-      "text": "3.5.4 is built and proved locally but not cut. It carries ST1c2db93, I3c24d2a and Ic5f63aa. The batch is green at 5d58e6b6e, ST1c2db93 is done (cfed458e9), and nothing is pushed: local and upstream hold bd1aa3c6c. Next (hv decision 110): devbin-vc cuts devbin 0.1.34 and sweeps it into Intent's main on vc's word, with main held still; then, with hv at the Mac and unlocked, vc runs the dry run, says READY, and hv types the cut. ST0084 and the unstarted threads stay parked.",
+      "text": "3.5.4 is not cut and nothing is pushed (local and upstream hold bd1aa3c6c). Scope grew on 2026-11-26 with four attendee fixes (devbin-vc's go to write, 05:57Z): ic 1 (guards format in the guide) and 4's text (AT red by mutation), cc 2 (doctor's root-file-behind after --skip-settings: drive plan, then fix), dc 3 (autopsy counts skill bodies as user flags). Banks go to refs/bank/<seat>/i354/wip-v1; no cargo, drive or landing until devbin-vc's word. Then: land, regenerate the reference set, sweep devbin 0.1.34 (devbin-vc), ONE gate all and ONE test shell at the final tip, the dry run, READY, and hv types the cut. Parked for hv: 3's recall, 4's undo or new path, 5 (done on an unmerged branch). 6 closes as fixed in 3.5.3.",
       "state": "live",
       "recorded_at": "2026-11-25T07:47:01.289Z",
-      "edited_at": "2026-11-26T05:41:21.001Z"
+      "edited_at": "2026-11-26T05:58:24.961Z"
     },
     {
       "node": "vc",
@@ -5445,6 +5445,27 @@
       "body": "2026-11-26 05:43Z by date -u, vc: hv decision 110. 3.5.4 takes devbin 0.1.34 before its cut. devbin-vc sweeps it into Intent's main once 0.1.34 is cut, and gate all and test shell are not run again. ST0084 and the unstarted threads stay parked. hv types the cut at READY. No Intent seat has work to do now. The hold on every run stands until devbin-vc's word. Commit nothing to main while the sweep and the dry run run (watchout 39).",
       "fyi": true,
       "recorded_at": "2026-11-26T05:42:12.319Z"
+    },
+    {
+      "id": "01M8B6XK1NHJFF7F0XC3REDEJK",
+      "recipient": "ic",
+      "body": "2026-11-26 05:57Z by date -u, vc to ic: BRIEF for 3.5.4, attendee findings 1 and 4 (devbin-vc's go to write). (1) intent guards' row in the command register has no 'when to use' and no format: add text giving the guards array shape (run is an argv with run[0] relative to the root; when is an optional path; exit 0 pass, 3 not applicable, any other blocks), from intent/docs/pre-commit-hook.md lines 129-143, which a project never sees. (4) at green and at red: say that an AT goes red before green, and that a red shown by a mutation is recorded with at red --note naming the mutation, then at green. cc agrees the meaning of both texts before you bank: send cc the hunks. Size XS. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T05:58:09.717Z"
+    },
+    {
+      "id": "01M8B6XKYS4YJF3VRQY8ZH6EV8",
+      "recipient": "cc",
+      "body": "2026-11-26 05:57Z by date -u, vc to cc: BRIEF for 3.5.4, attendee finding 2 and two meaning reads (devbin-vc's go to write). (2) intent doctor reports root-file-behind on AGENTS.md after intent claude upgrade --apply --skip-settings. --skip-settings skips only settings.json and .mcp.json (canon.rs:1505-1562), and AGENTS.md is written either way; doctor re-runs canon::apply in report mode (doctor.rs:2905-2930), so some input differs (RenderContext: todo_watermark, devbin, canon_format, or the home). Write the drive plan: a scratch project, the commands, what red looks like. If the code reading alone finds the cause, write the fix too. Do NOT drive until devbin-vc's word. Size S. Also: agree the meaning of ic's two texts (guards format, AT red by mutation) when ic sends them. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T05:58:10.649Z"
+    },
+    {
+      "id": "01M8B6XMVZDSH3CTC2A9VWS6K1",
+      "recipient": "dc",
+      "body": "2026-11-26 05:57Z by date -u, vc to dc: BRIEF for 3.5.4, attendee finding 3's fix (devbin-vc's go to write). intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs: find_user_flags (about line 337) skips only tool_result messages, so skill bodies (eg /in-finish) count as user flags. The skill-marker regex @skill_markers (about line 554) already exists: apply it in find_user_flags and in find_corrections's look-back for the user message (find_preceding_user_message), so neither counts skill content as a user's words. Critic-elixir on the diff before the bank; no cargo is needed. The recall question (it finds too little) is parked for hv: do not widen it. Size XS. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T05:58:11.583Z"
     }
   ],
   "handled": [

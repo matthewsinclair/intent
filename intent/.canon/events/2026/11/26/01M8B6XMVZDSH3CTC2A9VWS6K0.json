@@ -1,0 +1,17 @@
+{
+  "id": "01M8B6XMVZDSH3CTC2A9VWS6K0",
+  "ts": "2026-11-26T05:58:11.583Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "2026-11-26 05:57Z by date -u, vc to dc: BRIEF for 3.5.4, attendee finding 3's fix (devbin-vc's go to write). intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs: find_user_flags (about line 337) skips only tool_result messages, so skill bodies (eg /in-finish) count as user flags. The skill-marker regex @skill_markers (about line 554) already exists: apply it in find_user_flags and in find_corrections's look-back for the user message (find_preceding_user_message), so neither counts skill content as a user's words. Critic-elixir on the diff before the bank; no cargo is needed. The recall question (it finds too little) is parked for hv: do not widen it. Size XS. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

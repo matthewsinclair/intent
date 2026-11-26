@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.4 is built and proved locally but not cut. It carries ST1c2db93, I3c24d2a and Ic5f63aa. The batch is green at 5d58e6b6e, ST1c2db93 is done (cfed458e9), and nothing is pushed: local and upstream hold bd1aa3c6c. Next (hv decision 110): devbin-vc cuts devbin 0.1.34 and sweeps it into Intent's main on vc's word, with main held still; then, with hv at the Mac and unlocked, vc runs the dry run, says READY, and hv types the cut. ST0084 and the unstarted threads stay parked. (edited)
+- 3.5.4 is not cut and nothing is pushed (local and upstream hold bd1aa3c6c). Scope grew on 2026-11-26 with four attendee fixes (devbin-vc's go to write, 05:57Z): ic 1 (guards format in the guide) and 4's text (AT red by mutation), cc 2 (doctor's root-file-behind after --skip-settings: drive plan, then fix), dc 3 (autopsy counts skill bodies as user flags). Banks go to refs/bank/<seat>/i354/wip-v1; no cargo, drive or landing until devbin-vc's word. Then: land, regenerate the reference set, sweep devbin 0.1.34 (devbin-vc), ONE gate all and ONE test shell at the final tip, the dry run, READY, and hv types the cut. Parked for hv: 3's recall, 4's undo or new path, 5 (done on an unmerged branch). 6 closes as fixed in 3.5.3. (edited)
 
 ## TODO
 

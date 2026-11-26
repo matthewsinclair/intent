@@ -1,0 +1,17 @@
+{
+  "id": "01M8B6XKYS4YJF3VRQY8ZH6EV7",
+  "ts": "2026-11-26T05:58:10.649Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "2026-11-26 05:57Z by date -u, vc to cc: BRIEF for 3.5.4, attendee finding 2 and two meaning reads (devbin-vc's go to write). (2) intent doctor reports root-file-behind on AGENTS.md after intent claude upgrade --apply --skip-settings. --skip-settings skips only settings.json and .mcp.json (canon.rs:1505-1562), and AGENTS.md is written either way; doctor re-runs canon::apply in report mode (doctor.rs:2905-2930), so some input differs (RenderContext: todo_watermark, devbin, canon_format, or the home). Write the drive plan: a scratch project, the commands, what red looks like. If the code reading alone finds the cause, write the fix too. Do NOT drive until devbin-vc's word. Size S. Also: agree the meaning of ic's two texts (guards format, AT red by mutation) when ic sends them. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}
