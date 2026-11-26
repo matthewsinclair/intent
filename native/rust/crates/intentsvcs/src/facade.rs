@@ -4755,6 +4755,16 @@ pub enum Note {
   /// A unit closed while its objective was still unwritten (issue 0337). It
   /// carries the address `intent set` takes for that unit.
   UnwrittenObjective(String),
+  /// A unit closed on a branch that is not merged into `main` (3.5.5 item 3,
+  /// hv decision 115). It carries the branch's name.
+  ///
+  /// **A WARNING AND NEVER A REFUSAL**: the close is right on a feature branch
+  /// that merges later, and only the person knows whether this one will.
+  /// Raised only where Intent can tell ([`crate::gitstate::unmerged_into_main`]).
+  UnmergedBranch(String),
+  /// Whether the close's branch is merged into `main` was not answered,
+  /// because git ran and failed. It carries git's error.
+  MergeUnchecked(String),
   /// The write landed, and a step after it did not.
   ///
   /// **A WARNING AND NOT A REFUSAL, BECAUSE THE WRITE HAPPENED** (vc, ruled
@@ -5140,6 +5150,12 @@ pub fn notes_json(notes: &[Note]) -> serde_json::Value {
       }),
       Note::UnwrittenObjective(unit) => serde_json::json!({
         "kind": "unwritten-objective", "unit": unit,
+      }),
+      Note::UnmergedBranch(branch) => serde_json::json!({
+        "kind": "unmerged-branch", "branch": branch,
+      }),
+      Note::MergeUnchecked(cause) => serde_json::json!({
+        "kind": "merge-unchecked", "cause": cause,
       }),
       Note::StepFailedAfterWrite {
         step,
@@ -18060,6 +18076,9 @@ impl Facade {
     if status == ThreadStatus::Completed && self.st_show(id)?.objective.trim().is_empty() {
       notes.push(Note::UnwrittenObjective(id.to_string()));
     }
+    if op == "st.done" {
+      notes.extend(self.unmerged_note());
+    }
     let mut next = self.canon.clone();
     let thread = find_thread_mut(&mut next, id)?;
     thread.status = status;
@@ -18721,24 +18740,22 @@ impl Facade {
         .iter()
         .find(|w| w.seq == seq)
         .is_some_and(|w| w.objective.trim().is_empty());
+    let mut notes = Vec::new();
+    if unwritten {
+      notes.push(Note::UnwrittenObjective(
+        AddrEntity::Wp {
+          thread: st.to_string(),
+          wp: crate::id::Spelled::Whole(seq),
+        }
+        .local_url(),
+      ));
+    }
+    if op == "wp.done" {
+      notes.extend(self.unmerged_note());
+    }
     self
       .apply_envelopes(&envelopes, next, crate::store::ProjectStateEdit::Unchanged)
-      .map(|foreign| {
-        let moved = if unwritten {
-          Outcome::MovedWith {
-            notes: vec![Note::UnwrittenObjective(
-              AddrEntity::Wp {
-                thread: st.to_string(),
-                wp: crate::id::Spelled::Whole(seq),
-              }
-              .local_url(),
-            )],
-          }
-        } else {
-          Outcome::Moved
-        };
-        moved.with_overwrites(foreign)
-      })
+      .map(|foreign| Outcome::moved_with(notes).with_overwrites(foreign))
   }
 
   // -------------------------------------------------------------------------
@@ -23081,6 +23098,19 @@ impl Facade {
       Some(found) => notes.push(Note::UnsyncedAttachments(found)),
     }
     Ok(notes)
+  }
+
+  /// The note a `wp done` or `st done` carries when its branch is not merged
+  /// into `main` (3.5.5 item 3, hv decision 115). The one home both closes
+  /// ask, so the two verbs cannot warn apart.
+  ///
+  /// **A NOTE, NEVER AN ERROR**: a git that failed is reported as unanswered
+  /// and the close still lands.
+  fn unmerged_note(&self) -> Option<Note> {
+    match crate::gitstate::unmerged_into_main(self.project.root()) {
+      Ok(branch) => branch.map(Note::UnmergedBranch),
+      Err(cause) => Some(Note::MergeUnchecked(cause.to_string())),
+    }
   }
 
   /// The paths the next `organize --apply` would remove because this close

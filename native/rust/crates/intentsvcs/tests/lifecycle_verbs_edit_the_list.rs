@@ -931,14 +931,37 @@ fn a_close_names_the_attachment_whose_bytes_are_in_no_commit() {
 fn the_warning_closes_the_thread_and_still_makes_the_edit() {
   let fx = committed_fixture();
   fx.write_prose("ST0056", "reference.md", "bytes that are in no commit\n");
+  // 3.5.5 item 3: the closes run on a branch `main` does not hold, and each
+  // warns and still lands.
+  fx.git(&["branch", "-M", "main"]);
+  fx.git(&["checkout", "-qb", "feature"]);
+  fx.git(&[
+    "commit",
+    "--allow-empty",
+    "-qm",
+    "a commit main does not hold",
+  ]);
+  let unmerged = Note::UnmergedBranch("feature".to_string());
 
   let mut facade = fx.facade();
+  facade
+    .wp_reopen("ST0056", wp(3), "closed again on the feature branch")
+    .expect("reopen");
+  let package = facade.wp_done("ST0056", wp(3)).expect("wp done");
+  assert!(
+    package.moved() && package.notes().contains(&unmerged),
+    "wp done on an unmerged branch warns and closes: {package:?}"
+  );
   let outcome = facade.st_done("ST0056").expect("done");
 
   assert!(outcome.moved(), "a note is not a refusal: {outcome:?}");
   assert!(
     !named_paths(outcome.notes()).is_empty(),
     "precondition: it warned"
+  );
+  assert!(
+    outcome.notes().contains(&unmerged),
+    "st done on an unmerged branch names the branch: {outcome:?}"
   );
   assert_eq!(
     facade.st_show("ST0056").unwrap().status,
@@ -997,6 +1020,8 @@ fn an_untracked_attachment_is_named_and_says_so_in_its_own_words() {
 #[test]
 fn a_clean_repository_says_nothing_and_that_is_not_the_unknown_answer() {
   let fx = committed_fixture();
+  // 3.5.5 item 3: on `main` itself the close has no branch to warn about.
+  fx.git(&["branch", "-M", "main"]);
   let mut facade = fx.facade();
   let outcome = facade.st_done("ST0056").expect("done");
 
@@ -1004,6 +1029,13 @@ fn a_clean_repository_says_nothing_and_that_is_not_the_unknown_answer() {
     !said_anything_about_uncommitted_bytes(outcome.notes()),
     "every attachment of this thread is in a commit, so there is nothing at \
      risk and nothing to say about it: {outcome:?}"
+  );
+  assert!(
+    !outcome
+      .notes()
+      .iter()
+      .any(|n| matches!(n, Note::UnmergedBranch(_) | Note::MergeUnchecked(_))),
+    "a close on `main` says nothing about merging: {outcome:?}"
   );
 }
 

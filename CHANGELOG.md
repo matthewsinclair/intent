@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **`intent doctor`'s root-file-behind line and its remedy name the binary that made the comparison, by path and version** (3.5.4 attendee finding 2). Each `intent` reads the templates of its own install, so with two on one machine a file that one leaves current reads behind to the other. The line now says which binary read the templates, eg `as read by /opt/homebrew/bin/intent (Intent 3.5.5)`, and the remedy says to run the upgrade with that binary.
+- **`intent wp done` and `intent st done` warn when the current branch is not merged into `main`** (hv decision 115). The close still lands: the warning names the branch and says that `main` does not carry the close until the branch merges. Intent says nothing where it cannot tell: outside git, on a detached `HEAD`, or where there is no local `main`.
 
 ## [3.5.4] - 2026-11-26
 

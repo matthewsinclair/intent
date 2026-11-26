@@ -272,16 +272,7 @@ pub fn other_branches(root: &Path) -> Result<Vec<String>, GitStateError> {
   if !work_tree(root)? {
     return Ok(Vec::new());
   }
-  let current = Command::new("git")
-    .args(["symbolic-ref", "--quiet", "--short", "HEAD"])
-    .current_dir(root)
-    .output()
-    .map_err(|source| GitStateError::Spawn {
-      args: "symbolic-ref --quiet --short HEAD".to_string(),
-      source,
-    })?;
-  // A detached HEAD is symbolic-ref refusing, which is an answer, not a fault.
-  let current = String::from_utf8_lossy(&current.stdout).trim().to_string();
+  let current = current_branch(root)?.unwrap_or_default();
   let out = run(
     root,
     &["for-each-ref", "--format=%(refname:short)", "refs/heads/"],
@@ -293,6 +284,68 @@ pub fn other_branches(root: &Path) -> Result<Vec<String>, GitStateError> {
       .map(str::to_string)
       .collect(),
   )
+}
+
+/// The branch `HEAD` names, or `None` on a detached `HEAD`. The caller has
+/// already asked [`work_tree`].
+fn current_branch(root: &Path) -> Result<Option<String>, GitStateError> {
+  let out = Command::new("git")
+    .args(["symbolic-ref", "--quiet", "--short", "HEAD"])
+    .current_dir(root)
+    .output()
+    .map_err(|source| GitStateError::Spawn {
+      args: "symbolic-ref --quiet --short HEAD".to_string(),
+      source,
+    })?;
+  // A detached HEAD is symbolic-ref refusing, which is an answer, not a fault.
+  let branch = String::from_utf8_lossy(&out.stdout).trim().to_string();
+  Ok(Some(branch).filter(|b| out.status.success() && !b.is_empty()))
+}
+
+/// The branch a close stands on, when it is not merged into `main` (3.5.5 item
+/// 3, hv decision 115): the current branch, named, when it is not `main`, a
+/// local `main` resolves, and `HEAD` is not an ancestor of it.
+///
+/// **`None` WHEREVER INTENT CANNOT TELL**: no work tree, an unborn or detached
+/// `HEAD`, or no local `main`. Those are answers, and the close says nothing.
+/// A git that ran and failed is the error, so the caller can say the question
+/// was not answered.
+pub fn unmerged_into_main(root: &Path) -> Result<Option<String>, GitStateError> {
+  const MAIN: &str = "main";
+  if !work_tree(root)? || !has_head(root) {
+    return Ok(None);
+  }
+  let Some(branch) = current_branch(root)?.filter(|b| b != MAIN) else {
+    return Ok(None);
+  };
+  let main = format!("refs/heads/{MAIN}");
+  let resolves = Command::new("git")
+    .args(["rev-parse", "--verify", "--quiet", &main])
+    .current_dir(root)
+    .output()
+    .is_ok_and(|out| out.status.success());
+  if !resolves {
+    return Ok(None);
+  }
+  let args = ["merge-base", "--is-ancestor", "HEAD", main.as_str()];
+  let out = Command::new("git")
+    .args(args)
+    .current_dir(root)
+    .output()
+    .map_err(|source| GitStateError::Spawn {
+      args: args.join(" "),
+      source,
+    })?;
+  // `--is-ancestor` answers 0 for yes and 1 for no; anything else is a fault.
+  match out.status.code() {
+    Some(0) => Ok(None),
+    Some(1) => Ok(Some(branch)),
+    code => Err(GitStateError::Refused {
+      args: args.join(" "),
+      code: code.unwrap_or(-1),
+      stderr: String::from_utf8_lossy(&out.stderr).trim().to_string(),
+    }),
+  }
 }
 
 /// The paths a commit holds under `prefix`, relative to the project root.

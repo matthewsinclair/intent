@@ -14427,6 +14427,17 @@ fn print_notes(notes: &[Note], subject: &str) {
         );
         eprintln!("  remedy: `intent set {unit} objective --from <file>`");
       }
+      Note::UnmergedBranch(branch) => {
+        eprintln!(
+          "warning: closed on branch `{branch}`, which is not merged into `main`, so `main` does not carry this close yet"
+        );
+        eprintln!(
+          "  remedy: merge `{branch}` into `main` when its work is ready; the close stands and nothing needs undoing"
+        );
+      }
+      Note::MergeUnchecked(cause) => eprintln!(
+        "note: whether this branch is merged into `main` is UNKNOWN, because git did not answer: {cause}"
+      ),
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"
       ),
