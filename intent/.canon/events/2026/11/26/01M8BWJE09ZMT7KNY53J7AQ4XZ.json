@@ -1,0 +1,15 @@
+{
+  "id": "01M8BWJE09ZMT7KNY53J7AQ4XZ",
+  "ts": "2026-11-26T12:16:32.777Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, first-hand in prose in vc's session after the 3.5.5 cut; hv's words '3.5.6 can wait. If that's it for outstanding tasks, we can hold and close.') 3.5.6 (ArcaLaunch) waits for hv's word. The Intent team holds and closes for now."
+  }
+}
