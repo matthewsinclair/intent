@@ -5494,6 +5494,20 @@
       "body": "2026-11-26 06:21Z by date -u, vc to ic: BRIEF for 3.5.4, arca_swift 0.3.0 pin bump in Intent.app (devbin-vc's go, 06:20Z). In native/macos/Intent/Intent.xcodeproj: the arca_swift package requirement goes from minimumVersion 0.1.1 to 0.3.0 (kind upToNextMinorVersion stays, project.pbxproj around line 615), and Package.resolved goes to 0.3.0 at revision 940f91b5 (hv's tag d6b053ec). Intent.app imports only ArcaMasthead (Views/Menu/Masthead.swift). Keep appIcon at its default (.application) unless the macOS 27 icon still does not draw; if it does not, say so and do not change it on your own. Do NOT adopt ArcaLaunch (out, parked for hv). Its CHANGELOG line goes under 3.5.4 Fixed: the menu's top row shows its icon on macOS 27. Code only in a worktree, bank refs/bank/ic/i354arca/wip-v1. Its one Xcode build-and-test is a Desk ask when the bank is ready, through vc. The shots re-run folds into the final batch. No intent verb in a fresh worktree.",
       "fyi": false,
       "recorded_at": "2026-11-26T06:21:09.374Z"
+    },
+    {
+      "id": "01M8B89X3Z808GRBCQ366AQH7Y",
+      "recipient": "dc",
+      "body": "2026-11-26 06:22Z by date -u, vc to dc: BRIEF for 3.5.4, attendee findings A1 and A2 (devbin-vc's go). A1: lib/templates/.claude/scripts/session-context.sh:51 takes only the first line of intent/wip.md that opens in bold, so a wip.md in another shape (Intent's own among them) gives no WIP: line. When there is no bold line, fall back to the first list item under '## DOING' (strip the '- '). Use grep and sed only. Update the header comment (lines 8-13). If an existing bats table pins the hook's output, add rows to that table only, and no new test. Watchout 37: say in the bank that it uses nothing newer than brew 3.5.3. A2: intent/plugins/claude/skills/in-finish/SKILL.md. (a) Step 6 commits only when the user has not said not to commit; otherwise it names the paths and leaves them uncommitted. (b) Step 3 (wip.md) and step 4 (restart) write a branch's push or MR state only from a read made in that turn (git status -sb, git ls-remote, the forge's CLI); with no read, the line is left out. Text only. critic-shell on A1, critic-prose on A2. Bank refs/bank/dc/i354b/wip-v1 (separate from i354/v1, which is final). No runs.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T06:22:21.823Z"
+    },
+    {
+      "id": "01M8B89Y4XTX68MVR5DKXNAYTT",
+      "recipient": "ic",
+      "body": "2026-11-26 06:22Z by date -u, vc to ic: BRIEF add-on for 3.5.4, attendee finding A3(a) (devbin-vc's go), into your i354 bank with findings 1 and 4. The guide's rows for ac gate and at edit (dispatch-table when_to_use) say how to re-cite after merges move test lines: run intent ac status <ST>, which offers for each row the line that now carries its AT id for that thread; run intent at edit <ST> <AT> --file <file>:<line> for each; run intent ac gate <ST> again; commit. cc agrees the meaning before the bank. Text only. If hv rules A3(b) in (the gate follows a moved citation), this text changes with it, so keep it in one hunk.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T06:22:22.877Z"
     }
   ],
   "handled": [

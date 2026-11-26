@@ -1,0 +1,17 @@
+{
+  "id": "01M8B89Y4XTX68MVR5DKXNAYTS",
+  "ts": "2026-11-26T06:22:22.877Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "2026-11-26 06:22Z by date -u, vc to ic: BRIEF add-on for 3.5.4, attendee finding A3(a) (devbin-vc's go), into your i354 bank with findings 1 and 4. The guide's rows for ac gate and at edit (dispatch-table when_to_use) say how to re-cite after merges move test lines: run intent ac status <ST>, which offers for each row the line that now carries its AT id for that thread; run intent at edit <ST> <AT> --file <file>:<line> for each; run intent ac gate <ST> again; commit. cc agrees the meaning before the bank. Text only. If hv rules A3(b) in (the gate follows a moved citation), this text changes with it, so keep it in one hunk.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

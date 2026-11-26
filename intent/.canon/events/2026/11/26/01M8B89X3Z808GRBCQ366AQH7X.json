@@ -1,0 +1,17 @@
+{
+  "id": "01M8B89X3Z808GRBCQ366AQH7X",
+  "ts": "2026-11-26T06:22:21.823Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "2026-11-26 06:22Z by date -u, vc to dc: BRIEF for 3.5.4, attendee findings A1 and A2 (devbin-vc's go). A1: lib/templates/.claude/scripts/session-context.sh:51 takes only the first line of intent/wip.md that opens in bold, so a wip.md in another shape (Intent's own among them) gives no WIP: line. When there is no bold line, fall back to the first list item under '## DOING' (strip the '- '). Use grep and sed only. Update the header comment (lines 8-13). If an existing bats table pins the hook's output, add rows to that table only, and no new test. Watchout 37: say in the bank that it uses nothing newer than brew 3.5.3. A2: intent/plugins/claude/skills/in-finish/SKILL.md. (a) Step 6 commits only when the user has not said not to commit; otherwise it names the paths and leaves them uncommitted. (b) Step 3 (wip.md) and step 4 (restart) write a branch's push or MR state only from a read made in that turn (git status -sb, git ls-remote, the forge's CLI); with no read, the line is left out. Text only. critic-shell on A1, critic-prose on A2. Bank refs/bank/dc/i354b/wip-v1 (separate from i354/v1, which is final). No runs.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
