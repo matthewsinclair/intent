@@ -1719,6 +1719,7 @@
         {
           "path": "ac gate",
           "help": "Close-gate: exit non-zero + BLOCKED if unsatisfied",
+          "when_to_use": "USE IT before you close a thread, to see whether its criteria and tests let it close. AFTER A MERGE MOVES TEST LINES, a row that cites `<file>:<line>` can cite a line that no longer carries its AT id, and the gate blocks. To re-cite: run `intent ac status <ST>`, which gives for each such row the lines of the file that now carry its AT id for that thread. For each row, run `intent at edit <ST> <AT> --file <file>:<line>` with the line over the row's own test. When no line carries the id, put the AT id on the line over the row's own test, then re-cite that line. Then run `intent ac gate <ST>` again, and commit.",
           "args": [
             {
               "name": "stid",
@@ -2175,6 +2176,7 @@
         {
           "path": "at green",
           "help": "Set an AT green",
+          "when_to_use": "USE IT to record that a test-backed AT passes, after its red is on record. It refuses an AT that is not red, so record the red first with `intent at red`. Then make the change, run the test, see it pass, and use this verb. Without `--note`, an AT that is already green answers `already green` and does not change. DO NOT USE IT to record a pass that nobody saw fail, and do not use it on a non-test AT: it refuses one.",
           "args": [
             {
               "name": "stid",
@@ -2225,6 +2227,7 @@
         {
           "path": "at red",
           "help": "Set an AT red",
+          "when_to_use": "USE IT to record that a test-backed AT fails. An AT goes red before it goes green: `intent at green` refuses an AT that is not red, because a check that nobody saw fail is not verified. First run the test on the code as it was before the change. If it fails, record that run in the note: `intent at red <stid> <atid> --note \"<the run and its failure>\"`. If the test has no red on that code, eg a regression test of behaviour that already works, the AT's note says so plainly. DO NOT plant a fault or a mutation to make a red: a red is the test run on the code as it was. DO NOT USE IT on a non-test AT: it refuses one, and `intent at na` records that AT.",
           "args": [
             {
               "name": "stid",
@@ -2407,6 +2410,7 @@
         {
           "path": "at edit",
           "help": "Re-cite an acceptance test; a field you do not name is a field it does not change",
+          "when_to_use": "USE IT to change what a row cites, its kind, the criteria it covers or its note. AFTER A MERGE MOVES TEST LINES, re-cite each row that `intent ac status <ST>` names: run `intent at edit <ST> <AT> --file <file>:<line>` with a line it gives that now carries the AT id, over the row's own test. When no line carries the id, put the AT id on the line over the row's own test, then re-cite that line. Then run `intent ac gate <ST>` again, and commit.",
           "args": [
             {
               "name": "stid",
@@ -7670,6 +7674,7 @@
     {
       "path": "guards",
       "help": "Print the project's declared commit guards, parsed and validated, one per line",
+      "when_to_use": "USE IT to see the commit guards that a project declares, as the commit gate reads them. A project declares its guards in the `guards` array of `intent/.config/config.json`, eg `{\"guards\": [{\"run\": [\"bin/hooks/inbox-guard\"]}, {\"run\": [\"bin/hooks/docs-check\", \"--strict\"], \"when\": \"docs\"}]}`. `run` is an argv, and no shell reads it: `run[0]` is a path relative to the project root, and the other entries are its arguments. `when` is optional. It names a path, and the gate skips the guard as not applicable when that path does not exist. A guard with no `when` runs on every commit. A guard answers with its exit code: 0 passes, 3 is not applicable and never blocks, and any other code blocks the commit. The gate also blocks the commit when the file at `run[0]` is missing, is not executable or is not tracked. This verb prints one line for each guard, `<index> US <when> US <run[0]> [US <run[n]> ...]`, where US is the byte 0x1f and an empty `when` means every commit. It refuses an entry with an empty `run`, an empty argument or a control character, and names the entry. A config whose guard has an unknown key does not read, and the verb refuses it and names the key. DO NOT USE IT to run the guards: the pre-commit gate runs them.",
       "args": [],
       "flags": [],
       "basis": "Issue 0616, ruled by vc on 2026-10-23 on ic's surface note (refs/bank/ic/0616-0618/surface-note.md, blob 13571783fc26). The commit gate read a project's `guards` with its own jq program and its own rules, beside `Config.guards`, which `doctor` reads: two readers of one declaration and nothing to report where they disagreed. This prints the declaration as the gate reads it, `<index> US <when> US <run[0]> [US <run[n]> ...]`, US (0x1f) being the gate's own separator and an empty `when` a guard that applies to every commit, validated once in intentsvcs (`project::guard_lines`). serde's refusals stay discovery's, `GuardDecl` refuses an unknown key, and the verb refuses an empty `run`, an empty argument and a control character in any field, each naming the entry. The per-commit checks on `run[0]` stay in the gate, because they are facts about the commit's tree. It answers in a project nobody has migrated, because its consumer is the commit gate.",
