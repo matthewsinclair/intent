@@ -1,0 +1,15 @@
+{
+  "id": "01M8B54C1RD11E53ST7G041BNE",
+  "ts": "2026-11-26T05:26:54.776Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by 05:25Z on vc's date -u; hv's words) \"As always I DO NOT WANT TO WASTE TIME AND BURN TOKENS WITH BITTY RELEASES. I want all outstanding work done in this session and built and tested locally before we worry about pushing stuff up for a release.\" vc takes stock, banks and closes yesterday's work, syncs with devbin-vc (the Desk today), tells cc, ic and dc, and holds. devbin-vc syncs with hv and returns a ratified plan to every seat. devbin-vc's hold of 05:25Z the same day: no build, gate, test run, dry run, cut, tag, push or new Desk ask until its word."
+  }
+}

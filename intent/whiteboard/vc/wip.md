@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-25 19:18Z
+heartbeat_at: 2026-11-26 05:26Z
 status: active
-focus: "2026-11-25 16:38Z by date -u: localfold for the estate-wide compact, not released. Resume: /in-session and pickup, then devbin-vc's word; then land cc's and dc's close-sweep fix banks on their proof, from close-state.md at refs/bank/vc/st1c2db93/close-notes."
+focus: "2026-11-26 05:25Z by date -u: stock taken; 3.5.4 green locally, not cut, nothing pushed. Synced with devbin-vc; holding for its ratified plan on hv's word."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.4 is ready for hv at the Mac. It carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99 to 101 and 104 to 108). Every close-sweep fix bank is on main, releasing.md step 2 is done, and the batch is green at 5d58e6b6e (gate all and test shell, dc, sealed clean). ST1c2db93 is done with design.md's close-sweep record (cfed458e9), and its realised files left by organize (9cc8df8f7). bin/devbin preflight clean, faces, spill and schema pass. Waiting on hv, at the Mac and unlocked (watchout 38): vc stops intentd, runs bin/devbin preflight daemon and bin/devbin release v3.5.4 --dry-run on a Desk slot, and at a green dry run hv types bin/devbin release v3.5.4. The cut pushes main and the tag to local and upstream itself (release.remotes), so no push goes before it (devbin-vc gave no push word, 2026-11-25). After the ship: intent daemon start, and I3c24d2a and Ic5f63aa close. (edited)
+- 3.5.4 is built and proved locally but not cut. It carries ST1c2db93, I3c24d2a and Ic5f63aa. The batch is green at 5d58e6b6e (gate all and test shell), ST1c2db93 is done (cfed458e9), and main is clean at 6c62111bc. Local and upstream hold bd1aa3c6c: nothing is pushed. hv's word of 2026-11-26 in vc's session: do all outstanding work in this session, build and test it locally, then release once. vc holds for devbin-vc's ratified plan. (edited)
 
 ## TODO
 

@@ -1,5 +1,5 @@
 ---
-verblock: "25 Nov 2026:v4.28: vc - 3.5.4 ready for hv at the Mac"
+verblock: "26 Nov 2026:v4.29: vc - 3.5.4 green locally; holding for devbin-vc's ratified plan"
 intent_version: 3.5.3
 ---
 
@@ -8,8 +8,8 @@ intent_version: 3.5.3
 ## DOING
 
 - Intent 3.5.4 is in flight (hv decisions 99, 100, 101 and 104 to 108). It carries the Highlander residue thread (ST1c2db93), the Linux `intent app` fix (issue I3c24d2a) and the pre-commit gate's count of an on-demand discipline (issue Ic5f63aa). The team works from the estate plan, `~/Devel/scratch/estate-plan/PLAN.md`, which hv approved as written. devbin-vc holds the pen and the Desk (hv decision 103).
-- Now: everything before the dry run is done. The batch is green at 5d58e6b6e (gate all and test shell), ST1c2db93 is done (cfed458e9), and `bin/devbin preflight` clean, faces, spill and schema pass. The dry run and the cut wait for hv at the Mac, unlocked: the cut's pre-flight runs `macos doctor`, and the notary profile reads only in an unlocked session (vc watchout 38). The cut waits for hv's keystroke (hv decision 108).
-- Next, with hv at the Mac: vc runs `intent daemon stop`, `bin/devbin preflight daemon` and `bin/devbin release v3.5.4 --dry-run` on a Desk slot. At a green dry run, hv types `bin/devbin release v3.5.4` and its `/dev/tty` confirm. The cut pushes main and the tag to local and upstream itself. After the ship: `intent daemon start`, and I3c24d2a and Ic5f63aa close.
+- Now: 3.5.4 is built and proved locally and not cut. The batch is green at 5d58e6b6e (gate all and test shell), ST1c2db93 is done (cfed458e9), and nothing is pushed: local and upstream hold bd1aa3c6c. hv's word of 2026-11-26: every seat holds for devbin-vc's ratified plan, all outstanding work is done and tested locally first, then one release.
+- Next, on devbin-vc's word and with hv at the Mac, unlocked (vc watchout 38): `intent daemon stop`, `bin/devbin preflight daemon`, `bin/devbin release v3.5.4 --dry-run` on a Desk slot. At a green dry run, hv types `bin/devbin release v3.5.4` and its `/dev/tty` confirm. The cut pushes main and the tag to local and upstream. After the ship: `intent daemon start`, and I3c24d2a and Ic5f63aa close.
 
 ## TODO
 
