@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- Intent 3.5.6 (hv decisions 118 and 119), one batch, every fix landed and closed: I8b74f2a fc33a251a (dc), I5169c5b af157d266 (ic), If7e7665 9fc66c4ac (dc; open until the dry run's pre-flight shows its green), I47c94cf 1a9bc8702 (cc). Step 2 at de4261bb1: the reference set against v3.5.5, known-defects.md re-driven and retitled v3.5.6, the CHANGELOG. Now: dc's gate all and test shell at de4261bb13c4, main still. Then: every seat commits its boards and writes nothing until the cut's END; intentd stops; the dry run; READY; hv types bin/devbin release v3.5.6. (edited)
+- Intent 3.5.6 is READY (hv decisions 118 and 119): every fix landed and closed (I8b74f2a fc33a251a, I5169c5b af157d266, If7e7665 9fc66c4ac, I47c94cf 1a9bc8702), step 2 at de4261bb1, gate all and test shell green at de4261bb1, and the dry run green at e85cfd709 (six pre-flight checks, the defects check among them). intentd is stopped. Every seat's boards are committed, and no seat writes until the cut's END. Next: hv types bin/devbin release v3.5.6 in hv's own terminal in ~/Devel/prj/Intent and answers its confirm. After the cut: intent daemon start, brew upgrade intent, the app swap, and releasing.md step 5. (edited)
 
 ## TODO
 

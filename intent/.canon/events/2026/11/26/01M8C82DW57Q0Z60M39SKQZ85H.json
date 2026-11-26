@@ -1,0 +1,16 @@
+{
+  "id": "01M8C82DW57Q0Z60M39SKQZ85H",
+  "ts": "2026-11-26T15:37:31.269Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 70,
+    "text": "Intent 3.5.6 is READY (hv decisions 118 and 119): every fix landed and closed (I8b74f2a fc33a251a, I5169c5b af157d266, If7e7665 9fc66c4ac, I47c94cf 1a9bc8702), step 2 at de4261bb1, gate all and test shell green at de4261bb1, and the dry run green at e85cfd709 (six pre-flight checks, the defects check among them). intentd is stopped. Every seat's boards are committed, and no seat writes until the cut's END. Next: hv types bin/devbin release v3.5.6 in hv's own terminal in ~/Devel/prj/Intent and answers its confirm. After the cut: intent daemon start, brew upgrade intent, the app swap, and releasing.md step 5."
+  }
+}
