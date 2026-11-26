@@ -1,0 +1,15 @@
+{
+  "id": "01M8B5YRVS0W8TGMN7W6EM6XAP",
+  "ts": "2026-11-26T05:41:19.865Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, in devbin-vc's window; relayed by devbin-vc at 05:41Z on its date -u and read by vc by 05:42Z on vc's date -u; not heard first-hand by vc; hv's words as relayed) \"Part 1: yes, ensure that it has the latest devbin vendored in before we cut the release. Part 2: Ok, keep it parked. Cut: yes, I can do that when ready\". (1) Intent 3.5.4 vendors the latest devbin before its cut: 0.1.34, under hv's devbin-first ruling (devbin-vc's reading). devbin-vc sweeps it into Intent's main after the 0.1.34 cut, on vc's word, and gate all and test shell are not run again: the dry run and the cut's own gates cover it. (2) ST0084 and its three fixes stay parked; ST0060, ST0077, ST0082, ST0085 and ST0089 stay out of 3.5.4. (3) hv types bin/devbin release v3.5.4 at vc's READY. Intent runs nothing until devbin-vc says 0.1.34 is cut."
+  }
+}

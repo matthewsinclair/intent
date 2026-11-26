@@ -1129,6 +1129,14 @@
       "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by 05:25Z on vc's date -u; hv's words) \"As always I DO NOT WANT TO WASTE TIME AND BURN TOKENS WITH BITTY RELEASES. I want all outstanding work done in this session and built and tested locally before we worry about pushing stuff up for a release.\" vc takes stock, banks and closes yesterday's work, syncs with devbin-vc (the Desk today), tells cc, ic and dc, and holds. devbin-vc syncs with hv and returns a ratified plan to every seat. devbin-vc's hold of 05:25Z the same day: no build, gate, test run, dry run, cut, tag, push or new Desk ask until its word.",
       "state": "live",
       "recorded_at": "2026-11-26T05:26:54.776Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 110,
+      "text": "(hv, 2026-11-26, in devbin-vc's window; relayed by devbin-vc at 05:41Z on its date -u and read by vc by 05:42Z on vc's date -u; not heard first-hand by vc; hv's words as relayed) \"Part 1: yes, ensure that it has the latest devbin vendored in before we cut the release. Part 2: Ok, keep it parked. Cut: yes, I can do that when ready\". (1) Intent 3.5.4 vendors the latest devbin before its cut: 0.1.34, under hv's devbin-first ruling (devbin-vc's reading). devbin-vc sweeps it into Intent's main after the 0.1.34 cut, on vc's word, and gate all and test shell are not run again: the dry run and the cut's own gates cover it. (2) ST0084 and its three fixes stay parked; ST0060, ST0077, ST0082, ST0085 and ST0089 stay out of 3.5.4. (3) hv types bin/devbin release v3.5.4 at vc's READY. Intent runs nothing until devbin-vc says 0.1.34 is cut.",
+      "state": "live",
+      "recorded_at": "2026-11-26T05:41:19.865Z"
     }
   ],
   "sent": [],
