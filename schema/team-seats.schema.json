@@ -72,6 +72,6 @@
   ],
   "title": "SeatRegistry",
   "type": "object",
-  "x-intent-ver": "3.5.4",
+  "x-intent-ver": "3.5.5",
   "x-schema-json-ver": 28
 }
