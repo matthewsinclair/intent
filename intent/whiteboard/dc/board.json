@@ -8,9 +8,7 @@
     "heartbeat_at": "2026-11-26T07:03:47.611Z",
     "status": "active",
     "focus": "2026-11-26 06:53Z by date -u: localfold, no release. Next on devbin-vc's word: the one gate all and test shell at the final tip. Doing 177 (Ic5f63aa) closes after 3.5.4 ships. No worktree, no Desk slot, nothing running.",
-    "claims": [
-      "ISSUE:Ic5f63aa0773060bd"
-    ],
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -3377,7 +3375,8 @@
       "kind": "doing",
       "seq": 177,
       "text": "Ic5f63aa (low): the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. On main in v2 (bfc1b908b), with its CHANGELOG line (e98fbfb46). The issue closes when 3.5.4 ships it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-26T08:54:37.374Z",
       "recorded_at": "2026-11-25T12:57:41.297Z",
       "edited_at": "2026-11-25T16:41:29.442Z"
     },
