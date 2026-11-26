@@ -1,0 +1,15 @@
+{
+  "id": "01M8BJT09PF7DTBVCJ3P9BXF7E",
+  "ts": "2026-11-26T09:25:55.126Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.5.5 item 4 (XS): doctor's root-file-behind line and remedy name the binary's path and version. Existing tests only. Bank refs/bank/cc/i355-doctor/v1."
+  }
+}

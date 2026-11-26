@@ -1,0 +1,15 @@
+{
+  "id": "01M8BJSZCHYKSYR6S9TAPK16BZ",
+  "ts": "2026-11-26T09:25:54.193Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.5.5 item 3 (S): wp done and st done warn, never refuse, on an unmerged branch, only when Intent can tell. Bank refs/bank/cc/i355-done/v1; ic agrees the text. Base f42c29118, worktree tmp/wt-cc-355."
+  }
+}
