@@ -5,12 +5,14 @@
 #
 # Declared in bin/.devbin/config.yaml as `commands.preflight`, one option per
 # check, so `bin/devbin preflight <check>` runs one and `bin/devbin preflight
-# all` runs the five. They are the cut's pre-flight seam: devbin's release core
-# runs `release.preflight` at its pre-flight, a dry run included, and a check
-# that refuses joins the refusals pre-flight collects, before the confirm step
-# asks and before anything is stamped (devbin 0327). bin/.devbin/config.yaml
-# declares the five as `release.preflight`, and the core hands each the
-# release's target as DEVBIN_RELEASE_VERSION and DEVBIN_RELEASE_TARGET_TAG.
+# all` runs every one but `defects`, which needs the version being cut and
+# which the cut runs by name. They are the cut's pre-flight seam: devbin's
+# release core runs `release.preflight` at its pre-flight, a dry run included,
+# and a check that refuses joins the refusals pre-flight collects, before the
+# confirm step asks and before anything is stamped (devbin 0327).
+# bin/.devbin/config.yaml declares them all as `release.preflight`, and the core
+# hands each the release's target as DEVBIN_RELEASE_VERSION and
+# DEVBIN_RELEASE_TARGET_TAG.
 #
 # EACH CHECK WRITES NOTHING: the seam refuses a change one of them makes to the
 # tree, as it refuses a gate's, and git is read without its optional locks. A
@@ -31,6 +33,11 @@
 #   schema   a cut that moves the store's schema is run with the release's
 #            build first on PATH, so the release commit's hook can read the
 #            store the stamp migrates
+#
+# ADDED AFTER THE 3.5.5 CUT (issue If7e7665):
+#
+#   defects  the H1 of docs/known-defects.md at HEAD names the version being
+#            cut
 set -euo pipefail
 
 : "${PROJECT_ROOT:?run this as bin/devbin preflight <check>, which exports the project root}"
@@ -232,10 +239,43 @@ check_schema() {
     "cut with the release's build first on PATH: PATH=\"$PROJECT_ROOT/native/rust/target/release:\$PATH\" bin/devbin release $tag; nothing has been stamped"
 }
 
+# THE KNOWN-DEFECTS PAGE IS TITLED FOR THE RELEASE BEING CUT (issue If7e7665).
+# intent/docs/releasing.md step 2 re-drives docs/known-defects.md whole and
+# retitles it for the release, and the tag carries the page. Nothing checked
+# the title, and v3.2.0, v3.5.3 and v3.5.5 shipped a page titled for the
+# release before. So the H1 of the page at HEAD, which is the page the tag
+# carries, must have DEVBIN_RELEASE_VERSION as one of its words, with or
+# without a leading v. Run by hand, the variable is unset and nothing names
+# the version, so the check refuses and says how to name it.
+check_defects() {
+  local page=docs/known-defects.md want text line h1=""
+  want="${DEVBIN_RELEASE_VERSION:-}"
+  want="${want#v}"
+  [ -n "$want" ] ||
+    refuse "nothing names the version being cut, so the H1 of $page cannot be checked against it" \
+      "run it under the cut, which sets DEVBIN_RELEASE_VERSION, or by hand as DEVBIN_RELEASE_VERSION=X.Y.Z bin/devbin preflight defects"
+  text="$(git -C "$PROJECT_ROOT" --no-optional-locks show "HEAD:$page")" ||
+    refuse "git could not read $page at HEAD (its message is above), and the tag carries that page" \
+      "commit the page, re-driven and retitled for v$want as intent/docs/releasing.md step 2 says, $AGAIN"
+  while IFS= read -r line; do
+    case "$line" in "# "*) h1="${line#\# }"; break ;; esac
+  done <<<"$text"
+  [ -n "$h1" ] ||
+    refuse "$page at HEAD has no H1, so it names no release" \
+      "retitle it for v$want, as intent/docs/releasing.md step 2 says, $AGAIN"
+  case " $h1 " in
+    *" v$want "* | *" $want "*)
+      printf 'ok: the H1 of %s at HEAD names v%s\n' "$page" "$want"
+      return 0 ;;
+  esac
+  refuse "the H1 of $page at HEAD reads \"$h1\", which does not name v$want, the version being cut" \
+    "re-drive the page whole and retitle it for v$want, as intent/docs/releasing.md step 2 says, $AGAIN"
+}
+
 case "$CHECK" in
-  clean | daemon | faces | spill | schema) "check_$CHECK" ;;
+  clean | daemon | faces | spill | schema | defects) "check_$CHECK" ;;
   *)
-    printf 'error: preflight: no check %s -- one of clean, daemon, faces, spill, schema\n' "${CHECK:-(none)}" >&2
+    printf 'error: preflight: no check %s -- one of clean, daemon, faces, spill, schema, defects\n' "${CHECK:-(none)}" >&2
     exit 2
     ;;
 esac

@@ -15,17 +15,19 @@
 load "../lib/test_helper.bash"
 
 # make_repo -- $REPO committed at 3.2.0 with a 3.3.0 changelog entry, Intent's
-# devbin and its config, a schema face carrying 3.2.0 for `preflight faces`,
-# and the build target ignored, as this repository ignores it.
+# devbin and its config, a schema face carrying 3.2.0 for `preflight faces`, a
+# known-defects page titled for v3.3.0 for `preflight defects`, and the build
+# target ignored, as this repository ignores it.
 make_repo() {
   REPO="${TEST_TEMP_DIR}/repo"
-  mkdir -p "$REPO/bin" "$REPO/schema"
+  mkdir -p "$REPO/bin" "$REPO/schema" "$REPO/docs"
   cp "${INTENT_PROJECT_ROOT}/bin/devbin" "$REPO/bin/"
   cp -R "${INTENT_PROJECT_ROOT}/bin/.devbin" "$REPO/bin/"
   printf '3.2.0\n' >"$REPO/VERSION"
   printf '# Changelog\n\n## [3.3.0] - 2026-11-11\n\n- a change\n' >"$REPO/CHANGELOG.md"
   printf '{"x-intent-ver": "3.2.0"}\n' >"$REPO/schema/thread.schema.json"
   printf -- '-- INTENT_VER: 3.2.0\n' >"$REPO/schema/ddl.sql"
+  printf '# Known defects in v3.3.0\n' >"$REPO/docs/known-defects.md"
   printf 'native/rust/target/\n' >"$REPO/.gitignore"
   git -C "$REPO" init -q
   git -C "$REPO" config user.name t

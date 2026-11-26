@@ -384,6 +384,13 @@ commands:
       schema:
         summary: a cut that moves the store's schema runs with the release's build first on PATH
         run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/preflight schema
+      defects:
+        summary: the H1 of docs/known-defects.md at HEAD names the version being cut
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/preflight defects
+        # Out of `preflight all`: it needs the version being cut, which only the
+        # cut hands it, and it passes only once releasing.md step 2 retitles the
+        # page. `release.preflight` names it, so the cut and its dry run run it.
+        in_all: false
 
   # THE STAMP'S run: LINES ARE NOT WRAPPED, the one exception to the rule at the
   # head of commands: the core reads a derived step's stdout as the paths the
@@ -525,7 +532,7 @@ commands:
 # named and recorded as not run.
 #
 # `preflight` IS INTENT'S OWN PRE-FLIGHT (ST0091 AC-01.3, devbin 0327): the
-# five read-only checks of bin/.devbin/cut/preflight, which the core runs at its
+# read-only checks of bin/.devbin/cut/preflight, which the core runs at its
 # pre-flight, a dry run's included, after its own checks and before the
 # confirm, each refusal named beside the core's. One line a check, so every
 # refusal names its check. A live intentd refuses the cut here, before anything
@@ -563,6 +570,7 @@ release:
     - preflight faces
     - preflight spill
     - preflight schema
+    - preflight defects
   gates:
     - gate all
     - build all

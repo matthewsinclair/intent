@@ -9,6 +9,8 @@
 # with PROJECT_ROOT pointed at it, a stub standing in for the release pair's
 # CLI where the check asks it something. Each check writes
 # nothing, refuses on stderr with the remedy, and passes with one `ok:` line.
+# `defects` has no arm here: its red and its green are the real tree's, read at
+# the dry run's pre-flight (vc's ruling for issue If7e7665).
 
 load "../lib/test_helper.bash"
 
