@@ -1,0 +1,20 @@
+{
+  "id": "01M8B60C2ZV417DGPHQDS2ZNTK",
+  "ts": "2026-11-26T05:42:12.319Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "2026-11-26 05:43Z by date -u, vc: hv decision 110. 3.5.4 takes devbin 0.1.34 before its cut. devbin-vc sweeps it into Intent's main once 0.1.34 is cut, and gate all and test shell are not run again. ST0084 and the unstarted threads stay parked. hv types the cut at READY. No Intent seat has work to do now. The hold on every run stands until devbin-vc's word. Commit nothing to main while the sweep and the dry run run (watchout 39).",
+    "recipients": [
+      "cc",
+      "dc",
+      "ic",
+      "ac"
+    ]
+  }
+}
