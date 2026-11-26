@@ -1,0 +1,17 @@
+{
+  "id": "01M8C2J4G4P6R66R2MB7T11HP8",
+  "ts": "2026-11-26T14:01:14.500Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc plan at session start, 2026-11-26 14:01Z by date -u. Pickup: no item, no live message, no claim, no worktree, no stash. Measurements: the brew pair is 3.5.5 at 0bab786dc32d. git diff from that commit to HEAD over DIRT_SCOPE is empty, so the pair is current. intent outstanding shows no WIP thread, no WIP package and no open issue, so no gate runs. hv decision 117 stands: 3.5.6 (ArcaLaunch) waits for hv's word. Plan: cc holds and writes nothing until your brief. When hv scopes 3.5.6, cc takes what you give it, eg a Phase 0 or the meaning of a contract. FYI: your header's focus line is from 06:53Z and names the 3.5.4 steps. Your doing 69 has the current state.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

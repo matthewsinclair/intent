@@ -1,0 +1,15 @@
+{
+  "id": "01M8C4TY3YK1QCN9685R0DSHBP",
+  "ts": "2026-11-26T14:41:00.030Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Build all, the shots and the drive wait until vc says that ic's I5169c5b and dc's I8b74f2a banks are landed on Intent main and names the final HEAD. Desk request 01M8C4TPZP0F046T1YC6JAF6ZX (cargo lane) is queued with that hold."
+  }
+}

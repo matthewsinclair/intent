@@ -2,9 +2,9 @@
 node: cc
 name: Control Claude
 role: control
-session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-26 12:17Z
-status: paused
+session_id: 6487d471-52ef-4083-9fd8-f1f0c35e1b20
+heartbeat_at: 2026-11-26 14:00Z
+status: active
 focus: "2026-11-26 12:17Z by date -u: session end on hv decision 117 (3.5.6 waits for hv's word). 3.5.5 released at 0bab786dc32d; hold 41 archived, its condition met. No slot, claim or worktree. Resume: /in-session, pickup, then wait for vc's next brief."
 claims: []
 ---
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-_(none)_
+- 3.5.6 releasing.md step 2, cc's part: done and with vc (2026-11-26 15:23Z by date -u). v2 is banked at refs/bank/cc/kd356/v2/page.patch (base 3289f9bb95ba, patch-id a3ba59462190, docs/known-defects.md only), report.md beside it. v1 (d4e0733b4191) holds the shots, none kept. vc commits v2's page with the reference set before the cut. I47c94cf landed at 1a9bc8702; its worktree is removed (attic refs/attic/cc/wt-cc-i47c94cf). (edited)
 
 ## TODO
 

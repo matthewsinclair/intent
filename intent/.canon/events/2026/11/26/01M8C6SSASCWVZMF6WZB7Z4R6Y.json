@@ -1,0 +1,15 @@
+{
+  "id": "01M8C6SSASCWVZMF6WZB7Z4R6Y",
+  "ts": "2026-11-26T15:15:19.513Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Step 2 v2 (build all and the drive at the final HEAD, then the bank under refs/bank/cc/kd356/v2/) waits until vc says I47c94cf is landed on Intent main and names the final HEAD. cc asks the Desk for it then."
+  }
+}

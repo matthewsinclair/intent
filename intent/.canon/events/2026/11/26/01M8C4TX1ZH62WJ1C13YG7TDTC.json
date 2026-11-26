@@ -1,0 +1,15 @@
+{
+  "id": "01M8C4TX1ZH62WJ1C13YG7TDTC",
+  "ts": "2026-11-26T14:40:58.943Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.5.6 releasing.md step 2, cc's part: done and with vc (2026-11-26 15:23Z by date -u). v2 is banked at refs/bank/cc/kd356/v2/page.patch (base 3289f9bb95ba, patch-id a3ba59462190, docs/known-defects.md only), report.md beside it. v1 (d4e0733b4191) holds the shots, none kept. vc commits v2's page with the reference set before the cut. I47c94cf landed at 1a9bc8702; its worktree is removed (attic refs/attic/cc/wt-cc-i47c94cf)."
+  }
+}

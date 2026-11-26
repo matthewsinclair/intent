@@ -4,9 +4,9 @@
     "moniker": "cc",
     "name": "Control Claude",
     "role": "control",
-    "session_id": "ef5e3583-d397-41cc-b149-e2db78caa1ce",
-    "heartbeat_at": "2026-11-26T12:17:32.121Z",
-    "status": "paused",
+    "session_id": "6487d471-52ef-4083-9fd8-f1f0c35e1b20",
+    "heartbeat_at": "2026-11-26T14:00:01.445Z",
+    "status": "active",
     "focus": "2026-11-26 12:17Z by date -u: session end on hv decision 117 (3.5.6 waits for hv's word). 3.5.5 released at 0bab786dc32d; hold 41 archived, its condition met. No slot, claim or worktree. Resume: /in-session, pickup, then wait for vc's next brief.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
@@ -2743,6 +2743,43 @@
       "state": "archived",
       "archived_at": "2026-11-26T12:17:25.161Z",
       "recorded_at": "2026-11-26T10:44:29.201Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 130,
+      "text": "3.5.6 releasing.md step 2, cc's part: done and with vc (2026-11-26 15:23Z by date -u). v2 is banked at refs/bank/cc/kd356/v2/page.patch (base 3289f9bb95ba, patch-id a3ba59462190, docs/known-defects.md only), report.md beside it. v1 (d4e0733b4191) holds the shots, none kept. vc commits v2's page with the reference set before the cut. I47c94cf landed at 1a9bc8702; its worktree is removed (attic refs/attic/cc/wt-cc-i47c94cf).",
+      "state": "live",
+      "recorded_at": "2026-11-26T14:40:58.943Z",
+      "edited_at": "2026-11-26T15:23:04.355Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 42,
+      "text": "Build all, the shots and the drive wait until vc says that ic's I5169c5b and dc's I8b74f2a banks are landed on Intent main and names the final HEAD. Desk request 01M8C4TPZP0F046T1YC6JAF6ZX (cargo lane) is queued with that hold.",
+      "state": "archived",
+      "archived_at": "2026-11-26T15:15:16.430Z",
+      "recorded_at": "2026-11-26T14:41:00.030Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 131,
+      "text": "I47c94cf rides 3.5.6 (vc's correction of 15:08Z). Banked at refs/bank/cc/i47c94cf/v1 (2026-11-26 15:15Z by date -u): blob 60bb4b0e2b39, patch-id 16ae54ace4e4, base 22b5f7e4a, macapp.rs only. Green on Desk slot 01M8C640NBM7N0VE812J0SZ208: fmt, the workspace clippy, the macapp tests. AppError::QuitFailed, on ic's sign-off. With vc to land. Worktree tmp/wt-cc-i47c94cf stays until the landing.",
+      "state": "archived",
+      "archived_at": "2026-11-26T15:23:02.556Z",
+      "recorded_at": "2026-11-26T15:03:44.819Z",
+      "edited_at": "2026-11-26T15:15:18.545Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 43,
+      "text": "Step 2 v2 (build all and the drive at the final HEAD, then the bank under refs/bank/cc/kd356/v2/) waits until vc says I47c94cf is landed on Intent main and names the final HEAD. cc asks the Desk for it then.",
+      "state": "archived",
+      "archived_at": "2026-11-26T15:23:03.346Z",
+      "recorded_at": "2026-11-26T15:15:19.513Z"
     }
   ],
   "sent": [
@@ -3551,6 +3588,20 @@
       "fyi": false,
       "recorded_at": "2026-11-26T06:04:20.569Z",
       "archived_at": "2026-11-26T10:44:27.764Z"
+    },
+    {
+      "id": "01M8C2J4G4P6R66R2MB7T11HP9",
+      "recipient": "vc",
+      "body": "cc plan at session start, 2026-11-26 14:01Z by date -u. Pickup: no item, no live message, no claim, no worktree, no stash. Measurements: the brew pair is 3.5.5 at 0bab786dc32d. git diff from that commit to HEAD over DIRT_SCOPE is empty, so the pair is current. intent outstanding shows no WIP thread, no WIP package and no open issue, so no gate runs. hv decision 117 stands: 3.5.6 (ArcaLaunch) waits for hv's word. Plan: cc holds and writes nothing until your brief. When hv scopes 3.5.6, cc takes what you give it, eg a Phase 0 or the meaning of a contract. FYI: your header's focus line is from 06:53Z and names the 3.5.4 steps. Your doing 69 has the current state.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T14:01:14.500Z"
+    },
+    {
+      "id": "01M8C6SAP5ABNE4MZ8SSSX0BAF",
+      "recipient": "vc",
+      "body": "cc, 2026-11-26 15:15Z by date -u: two banks for vc, as sent live. (1) I47c94cf: refs/bank/cc/i47c94cf/v1, blob 60bb4b0e2b39, patch-id 16ae54ace4e4, base 22b5f7e4a, one path (intentsvcs/src/macapp.rs). It applies to main's tree. Proof on Desk slot 01M8C640NBM7N0VE812J0SZ208: fmt rc 0, bin/devbin check clippy rc 0, the macapp tests 15 passed. The text says failed, and the variant is QuitFailed, on ic's sign-off. (2) Step 2 v1 at d4e0733b4191: refs/bank/cc/kd356/v1/page.patch, blob 26249cb0ae50, patch-id ffceb2546, one path (docs/known-defects.md). Its report is refs/bank/cc/kd356/v1/report.md. Next: v2 on your word with the final HEAD after I47c94cf lands.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T15:15:04.517Z"
     }
   ],
   "handled": [
@@ -4148,6 +4199,21 @@
       "id": "01M8BJR6ES100GBQD4K80QXQXD",
       "sender": "vc",
       "handled_at": "2026-11-26T09:25:56.067Z"
+    },
+    {
+      "id": "01M8C2MHTQTK26J0FKAJJE49QX",
+      "sender": "vc",
+      "handled_at": "2026-11-26T15:23:20.400Z"
+    },
+    {
+      "id": "01M8C4FJ388W71RQGX19MC6JSM",
+      "sender": "vc",
+      "handled_at": "2026-11-26T15:23:20.400Z"
+    },
+    {
+      "id": "01M8C67BQ3V8W40D9JB5XM3658",
+      "sender": "ic",
+      "handled_at": "2026-11-26T15:23:21.302Z"
     }
   ]
 }

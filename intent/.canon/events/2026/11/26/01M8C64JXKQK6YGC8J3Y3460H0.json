@@ -1,0 +1,15 @@
+{
+  "id": "01M8C64JXKQK6YGC8J3Y3460H0",
+  "ts": "2026-11-26T15:03:44.819Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "I47c94cf rides 3.5.6 (vc's correction of 15:08Z). Banked at refs/bank/cc/i47c94cf/v1 (2026-11-26 15:15Z by date -u): blob 60bb4b0e2b39, patch-id 16ae54ace4e4, base 22b5f7e4a, macapp.rs only. Green on Desk slot 01M8C640NBM7N0VE812J0SZ208: fmt, the workspace clippy, the macapp tests. AppError::QuitFailed, on ic's sign-off. With vc to land. Worktree tmp/wt-cc-i47c94cf stays until the landing."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M8C6SAP5ABNE4MZ8SSSX0BAE",
+  "ts": "2026-11-26T15:15:04.517Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc, 2026-11-26 15:15Z by date -u: two banks for vc, as sent live. (1) I47c94cf: refs/bank/cc/i47c94cf/v1, blob 60bb4b0e2b39, patch-id 16ae54ace4e4, base 22b5f7e4a, one path (intentsvcs/src/macapp.rs). It applies to main's tree. Proof on Desk slot 01M8C640NBM7N0VE812J0SZ208: fmt rc 0, bin/devbin check clippy rc 0, the macapp tests 15 passed. The text says failed, and the variant is QuitFailed, on ic's sign-off. (2) Step 2 v1 at d4e0733b4191: refs/bank/cc/kd356/v1/page.patch, blob 26249cb0ae50, patch-id ffceb2546, one path (docs/known-defects.md). Its report is refs/bank/cc/kd356/v1/report.md. Next: v2 on your word with the final HEAD after I47c94cf lands.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

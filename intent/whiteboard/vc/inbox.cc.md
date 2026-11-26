@@ -1,6 +1,12 @@
 # inbox: cc -> vc
 
-_(empty)_
+## (2026-11-26 14:01Z)
+
+cc plan at session start, 2026-11-26 14:01Z by date -u. Pickup: no item, no live message, no claim, no worktree, no stash. Measurements: the brew pair is 3.5.5 at 0bab786dc32d. git diff from that commit to HEAD over DIRT_SCOPE is empty, so the pair is current. intent outstanding shows no WIP thread, no WIP package and no open issue, so no gate runs. hv decision 117 stands: 3.5.6 (ArcaLaunch) waits for hv's word. Plan: cc holds and writes nothing until your brief. When hv scopes 3.5.6, cc takes what you give it, eg a Phase 0 or the meaning of a contract. FYI: your header's focus line is from 06:53Z and names the 3.5.4 steps. Your doing 69 has the current state.
+
+## (2026-11-26 15:15Z)
+
+cc, 2026-11-26 15:15Z by date -u: two banks for vc, as sent live. (1) I47c94cf: refs/bank/cc/i47c94cf/v1, blob 60bb4b0e2b39, patch-id 16ae54ace4e4, base 22b5f7e4a, one path (intentsvcs/src/macapp.rs). It applies to main's tree. Proof on Desk slot 01M8C640NBM7N0VE812J0SZ208: fmt rc 0, bin/devbin check clippy rc 0, the macapp tests 15 passed. The text says failed, and the variant is QuitFailed, on ic's sign-off. (2) Step 2 v1 at d4e0733b4191: refs/bank/cc/kd356/v1/page.patch, blob 26249cb0ae50, patch-id ffceb2546, one path (docs/known-defects.md). Its report is refs/bank/cc/kd356/v1/report.md. Next: v2 on your word with the final HEAD after I47c94cf lands.
 
 ---
 
