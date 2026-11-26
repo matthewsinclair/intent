@@ -200,9 +200,11 @@ jobs:
         # in this file after shellcheck and prettier, and the one that went
         # unnoticed longest (issue 0512).
         #
-        # NINE ARMS PER LEG HAVE NEVER EXECUTED. Five in `test_autopsy.bats`
-        # drive `autopsy.exs`; four in `rule_pack_elixir_runnable.bats` run each
-        # elixir rule's `good.exs` under standalone elixir. Neither workflow has
+        # THE ELIXIR ARMS NEVER EXECUTED BEFORE THIS STEP. The arms of
+        # `test_autopsy.bats` that drive `autopsy.exs` need `elixir` on PATH. So
+        # do the arms of `rule_pack_elixir_runnable.bats`, which run each elixir
+        # rule's `good.exs` under standalone elixir. `autopsy.exs` also needs
+        # Elixir 1.18 or later, for the `JSON` module. Neither workflow had
         # ever installed a runtime, so every one of them reported `# skip` and
         # counted as `ok`, in THREE spellings -- `elixir not on PATH`, `elixir
         # not installed` and `Elixir not installed`, two differing only in case,
@@ -213,13 +215,10 @@ jobs:
         # Elixir 1.20.4. The major binds the contract the arms rely on and
         # leaves the dev machine floating in the same regime.
         #
-        # `Mix.install` NEEDS NO CACHE STEP, DRIVEN RATHER THAN ASSUMED.
-        # `autopsy.exs` and every `good.exs` call it, and `test_autopsy.bats`
-        # redirects HOME per test -- which this estate's corpus says hides Hex.
-        # Driven from an empty `mktemp -d` HOME: Mix.install bootstraps Hex
-        # itself and resolves jason over the network in 1.48s. The recorded
-        # failure mode is a HOME that HIDES an existing install, not one that
-        # never had it.
+        # NO CACHE STEP IS NEEDED. `autopsy.exs` uses Elixir's own `JSON` module
+        # and fetches nothing, so the HOME that `test_autopsy.bats` redirects per
+        # test cannot hide a dependency from it. Each `good.exs` calls
+        # `Mix.install([])`, which names no dependency.
         with:
           otp-version: "29"
           elixir-version: "1.20"
@@ -437,9 +436,11 @@ jobs:
         # in this file after shellcheck and prettier, and the one that went
         # unnoticed longest (issue 0512).
         #
-        # NINE ARMS PER LEG HAVE NEVER EXECUTED. Five in `test_autopsy.bats`
-        # drive `autopsy.exs`; four in `rule_pack_elixir_runnable.bats` run each
-        # elixir rule's `good.exs` under standalone elixir. Neither workflow has
+        # THE ELIXIR ARMS NEVER EXECUTED BEFORE THIS STEP. The arms of
+        # `test_autopsy.bats` that drive `autopsy.exs` need `elixir` on PATH. So
+        # do the arms of `rule_pack_elixir_runnable.bats`, which run each elixir
+        # rule's `good.exs` under standalone elixir. `autopsy.exs` also needs
+        # Elixir 1.18 or later, for the `JSON` module. Neither workflow had
         # ever installed a runtime, so every one of them reported `# skip` and
         # counted as `ok`, in THREE spellings -- `elixir not on PATH`, `elixir
         # not installed` and `Elixir not installed`, two differing only in case,
@@ -450,13 +451,10 @@ jobs:
         # Elixir 1.20.4. The major binds the contract the arms rely on and
         # leaves the dev machine floating in the same regime.
         #
-        # `Mix.install` NEEDS NO CACHE STEP, DRIVEN RATHER THAN ASSUMED.
-        # `autopsy.exs` and every `good.exs` call it, and `test_autopsy.bats`
-        # redirects HOME per test -- which this estate's corpus says hides Hex.
-        # Driven from an empty `mktemp -d` HOME: Mix.install bootstraps Hex
-        # itself and resolves jason over the network in 1.48s. The recorded
-        # failure mode is a HOME that HIDES an existing install, not one that
-        # never had it.
+        # NO CACHE STEP IS NEEDED. `autopsy.exs` uses Elixir's own `JSON` module
+        # and fetches nothing, so the HOME that `test_autopsy.bats` redirects per
+        # test cannot hide a dependency from it. Each `good.exs` calls
+        # `Mix.install([])`, which names no dependency.
         with:
           otp-version: "29"
           elixir-version: "1.20"
