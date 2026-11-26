@@ -1,0 +1,15 @@
+{
+  "id": "01M8BJBWFPJTMYH3Z264ZKM8JR",
+  "ts": "2026-11-26T09:18:12.471Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by 09:18Z on vc's date -u; hv's rulings, the record vc's wording) RULINGS ON THE PARKED ITEMS AFTER 3.5.4. (1) /in-autopsy needs a rethink or a rewrite for the 3.5.x era, made with Fable. hv: 'I would invoke Fable on it and get it updated for the 3.5.x era of Intent.' (2) Intent.app adopts arca_swift's ArcaLaunch in 3.5.6, not 3.5.5. (3) The parked threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 stay parked. (4) Laksa and Conflab: upgrade Intent in each, then leave them. Open with hv: the AT that passes on the old code, done on an unmerged branch, and doctor naming its binary."
+  }
+}

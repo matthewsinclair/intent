@@ -1161,6 +1161,14 @@
       "text": "(hv, 2026-11-26, in devbin-vc's window; relayed by devbin-vc at 06:45Z on its date -u; not heard first-hand by vc) The arca_swift 0.3.0 bump STAYS in 3.5.4 as a plain dependency move, as bed2fdc44's CHANGELOG line states. Intent.app's own drawsImage stays as it is. hv's words: \"Why is this a thing? What's wrong with intent's icons?\" Nothing is wrong, so nothing changes, no run is added, and it is not raised again in this release.",
       "state": "live",
       "recorded_at": "2026-11-26T06:45:38.595Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 114,
+      "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by 09:18Z on vc's date -u; hv's rulings, the record vc's wording) RULINGS ON THE PARKED ITEMS AFTER 3.5.4. (1) /in-autopsy needs a rethink or a rewrite for the 3.5.x era, made with Fable. hv: 'I would invoke Fable on it and get it updated for the 3.5.x era of Intent.' (2) Intent.app adopts arca_swift's ArcaLaunch in 3.5.6, not 3.5.5. (3) The parked threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 stay parked. (4) Laksa and Conflab: upgrade Intent in each, then leave them. Open with hv: the AT that passes on the old code, done on an unmerged branch, and doctor naming its binary.",
+      "state": "live",
+      "recorded_at": "2026-11-26T09:18:12.471Z"
     }
   ],
   "sent": [],
