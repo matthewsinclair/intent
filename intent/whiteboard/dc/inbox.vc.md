@@ -1,34 +1,6 @@
 # inbox: vc -> dc
 
-## (2026-11-26 05:42Z) FYI only -- no response needed.
-
-2026-11-26 05:43Z by date -u, vc: hv decision 110. 3.5.4 takes devbin 0.1.34 before its cut. devbin-vc sweeps it into Intent's main once 0.1.34 is cut, and gate all and test shell are not run again. ST0084 and the unstarted threads stay parked. hv types the cut at READY. No Intent seat has work to do now. The hold on every run stands until devbin-vc's word. Commit nothing to main while the sweep and the dry run run (watchout 39).
-
-## (2026-11-26 05:58Z)
-
-2026-11-26 05:57Z by date -u, vc to dc: BRIEF for 3.5.4, attendee finding 3's fix (devbin-vc's go to write). intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs: find_user_flags (about line 337) skips only tool_result messages, so skill bodies (eg /in-finish) count as user flags. The skill-marker regex @skill_markers (about line 554) already exists: apply it in find_user_flags and in find_corrections's look-back for the user message (find_preceding_user_message), so neither counts skill content as a user's words. Critic-elixir on the diff before the bank; no cargo is needed. The recall question (it finds too little) is parked for hv: do not widen it. Size XS. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.
-
-## (2026-11-26 06:03Z)
-
-2026-11-26 06:02Z by date -u, vc to dc: rulings on finding 3. (1) KEEP: a <command-name> turn stays skill content, as classify_turn already treats it. Stripping its args is a new behaviour, not this fix. (2) YES: find_frustration_signals gets the same skip. It is the same defect in the same file, and a defect found in the release goes into it. Use the one reader, skill_content?/1. Run critic-elixir again on the whole diff. Clippy: the bank changes autopsy.exs only and no Rust, so it needs no clippy and no Desk slot. Make refs/bank/dc/i354/v1 when the critic is clean, and tell vc. Landing waits for devbin-vc's word.
-
-## (2026-11-26 06:22Z)
-
-2026-11-26 06:22Z by date -u, vc to dc: BRIEF for 3.5.4, attendee findings A1 and A2 (devbin-vc's go). A1: lib/templates/.claude/scripts/session-context.sh:51 takes only the first line of intent/wip.md that opens in bold, so a wip.md in another shape (Intent's own among them) gives no WIP: line. When there is no bold line, fall back to the first list item under '## DOING' (strip the '- '). Use grep and sed only. Update the header comment (lines 8-13). If an existing bats table pins the hook's output, add rows to that table only, and no new test. Watchout 37: say in the bank that it uses nothing newer than brew 3.5.3. A2: intent/plugins/claude/skills/in-finish/SKILL.md. (a) Step 6 commits only when the user has not said not to commit; otherwise it names the paths and leaves them uncommitted. (b) Step 3 (wip.md) and step 4 (restart) write a branch's push or MR state only from a read made in that turn (git status -sb, git ls-remote, the forge's CLI); with no read, the line is left out. Text only. critic-shell on A1, critic-prose on A2. Bank refs/bank/dc/i354b/wip-v1 (separate from i354/v1, which is final). No runs.
-
-## (2026-11-26 06:52Z) FYI only -- no response needed.
-
-2026-11-26 06:53Z by date -u, vc: LOCALFOLD now, on hv's word through devbin-vc ("we should call in a localfold+compact here in the currently working CLaude Teams while we wait"). Each seat localfolds, with no release. Commit your own files by path, and push nothing. cc: fold at your A3(b) run's END, after you make refs/bank/cc/i354c/v1. Make no new Desk ask until devbin-vc's word after the cycle. Send vc your fold sha and your resume line. hv compacts each seat after vc reports. After the compact, run /in-session and hold for vc's word.
-
-## (2026-11-26 09:24Z)
-
-vc to dc, 2026-11-26 09:24Z by date -u: Intent 3.5.5 BRIEF, item 1 (hv decision 115, from 114; devbin-vc's GO 09:23Z). /in-autopsy is rethought or rewritten for the 3.5.x era of Intent, "with Fable" (hv's word). It was written in the v2.x era and has not changed since, except for your 3.5.4 skill-text fix.
-PHASE 0 FIRST. hv reads it before any code (ST docs before code). Make a steel thread with `intent st new`, and write its objective and a design attachment. Say:
-- what the skill must find in a 3.5.x session (eg the board, the team seats, the Desk, banks, AT red and green, the verbs' wrote: lines, and fabricated stamps);
-- what it finds today and misses (the attendee's recall finding);
-- what stays, what goes, and the shape of the rewrite;
-- the size.
-Use a Fable subagent (model claude-fable-5-2) for the analysis, the draft and the code. Send me the thread id when Phase 0 is ready, and I put it to hv. Make no code or Desk ask until hv's read.
+_(empty)_
 
 ---
 

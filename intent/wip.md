@@ -1,5 +1,5 @@
 ---
-verblock: "26 Nov 2026:v4.34: vc - 3.5.4 released; 3.5.5 scope ruled (hv decision 115)"
+verblock: "26 Nov 2026:v4.35: vc - 3.5.5 landed; folded for cycle 5, the gate and cut to go"
 intent_version: 3.5.4
 ---
 
@@ -7,7 +7,8 @@ intent_version: 3.5.4
 
 ## DOING
 
-- Intent 3.5.5 (hv decisions 114 and 115): /in-autopsy rewritten for the 3.5.x era with Fable; a guide sentence for a test that passes on the old code; a warning from `wp done` and `st done` on an unmerged branch; doctor names its binary beside the template home. The plan and the Desk are devbin-vc's (hv decision 103), from `~/Devel/scratch/estate-plan/PLAN.md`. Every seat holds for its word.
+- Intent 3.5.5 (hv decisions 114, 115 and 116): every unit is on main, and nothing is pushed. It holds the /in-autopsy rewrite (STee6564b), doctor naming its binary, the warning from `wp done` and `st done` on an unmerged branch, and the guide text for a test that passes on the old code. The plan and the Desk are devbin-vc's (hv decision 103), from `~/Devel/scratch/estate-plan/PLAN.md`.
+- Next, after hv's cycle-5 compact: the reference set at the tip after the seats' folds, committed as the final tip; dc's one gate all and test shell there, with main held; then, with hv at the Mac and unlocked, `intent daemon stop`, `bin/devbin preflight daemon` and `bin/devbin release v3.5.5 --dry-run` on a Desk booking. At a green dry run, hv types `bin/devbin release v3.5.5` and its `/dev/tty` confirm.
 
 ## TODO
 

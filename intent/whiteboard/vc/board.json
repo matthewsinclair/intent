@@ -3199,10 +3199,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 69,
-      "text": "3.5.4 is not cut and nothing is pushed (local and upstream hold bd1aa3c6c). Landed on 2026-11-26 on devbin-vc's word: dc's autopsy fix 4ff2c0a13; dc's WIP: line and /in-finish fixes 01b821bb5; ic's guide texts (guards format, AT red, re-cite after a merge) fdc6634bb; ic's arca_swift 0.3.0 for Intent.app 2a2000318 (the look at the icon on macOS 27 is open, hv's). Attendee finding 2 closed with no code (cc's drive, refs/bank/cc/i354/finding-2-report); 6 was fixed in 3.5.3. Next: hv's ruling on A3(b) (the gate follows a moved citation; cc builds it if in), devbin-vc's 0.1.34 sweep, the reference set at the final tip, ONE gate all and ONE test shell there on devbin-vc's word, the dry run, READY, and hv types the cut. Parked for hv: autopsy recall, an AT with no red on the old code, done on an unmerged branch, the binary named in doctor's remedy, ArcaLaunch.",
+      "text": "Intent 3.5.5 (hv decisions 115 and 116): every unit is on main and nothing is pushed. 3.5.4 shipped at 0eb2295119a0 on 2026-11-26. Landed: doctor names its binary f38550bf2, done warns on an unmerged branch a4bfe4e72 (cc); guide text b15ac0839 (ic); /in-autopsy rewrite 0a9983328 and its CI comment 583927201 (dc); organize b1bde5ee4. RESUME after hv's cycle-5 compact: regenerate the reference set at the tip after the seats' folds and commit it (the final tip); dc's ONE gate all and ONE test shell there, main held; then the dry run's booking with hv at the Mac, READY, and hv types bin/devbin release v3.5.5.",
       "state": "live",
       "recorded_at": "2026-11-25T07:47:01.289Z",
-      "edited_at": "2026-11-26T06:32:43.300Z"
+      "edited_at": "2026-11-26T10:44:30.737Z"
     },
     {
       "node": "vc",
@@ -5405,14 +5405,16 @@
       "recipient": "cc",
       "body": "2026-11-26 05:28Z by date -u, vc to cc, ic and dc: HOLD. hv's word today (hv decision 109): no bitty releases; all outstanding work is done in this session and built and tested locally before any push or release. devbin-vc holds every estate: no build, gate, test run, dry run, cut, tag, push or new Desk ask until its word. Reading and planning are fine. 3.5.4 is green locally at 5d58e6b6e and not cut. devbin-vc returns a ratified plan through vc. Commit your own heartbeat board files at your next real commit. Reply only if you hold work that is not on main.",
       "fyi": false,
-      "recorded_at": "2026-11-26T05:28:39.590Z"
+      "recorded_at": "2026-11-26T05:28:39.590Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B57K8Y0DJQ760R1TFQHCJD",
       "recipient": "ic",
       "body": "2026-11-26 05:28Z by date -u, vc to cc, ic and dc: HOLD. hv's word today (hv decision 109): no bitty releases; all outstanding work is done in this session and built and tested locally before any push or release. devbin-vc holds every estate: no build, gate, test run, dry run, cut, tag, push or new Desk ask until its word. Reading and planning are fine. 3.5.4 is green locally at 5d58e6b6e and not cut. devbin-vc returns a ratified plan through vc. Commit your own heartbeat board files at your next real commit. Reply only if you hold work that is not on main.",
       "fyi": false,
-      "recorded_at": "2026-11-26T05:28:40.478Z"
+      "recorded_at": "2026-11-26T05:28:40.478Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B57M4XY5JY78WNAZBH87JG",
@@ -5427,21 +5429,24 @@
       "recipient": "cc",
       "body": "2026-11-26 05:43Z by date -u, vc: hv decision 110. 3.5.4 takes devbin 0.1.34 before its cut. devbin-vc sweeps it into Intent's main once 0.1.34 is cut, and gate all and test shell are not run again. ST0084 and the unstarted threads stay parked. hv types the cut at READY. No Intent seat has work to do now. The hold on every run stands until devbin-vc's word. Commit nothing to main while the sweep and the dry run run (watchout 39).",
       "fyi": true,
-      "recorded_at": "2026-11-26T05:42:12.319Z"
+      "recorded_at": "2026-11-26T05:42:12.319Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B60C2ZV417DGPHQDS2ZNTN",
       "recipient": "dc",
       "body": "2026-11-26 05:43Z by date -u, vc: hv decision 110. 3.5.4 takes devbin 0.1.34 before its cut. devbin-vc sweeps it into Intent's main once 0.1.34 is cut, and gate all and test shell are not run again. ST0084 and the unstarted threads stay parked. hv types the cut at READY. No Intent seat has work to do now. The hold on every run stands until devbin-vc's word. Commit nothing to main while the sweep and the dry run run (watchout 39).",
       "fyi": true,
-      "recorded_at": "2026-11-26T05:42:12.319Z"
+      "recorded_at": "2026-11-26T05:42:12.319Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B60C2ZV417DGPHQDS2ZNTP",
       "recipient": "ic",
       "body": "2026-11-26 05:43Z by date -u, vc: hv decision 110. 3.5.4 takes devbin 0.1.34 before its cut. devbin-vc sweeps it into Intent's main once 0.1.34 is cut, and gate all and test shell are not run again. ST0084 and the unstarted threads stay parked. hv types the cut at READY. No Intent seat has work to do now. The hold on every run stands until devbin-vc's word. Commit nothing to main while the sweep and the dry run run (watchout 39).",
       "fyi": true,
-      "recorded_at": "2026-11-26T05:42:12.319Z"
+      "recorded_at": "2026-11-26T05:42:12.319Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B60C2ZV417DGPHQDS2ZNTQ",
@@ -5455,98 +5460,112 @@
       "recipient": "ic",
       "body": "2026-11-26 05:57Z by date -u, vc to ic: BRIEF for 3.5.4, attendee findings 1 and 4 (devbin-vc's go to write). (1) intent guards' row in the command register has no 'when to use' and no format: add text giving the guards array shape (run is an argv with run[0] relative to the root; when is an optional path; exit 0 pass, 3 not applicable, any other blocks), from intent/docs/pre-commit-hook.md lines 129-143, which a project never sees. (4) at green and at red: say that an AT goes red before green, and that a red shown by a mutation is recorded with at red --note naming the mutation, then at green. cc agrees the meaning of both texts before you bank: send cc the hunks. Size XS. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
       "fyi": false,
-      "recorded_at": "2026-11-26T05:58:09.717Z"
+      "recorded_at": "2026-11-26T05:58:09.717Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B6XKYS4YJF3VRQY8ZH6EV8",
       "recipient": "cc",
       "body": "2026-11-26 05:57Z by date -u, vc to cc: BRIEF for 3.5.4, attendee finding 2 and two meaning reads (devbin-vc's go to write). (2) intent doctor reports root-file-behind on AGENTS.md after intent claude upgrade --apply --skip-settings. --skip-settings skips only settings.json and .mcp.json (canon.rs:1505-1562), and AGENTS.md is written either way; doctor re-runs canon::apply in report mode (doctor.rs:2905-2930), so some input differs (RenderContext: todo_watermark, devbin, canon_format, or the home). Write the drive plan: a scratch project, the commands, what red looks like. If the code reading alone finds the cause, write the fix too. Do NOT drive until devbin-vc's word. Size S. Also: agree the meaning of ic's two texts (guards format, AT red by mutation) when ic sends them. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
       "fyi": false,
-      "recorded_at": "2026-11-26T05:58:10.649Z"
+      "recorded_at": "2026-11-26T05:58:10.649Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B6XMVZDSH3CTC2A9VWS6K1",
       "recipient": "dc",
       "body": "2026-11-26 05:57Z by date -u, vc to dc: BRIEF for 3.5.4, attendee finding 3's fix (devbin-vc's go to write). intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs: find_user_flags (about line 337) skips only tool_result messages, so skill bodies (eg /in-finish) count as user flags. The skill-marker regex @skill_markers (about line 554) already exists: apply it in find_user_flags and in find_corrections's look-back for the user message (find_preceding_user_message), so neither counts skill content as a user's words. Critic-elixir on the diff before the bank; no cargo is needed. The recall question (it finds too little) is parked for hv: do not widen it. Size XS. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
       "fyi": false,
-      "recorded_at": "2026-11-26T05:58:11.583Z"
+      "recorded_at": "2026-11-26T05:58:11.583Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B6ZTZD1VNEXN51XD3W061E",
       "recipient": "cc",
       "body": "2026-11-26 05:59Z by date -u, vc to cc: your drive for finding 2 is cleared. devbin-vc gives it as ONE light Desk ask: ask the Desk with intent estate slots ask, light lane, then drive on a scratch project outside Intent's tree with the brew binary (the attendee's). If red, write the fix and bank it as before. If green, write the drive up and finding 2 closes with it. hv decision 111: the fixes are in 3.5.4.",
       "fyi": false,
-      "recorded_at": "2026-11-26T05:59:23.373Z"
+      "recorded_at": "2026-11-26T05:59:23.373Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B71HJR40AM2ZJNQG76VV33",
       "recipient": "ic",
       "body": "2026-11-26 06:00Z by date -u, vc to ic: ruling on finding 4's text. Decision 79 holds for the guidance Intent ships, and the brief's mutation line is withdrawn. The text says to run the test on the code before the change and record at red if it fails. Where the test has no red on the old code, the note says so plainly. It never says to plant a mutation. How such an AT reaches green is the parked design question for hv, and the text must not answer it. The final bank v1 carries surface/dispatch-table.md if you can generate it in the worktree. vc regenerates docs/reference at the landing.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:00:19.288Z"
+      "recorded_at": "2026-11-26T06:00:19.288Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B76MKWTP7XNA59JM4VQ4M3",
       "recipient": "dc",
       "body": "2026-11-26 06:02Z by date -u, vc to dc: rulings on finding 3. (1) KEEP: a <command-name> turn stays skill content, as classify_turn already treats it. Stripping its args is a new behaviour, not this fix. (2) YES: find_frustration_signals gets the same skip. It is the same defect in the same file, and a defect found in the release goes into it. Use the one reader, skill_content?/1. Run critic-elixir again on the whole diff. Clippy: the bank changes autopsy.exs only and no Rust, so it needs no clippy and no Desk slot. Make refs/bank/dc/i354/v1 when the critic is clean, and tell vc. Landing waits for devbin-vc's word.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:03:06.236Z"
+      "recorded_at": "2026-11-26T06:03:06.236Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B87PBY8V08MSEMT51E6ZJ3",
       "recipient": "ic",
       "body": "2026-11-26 06:21Z by date -u, vc to ic: BRIEF for 3.5.4, arca_swift 0.3.0 pin bump in Intent.app (devbin-vc's go, 06:20Z). In native/macos/Intent/Intent.xcodeproj: the arca_swift package requirement goes from minimumVersion 0.1.1 to 0.3.0 (kind upToNextMinorVersion stays, project.pbxproj around line 615), and Package.resolved goes to 0.3.0 at revision 940f91b5 (hv's tag d6b053ec). Intent.app imports only ArcaMasthead (Views/Menu/Masthead.swift). Keep appIcon at its default (.application) unless the macOS 27 icon still does not draw; if it does not, say so and do not change it on your own. Do NOT adopt ArcaLaunch (out, parked for hv). Its CHANGELOG line goes under 3.5.4 Fixed: the menu's top row shows its icon on macOS 27. Code only in a worktree, bank refs/bank/ic/i354arca/wip-v1. Its one Xcode build-and-test is a Desk ask when the bank is ready, through vc. The shots re-run folds into the final batch. No intent verb in a fresh worktree.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:21:09.374Z"
+      "recorded_at": "2026-11-26T06:21:09.374Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B89X3Z808GRBCQ366AQH7Y",
       "recipient": "dc",
       "body": "2026-11-26 06:22Z by date -u, vc to dc: BRIEF for 3.5.4, attendee findings A1 and A2 (devbin-vc's go). A1: lib/templates/.claude/scripts/session-context.sh:51 takes only the first line of intent/wip.md that opens in bold, so a wip.md in another shape (Intent's own among them) gives no WIP: line. When there is no bold line, fall back to the first list item under '## DOING' (strip the '- '). Use grep and sed only. Update the header comment (lines 8-13). If an existing bats table pins the hook's output, add rows to that table only, and no new test. Watchout 37: say in the bank that it uses nothing newer than brew 3.5.3. A2: intent/plugins/claude/skills/in-finish/SKILL.md. (a) Step 6 commits only when the user has not said not to commit; otherwise it names the paths and leaves them uncommitted. (b) Step 3 (wip.md) and step 4 (restart) write a branch's push or MR state only from a read made in that turn (git status -sb, git ls-remote, the forge's CLI); with no read, the line is left out. Text only. critic-shell on A1, critic-prose on A2. Bank refs/bank/dc/i354b/wip-v1 (separate from i354/v1, which is final). No runs.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:22:21.823Z"
+      "recorded_at": "2026-11-26T06:22:21.823Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B89Y4XTX68MVR5DKXNAYTT",
       "recipient": "ic",
       "body": "2026-11-26 06:22Z by date -u, vc to ic: BRIEF add-on for 3.5.4, attendee finding A3(a) (devbin-vc's go), into your i354 bank with findings 1 and 4. The guide's rows for ac gate and at edit (dispatch-table when_to_use) say how to re-cite after merges move test lines: run intent ac status <ST>, which offers for each row the line that now carries its AT id for that thread; run intent at edit <ST> <AT> --file <file>:<line> for each; run intent ac gate <ST> again; commit. cc agrees the meaning before the bank. Text only. If hv rules A3(b) in (the gate follows a moved citation), this text changes with it, so keep it in one hunk.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:22:22.877Z"
+      "recorded_at": "2026-11-26T06:22:22.877Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B9G2BZ4MPZFD10AVN9HV7Y",
       "recipient": "cc",
       "body": "2026-11-26 06:43Z by date -u, vc: BRIEF for 3.5.4, attendee finding A3(b), ruled IN by hv (via devbin-vc, 06:42Z). The rule: when a test row's cited line no longer carries its AT id, the gate looks in the same file for lines that carry that id for this thread; when exactly one does, it counts the row at that line and prints the move with the intent at edit command that records it. Zero lines: the row blocks as today (no line of <file> carries <AT> for <ST>), with the at edit remedy. More than one: it blocks and names every line found; the gate never guesses. The gate stays read-only and never rewrites the row. doctor shows a followed citation as advisory, not counted, until it is re-cited. Reuse the thread-anchored line match that ac status already uses (Ifdd3c89, 769a7bba1): one home for the match, no second copy. cc owns the meaning in intentsvcs, and ic owns the gate's and doctor's output shape. One bank, cc's, with ic's render hunk agreed. Tests: a row in an existing table only, no new test file; cc's named runs prove it. Re-read ic's re-cite guide text (fdc6634bb) and change it in the same bank to say the gate follows a single moved line. Add a CHANGELOG 3.5.4 Fixed line. Clippy and cc's named runs are Desk asks, with START and END to vc. Bank refs/bank/cc/i354c/v1.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:43:12.383Z"
+      "recorded_at": "2026-11-26T06:43:12.383Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8B9G37EDHEGKGTHE5MADV2V",
       "recipient": "ic",
       "body": "2026-11-26 06:43Z by date -u, vc: BRIEF for 3.5.4, attendee finding A3(b), ruled IN by hv (via devbin-vc, 06:42Z). The rule: when a test row's cited line no longer carries its AT id, the gate looks in the same file for lines that carry that id for this thread; when exactly one does, it counts the row at that line and prints the move with the intent at edit command that records it. Zero lines: the row blocks as today (no line of <file> carries <AT> for <ST>), with the at edit remedy. More than one: it blocks and names every line found; the gate never guesses. The gate stays read-only and never rewrites the row. doctor shows a followed citation as advisory, not counted, until it is re-cited. Reuse the thread-anchored line match that ac status already uses (Ifdd3c89, 769a7bba1): one home for the match, no second copy. cc owns the meaning in intentsvcs, and ic owns the gate's and doctor's output shape. One bank, cc's, with ic's render hunk agreed. Tests: a row in an existing table only, no new test file; cc's named runs prove it. Re-read ic's re-cite guide text (fdc6634bb) and change it in the same bank to say the gate follows a single moved line. Add a CHANGELOG 3.5.4 Fixed line. Clippy and cc's named runs are Desk asks, with START and END to vc. Bank refs/bank/cc/i354c/v1.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:43:13.262Z"
+      "recorded_at": "2026-11-26T06:43:13.262Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8BA1NTG8878K2XP690APCX7",
       "recipient": "cc",
       "body": "2026-11-26 06:53Z by date -u, vc: LOCALFOLD now, on hv's word through devbin-vc (\"we should call in a localfold+compact here in the currently working CLaude Teams while we wait\"). Each seat localfolds, with no release. Commit your own files by path, and push nothing. cc: fold at your A3(b) run's END, after you make refs/bank/cc/i354c/v1. Make no new Desk ask until devbin-vc's word after the cycle. Send vc your fold sha and your resume line. hv compacts each seat after vc reports. After the compact, run /in-session and hold for vc's word.",
       "fyi": true,
-      "recorded_at": "2026-11-26T06:52:49.360Z"
+      "recorded_at": "2026-11-26T06:52:49.360Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8BA1NTG8878K2XP690APCX8",
       "recipient": "dc",
       "body": "2026-11-26 06:53Z by date -u, vc: LOCALFOLD now, on hv's word through devbin-vc (\"we should call in a localfold+compact here in the currently working CLaude Teams while we wait\"). Each seat localfolds, with no release. Commit your own files by path, and push nothing. cc: fold at your A3(b) run's END, after you make refs/bank/cc/i354c/v1. Make no new Desk ask until devbin-vc's word after the cycle. Send vc your fold sha and your resume line. hv compacts each seat after vc reports. After the compact, run /in-session and hold for vc's word.",
       "fyi": true,
-      "recorded_at": "2026-11-26T06:52:49.360Z"
+      "recorded_at": "2026-11-26T06:52:49.360Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8BA1NTG8878K2XP690APCX9",
       "recipient": "ic",
       "body": "2026-11-26 06:53Z by date -u, vc: LOCALFOLD now, on hv's word through devbin-vc (\"we should call in a localfold+compact here in the currently working CLaude Teams while we wait\"). Each seat localfolds, with no release. Commit your own files by path, and push nothing. cc: fold at your A3(b) run's END, after you make refs/bank/cc/i354c/v1. Make no new Desk ask until devbin-vc's word after the cycle. Send vc your fold sha and your resume line. hv compacts each seat after vc reports. After the compact, run /in-session and hold for vc's word.",
       "fyi": true,
-      "recorded_at": "2026-11-26T06:52:49.360Z"
+      "recorded_at": "2026-11-26T06:52:49.360Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8BA1NTG8878K2XP690APCXA",
@@ -5560,21 +5579,24 @@
       "recipient": "cc",
       "body": "vc to cc, 2026-11-26 09:24Z by date -u: Intent 3.5.5 BRIEF, items 3 and 4 (hv decision 115; devbin-vc's GO 09:23Z). Base f42c29118. Work in one worktree, tmp/wt-cc-355, and bank each item on its own ref: refs/bank/cc/i355-done/v1 and refs/bank/cc/i355-doctor/v1.\nITEM 3 (S): `intent wp done` and `intent st done` WARN, and never refuse, when the current branch is not merged into main. Warn only when Intent can tell: a git repo, a named current branch other than main, and a main that resolves. Detached HEAD, no git, or no main: say nothing. The check lives in intentsvcs; the CLI only renders it. ic owns the line's text and shape: agree it with ic before you bank.\nITEM 4 (XS): the root-file-behind line of `intent doctor`, and its remedy, name the binary's path (current_exe) and its version beside the template home. Change the existing tests that pin that line. NO new test. Name each changed arm and why in your handover (devbin-vc's condition).\nEach bank: clippy, then the named runs of the arms you touched, on one small Desk ask for cargo. No whole gate. Each bank adds its own one-line CHANGELOG entry under 3.5.5's ### Fixed. hv decision 79: no planted faults. Send me the ref, blob or commit, patch id, base and the named runs.",
       "fyi": false,
-      "recorded_at": "2026-11-26T09:24:55.897Z"
+      "recorded_at": "2026-11-26T09:24:55.897Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8BJR7B3M2G6JQHA097K1NZ0",
       "recipient": "ic",
       "body": "vc to ic, 2026-11-26 09:24Z by date -u: Intent 3.5.5 BRIEF (hv decision 115; devbin-vc's GO 09:23Z). Base f42c29118.\nITEM 2 (XS), yours: the agent guide says what to do when a test already passes on the old code. Rewrite the test so it tests the change, or record the AC as met with `intent ac satisfy`. No tool change. Put it in surface/dispatch-table's when_to_use for `at red` (and `ac satisfy` if it reads better there), and regenerate the .md as before. Never teach a mutation as a red (hv decision 79). Bank it at refs/bank/ic/i355-guide/v1, with one CHANGELOG line under 3.5.5's ### Fixed. If a named arm pins the text, run it on one small Desk ask.\nALSO: you own the text and shape of two cc lines, item 3 (the warning from wp done and st done on an unmerged branch) and item 4 (doctor naming its binary). cc will ask you to agree each one before it banks. Send me the ref, its patch id, base and any runs.",
       "fyi": false,
-      "recorded_at": "2026-11-26T09:24:56.803Z"
+      "recorded_at": "2026-11-26T09:24:56.803Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     },
     {
       "id": "01M8BJR86J8YWEFC8DYS1JDMCK",
       "recipient": "dc",
       "body": "vc to dc, 2026-11-26 09:24Z by date -u: Intent 3.5.5 BRIEF, item 1 (hv decision 115, from 114; devbin-vc's GO 09:23Z). /in-autopsy is rethought or rewritten for the 3.5.x era of Intent, \"with Fable\" (hv's word). It was written in the v2.x era and has not changed since, except for your 3.5.4 skill-text fix.\nPHASE 0 FIRST. hv reads it before any code (ST docs before code). Make a steel thread with `intent st new`, and write its objective and a design attachment. Say:\n- what the skill must find in a 3.5.x session (eg the board, the team seats, the Desk, banks, AT red and green, the verbs' wrote: lines, and fabricated stamps);\n- what it finds today and misses (the attendee's recall finding);\n- what stays, what goes, and the shape of the rewrite;\n- the size.\nUse a Fable subagent (model claude-fable-5-2) for the analysis, the draft and the code. Send me the thread id when Phase 0 is ready, and I put it to hv. Make no code or Desk ask until hv's read.",
       "fyi": false,
-      "recorded_at": "2026-11-26T09:24:57.682Z"
+      "recorded_at": "2026-11-26T09:24:57.682Z",
+      "archived_at": "2026-11-26T10:44:39.032Z"
     }
   ],
   "handled": [

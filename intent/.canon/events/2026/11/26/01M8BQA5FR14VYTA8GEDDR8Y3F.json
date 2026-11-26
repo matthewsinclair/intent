@@ -1,0 +1,104 @@
+{
+  "id": "01M8BQA5FR14VYTA8GEDDR8Y3F",
+  "ts": "2026-11-26T10:44:39.032Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.archive",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "message",
+    "messages": [
+      {
+        "id": "01M8B57JD6TTHVVH5DH2M2BHJ9",
+        "to": "cc"
+      },
+      {
+        "id": "01M8B57K8Y0DJQ760R1TFQHCJD",
+        "to": "ic"
+      },
+      {
+        "id": "01M8B60C2ZV417DGPHQDS2ZNTM",
+        "to": "cc"
+      },
+      {
+        "id": "01M8B60C2ZV417DGPHQDS2ZNTN",
+        "to": "dc"
+      },
+      {
+        "id": "01M8B60C2ZV417DGPHQDS2ZNTP",
+        "to": "ic"
+      },
+      {
+        "id": "01M8B6XK1NHJFF7F0XC3REDEJK",
+        "to": "ic"
+      },
+      {
+        "id": "01M8B6XKYS4YJF3VRQY8ZH6EV8",
+        "to": "cc"
+      },
+      {
+        "id": "01M8B6XMVZDSH3CTC2A9VWS6K1",
+        "to": "dc"
+      },
+      {
+        "id": "01M8B6ZTZD1VNEXN51XD3W061E",
+        "to": "cc"
+      },
+      {
+        "id": "01M8B71HJR40AM2ZJNQG76VV33",
+        "to": "ic"
+      },
+      {
+        "id": "01M8B76MKWTP7XNA59JM4VQ4M3",
+        "to": "dc"
+      },
+      {
+        "id": "01M8B87PBY8V08MSEMT51E6ZJ3",
+        "to": "ic"
+      },
+      {
+        "id": "01M8B89X3Z808GRBCQ366AQH7Y",
+        "to": "dc"
+      },
+      {
+        "id": "01M8B89Y4XTX68MVR5DKXNAYTT",
+        "to": "ic"
+      },
+      {
+        "id": "01M8B9G2BZ4MPZFD10AVN9HV7Y",
+        "to": "cc"
+      },
+      {
+        "id": "01M8B9G37EDHEGKGTHE5MADV2V",
+        "to": "ic"
+      },
+      {
+        "id": "01M8BA1NTG8878K2XP690APCX7",
+        "to": "cc"
+      },
+      {
+        "id": "01M8BA1NTG8878K2XP690APCX8",
+        "to": "dc"
+      },
+      {
+        "id": "01M8BA1NTG8878K2XP690APCX9",
+        "to": "ic"
+      },
+      {
+        "id": "01M8BJR6ES100GBQD4K80QXQXD",
+        "to": "cc"
+      },
+      {
+        "id": "01M8BJR7B3M2G6JQHA097K1NZ0",
+        "to": "ic"
+      },
+      {
+        "id": "01M8BJR86J8YWEFC8DYS1JDMCK",
+        "to": "dc"
+      }
+    ]
+  }
+}

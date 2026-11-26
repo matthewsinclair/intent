@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.4 is not cut and nothing is pushed (local and upstream hold bd1aa3c6c). Landed on 2026-11-26 on devbin-vc's word: dc's autopsy fix 4ff2c0a13; dc's WIP: line and /in-finish fixes 01b821bb5; ic's guide texts (guards format, AT red, re-cite after a merge) fdc6634bb; ic's arca_swift 0.3.0 for Intent.app 2a2000318 (the look at the icon on macOS 27 is open, hv's). Attendee finding 2 closed with no code (cc's drive, refs/bank/cc/i354/finding-2-report); 6 was fixed in 3.5.3. Next: hv's ruling on A3(b) (the gate follows a moved citation; cc builds it if in), devbin-vc's 0.1.34 sweep, the reference set at the final tip, ONE gate all and ONE test shell there on devbin-vc's word, the dry run, READY, and hv types the cut. Parked for hv: autopsy recall, an AT with no red on the old code, done on an unmerged branch, the binary named in doctor's remedy, ArcaLaunch. (edited)
+- Intent 3.5.5 (hv decisions 115 and 116): every unit is on main and nothing is pushed. 3.5.4 shipped at 0eb2295119a0 on 2026-11-26. Landed: doctor names its binary f38550bf2, done warns on an unmerged branch a4bfe4e72 (cc); guide text b15ac0839 (ic); /in-autopsy rewrite 0a9983328 and its CI comment 583927201 (dc); organize b1bde5ee4. RESUME after hv's cycle-5 compact: regenerate the reference set at the tip after the seats' folds and commit it (the final tip); dc's ONE gate all and ONE test shell there, main held; then the dry run's booking with hv at the Mac, READY, and hv types bin/devbin release v3.5.5. (edited)
 
 ## TODO
 
