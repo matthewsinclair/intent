@@ -1,0 +1,16 @@
+{
+  "id": "01M8B53SX34664RH682PEPCY3C",
+  "ts": "2026-11-26T05:26:36.195Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 69,
+    "text": "3.5.4 is built and proved locally but not cut. It carries ST1c2db93, I3c24d2a and Ic5f63aa. The batch is green at 5d58e6b6e (gate all and test shell), ST1c2db93 is done (cfed458e9), and main is clean at 6c62111bc. Local and upstream hold bd1aa3c6c: nothing is pushed. hv's word of 2026-11-26 in vc's session: do all outstanding work in this session, build and test it locally, then release once. vc holds for devbin-vc's ratified plan."
+  }
+}
