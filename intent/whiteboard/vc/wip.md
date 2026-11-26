@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-26 12:16Z
-status: paused
-focus: "2026-11-26 06:53Z by date -u: localfold for hv's compact, not released. Resume: /in-session and pickup; land cc's A3(b) bank refs/bank/cc/i354c/v1 on its proof; then on devbin-vc's word the 0.1.34 sweep, the reference set at the final tip, dc's one gate all and test shell, the dry run with hv at the Mac, READY, hv types the cut."
+session_id: 301174e0-2250-4de5-9e32-7381abe29fc6
+heartbeat_at: 2026-11-26 14:02Z
+status: active
+focus: "2026-11-26 14:02Z by date -u: new session after hv's restart. Intent's team holds on hv decision 117: 3.5.6 (ArcaLaunch) waits for hv's word. cc, ic and dc are told to hold. vc holds no claim, slot or worktree."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-_(none)_
+- Intent 3.5.6 (ArcaLaunch) waits for hv's word (hv decisions 114 and 117). Its scope, from ic's read of the code on 2026-11-26 (ic built, ran and changed nothing): ic's part, S: Intent.app links the ArcaLaunch product of arca_swift 0.3.0 (already pinned), guards begin in applicationDidFinishLaunching and launched in applicationWillTerminate, adds one app test that is red on today's code (the test host starts no launch path), and adds a CHANGELOG line. dc's part, XS: app-run and app-install in bin/.devbin/cmd/macos, Intent's own file and not devbin's, wait for the old copy to exit before they start the new one; with the lock the running copy wins, so without this no Intent.app runs. cc's part: none, since intentsvcs::macapp::stop waits for the exit. Debug and Release builds share one lock file, so only one of them runs at a time. Proof: one Xcode build-and-test on a Desk slot.
 
 ## Holds
 

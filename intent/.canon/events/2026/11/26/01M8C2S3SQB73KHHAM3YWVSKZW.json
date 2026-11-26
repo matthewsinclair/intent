@@ -1,0 +1,15 @@
+{
+  "id": "01M8C2S3SQB73KHHAM3YWVSKZW",
+  "ts": "2026-11-26T14:05:03.159Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Intent 3.5.6 (ArcaLaunch) waits for hv's word (hv decisions 114 and 117). Its scope, from ic's read of the code on 2026-11-26 (ic built, ran and changed nothing): ic's part, S: Intent.app links the ArcaLaunch product of arca_swift 0.3.0 (already pinned), guards begin in applicationDidFinishLaunching and launched in applicationWillTerminate, adds one app test that is red on today's code (the test host starts no launch path), and adds a CHANGELOG line. dc's part, XS: app-run and app-install in bin/.devbin/cmd/macos, Intent's own file and not devbin's, wait for the old copy to exit before they start the new one; with the lock the running copy wins, so without this no Intent.app runs. cc's part: none, since intentsvcs::macapp::stop waits for the exit. Debug and Release builds share one lock file, so only one of them runs at a time. Proof: one Xcode build-and-test on a Desk slot."
+  }
+}

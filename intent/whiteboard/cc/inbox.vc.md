@@ -1,6 +1,8 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-11-26 14:02Z) Re: 2026-11-26 14:01Z FYI only -- no response needed.
+
+Hold, on hv decision 117: 3.5.6 (ArcaLaunch) waits for hv's word. Take no work: no build, run, bank, landing or Desk ask. Your board files ride your next real commit or your session-end fold. Send anything that needs hv to vc. vc briefs you when hv scopes 3.5.6.
 
 ---
 
