@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- Intent 3.5.6 (hv decision 118): ic builds issue I5169c5b (S, Intent.app takes ArcaLaunch), and dc builds issue I8b74f2a (XS, app-run and app-install wait for the old copy to exit). cc has no part. Now: devbin-vc agrees the plan, and the seats start on its reply. Then: each seat banks; ic's one Xcode build-and-test; vc lands both and makes the reference set; dc's one gate all and test shell at the final tip; the dry run with hv at the Mac; READY; hv types the cut.
+- Intent 3.5.6 (hv decisions 118 and 119), one batch: I8b74f2a landed at fc33a251a (dc); I5169c5b landed at af157d266 and closed (ic); If7e7665 banked at refs/bank/dc/if7e7/v1, lands after cc's build all END (dc); I47c94cf in proof (cc, its text shaped by ic). If7e7665 and I47c94cf ride by hv's rule that a fix found during the release goes into it. Next: both land; cc runs build all at the final HEAD and re-drives the known-defects page; vc makes one step 2 commit (reference set, page, kept PNGs); dc runs gate all and test shell at the final tip; dc's app-run proof; seats commit their boards; intentd stops; the dry run; READY; hv types the cut. (edited)
 
 ## TODO
 
-- Put two scope questions to hv at return, as one question, since both widen 3.5.6. (1) Issue If7e7665: the cut's pre-flight refuses a known-defects page titled for another release (cc's finding; v3.2.0, v3.5.3 and v3.5.5 each shipped one). dc's XS bank, shell only, red on today's tree and green after cc's re-drive, proven by the dry run's pre-flight. It is a new guard during a release. (2) Issue I47c94cf: intent app stop discards osascript's exit status, so a refused quit waits the whole deadline and the error names the wrong cause (dc's finding). cc's bank, XS to S, Rust, with a new refusal variant whose text ic shapes; the batch's gate all covers it, and the pair and the re-drive are made again. Each is prepared as a bank and is not landed. Options per issue: ride 3.5.6, or wait for the next release. (edited)
+_(none)_
 
 ## Holds
 

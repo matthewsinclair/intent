@@ -1,0 +1,16 @@
+{
+  "id": "01M8C6E7VF110FFD470CP8N4DW",
+  "ts": "2026-11-26T15:09:01.167Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 70,
+    "text": "Intent 3.5.6 (hv decisions 118 and 119), one batch: I8b74f2a landed at fc33a251a (dc); I5169c5b landed at af157d266 and closed (ic); If7e7665 banked at refs/bank/dc/if7e7/v1, lands after cc's build all END (dc); I47c94cf in proof (cc, its text shaped by ic). If7e7665 and I47c94cf ride by hv's rule that a fix found during the release goes into it. Next: both land; cc runs build all at the final HEAD and re-drives the known-defects page; vc makes one step 2 commit (reference set, page, kept PNGs); dc runs gate all and test shell at the final tip; dc's app-run proof; seats commit their boards; intentd stops; the dry run; READY; hv types the cut."
+  }
+}
