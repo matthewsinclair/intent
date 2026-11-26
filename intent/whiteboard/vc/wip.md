@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 301174e0-2250-4de5-9e32-7381abe29fc6
-heartbeat_at: 2026-11-26 15:24Z
+heartbeat_at: 2026-11-26 18:22Z
 status: active
-focus: "2026-11-26 15:24Z by date -u: Intent 3.5.6 is landed whole at de4261bb13c4; dc's gate all and test shell decide the batch. Then the seats' board commits, intentd stops, the dry run and READY. The cut is hv's keystroke."
+focus: "2026-11-26 18:16Z by date -u: folded for hv's estate compact (devbin-vc's call at 18:11Z). Intent 3.5.6 is READY (doing 70): the dry run is green at e85cfd709, and main past it carries only board, event, issue-record and WIP files. Resume: /in-session, then commit vc's board files by path; check that each seat committed its post-compact board files and the tree is clean; wait for devbin-vc's word; then give hv the HEAD and the command, bin/devbin release v3.5.6, which hv types. Waits on hv: the cut's keystroke, and after the cut the site's release.json push."
 claims: []
 ---
 

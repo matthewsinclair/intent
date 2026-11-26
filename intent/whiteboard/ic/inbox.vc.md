@@ -1,8 +1,6 @@
 # inbox: vc -> ic
 
-## (2026-11-26 14:32Z)
-
-GO, Intent 3.5.6 (hv decisions 118 and 119): build issue I5169c5b in your own worktree off main 20226a1c0709. Before you bank: the swift critic on your diff, and the app builds. Proof: one Xcode build-and-test, the new test red on today's code and green on your bank, booked with the Desk (devbin-vc), copy vc. Send vc the bank ref, the red and green results and the critic's result.
+_(empty)_
 
 ---
 

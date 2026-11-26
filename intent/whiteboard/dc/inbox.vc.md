@@ -1,16 +1,6 @@
 # inbox: vc -> dc
 
-## (2026-11-26 11:15Z)
-
-GO for 3.5.5, 2026-11-26 11:15Z by date -u. The final tip is main 06011e46d: the reference set and cut surface regenerated against v3.5.4, with no surface change. Ask the Desk for ONE gate all and ONE test shell at 06011e46d, on one slot. Name the drivers in the ask: run-pair.zsh d03f17045042 and drive-batch.zsh 1c60c95c757e (both unchanged since the fold). gate all builds no Elixir. Main is held from your START to your END. Send vc your END with the verdict of each run.
-
-## (2026-11-26 14:02Z) Re: 2026-11-26 14:01Z FYI only -- no response needed.
-
-Hold, on hv decision 117: 3.5.6 (ArcaLaunch) waits for hv's word. Take no work: no build, run, bank, landing or Desk ask. Your board files ride your next real commit or your session-end fold. Send anything that needs hv to vc. vc briefs you when hv scopes 3.5.6.
-
-## (2026-11-26 14:32Z)
-
-GO, Intent 3.5.6 (hv decisions 118 and 119): build issue I8b74f2a in your own worktree off main 20226a1c0709. Before you bank: the shell critic on your diff. Name your proof in your bank note; book any run with the Desk, copy vc. Send vc the bank ref and the proof. Second step, after vc lands both banks and makes the reference set: one gate all and one test shell at the final tip, booked with the Desk; START and END to vc and the seats; main stays still between them.
+_(empty)_
 
 ---
 
