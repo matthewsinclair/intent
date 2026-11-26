@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 301174e0-2250-4de5-9e32-7381abe29fc6
-heartbeat_at: 2026-11-26 14:36Z
+heartbeat_at: 2026-11-26 15:24Z
 status: active
-focus: "2026-11-26 14:36Z by date -u: Intent 3.5.6 is in build (hv decisions 118 and 119). ic builds I5169c5b and dc builds I8b74f2a; cc prepares releasing.md step 2's re-drive and shots. vc lands each bank on its proof. The dry run waits for hv's return unless devbin-dc clears the notary; the cut is hv's keystroke."
+focus: "2026-11-26 15:24Z by date -u: Intent 3.5.6 is landed whole at de4261bb13c4; dc's gate all and test shell decide the batch. Then the seats' board commits, intentd stops, the dry run and READY. The cut is hv's keystroke."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- Intent 3.5.6 (hv decisions 118 and 119), one batch: I8b74f2a landed at fc33a251a (dc); I5169c5b landed at af157d266 and closed (ic); If7e7665 banked at refs/bank/dc/if7e7/v1, lands after cc's build all END (dc); I47c94cf in proof (cc, its text shaped by ic). If7e7665 and I47c94cf ride by hv's rule that a fix found during the release goes into it. Next: both land; cc runs build all at the final HEAD and re-drives the known-defects page; vc makes one step 2 commit (reference set, page, kept PNGs); dc runs gate all and test shell at the final tip; dc's app-run proof; seats commit their boards; intentd stops; the dry run; READY; hv types the cut. (edited)
+- Intent 3.5.6 (hv decisions 118 and 119), one batch, every fix landed and closed: I8b74f2a fc33a251a (dc), I5169c5b af157d266 (ic), If7e7665 9fc66c4ac (dc; open until the dry run's pre-flight shows its green), I47c94cf 1a9bc8702 (cc). Step 2 at de4261bb1: the reference set against v3.5.5, known-defects.md re-driven and retitled v3.5.6, the CHANGELOG. Now: dc's gate all and test shell at de4261bb13c4, main still. Then: every seat commits its boards and writes nothing until the cut's END; intentd stops; the dry run; READY; hv types bin/devbin release v3.5.6. (edited)
 
 ## TODO
 
