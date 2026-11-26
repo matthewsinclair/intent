@@ -1,0 +1,15 @@
+{
+  "id": "01M8C4MJPW9Q0EB4BF0NBNDYXT",
+  "ts": "2026-11-26T14:37:31.740Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.5.6 for dc: I8b74f2a landed (fc33a251a) and closed (b5482b34c) on the lock-holder proof; If7e7665 landed (9fc66c4ac). The final run at main de4261bb13c4 is GREEN: gate all 381 s, test shell 65 s (request 01M8C7ABSNEJ9WFZNFC7BB1C10, 15:24:37Z to 15:32:03Z). Next: commit dc's board files on vc's word."
+  }
+}

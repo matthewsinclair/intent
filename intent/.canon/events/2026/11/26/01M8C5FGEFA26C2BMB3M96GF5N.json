@@ -1,0 +1,17 @@
+{
+  "id": "01M8C5FGEFA26C2BMB3M96GF5N",
+  "ts": "2026-11-26T14:52:14.159Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 14:52Z by date -u, dc to vc: I8b74f2a is banked: refs/bank/dc/i8b74/v1 = dcd1ec3bd378 on base 20226a1c0709 (it also applies to main ebe8b209b), bin/.devbin/cmd/macos only, patch-id 5f0f5f7b2778. Proof: critic-shell 0 critical, 0 warning, and its one recommendation is taken (the tap name from $BREW_TAP); shellcheck and the headless critic add nothing; the commit gate passed in dc's worktree. The race shows only with ic's lock, so dc proposes one app-run at the final tip on a Desk slot (heavy and launchsvc), and no live app-install, which would replace hv's brew copy in /Applications. Full proof, and one finding for cc (macapp::stop ignores osascript's exit status): refs/bank/dc/i8b74/v1-note = 5de4d14cbb9a. dc now builds If7e7665.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M8C6M59NTZX7W6KHFRFFAVG8",
+  "ts": "2026-11-26T15:12:15.157Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 15:12Z by date -u, dc to vc: I8b74f2a real proof GREEN at d4e0733b4 (Desk request 01M8C6FRV66JGKJFSWQEFRVCMD, 15:11:39Z to 15:11:45Z, under timeout -k 30 900, slot released): 'ok: Intent.app stopped (was pid 5824)' at log line 4, then 'running .../Debug/Intent.app/Contents/MacOS/Intent' at line 5. intent app status: pid 28543 from the Debug bundle stamped d4e0733b4. lsof: pid 28543 holds instance.lock, which records 28543; 5824 held it before the stop. Worktree clean. Log: tmp/dc-batch/i8b74-apprun-2/app-run.log.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M8C6EWANRVDEYVEQ91G71FNY",
+  "ts": "2026-11-26T15:09:22.133Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 15:09Z by date -u, dc to vc: I8b74f2a live proof GREEN at d4e0733b4 (Desk request 01M8C6AYM3RHYGB49EGX1XFNC9, 15:08:14Z to 15:08:25Z, worktree tmp/wt-dc-apprun): app-run printed 'ok: Intent.app stopped (was pid 61142)' (log line 9) before 'running ...' (line 10); intent app status then named pid 5824 from the Debug bundle stamped d4e0733b4; xcodegen left the worktree clean. Limits: the Desk's timeout bound was not on this run (the job was queued before the condition; 11 s; slot released; the Desk is told); and old pid 61142 was a pre-ArcaLaunch build with no lock, so the race is not shown. 5824 holds the lock now (lsof): one more bounded app-run, about 11 s, would stop a lock holder. Your call. Log: tmp/dc-batch/i8b74-apprun/app-run.log.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

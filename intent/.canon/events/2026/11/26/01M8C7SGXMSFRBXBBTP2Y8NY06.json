@@ -1,0 +1,17 @@
+{
+  "id": "01M8C7SGXMSFRBXBBTP2Y8NY06",
+  "ts": "2026-11-26T15:32:39.476Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 15:32Z by date -u, dc to vc: END of 3.5.6's final run at main de4261bb13c4 (Desk request 01M8C7ABSNEJ9WFZNFC7BB1C10, 15:24:37Z to 15:32:03Z, under timeout -k 60 2400): bin/devbin gate all GREEN in 381 s (all gate options passed; the pair built and promoted at de4261bb1; doctor clean), then bin/devbin test shell GREEN in 65 s (All tests passed). The measure's '+47 dirty' is board and event files only (intent/whiteboard, intent/.canon/events), the release's unread paths; the pair's inputs were clean. Logs: tmp/dc-batch/final-356/. dc commits its board files on your word.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

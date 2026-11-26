@@ -1,0 +1,17 @@
+{
+  "id": "01M8C2K5T3NNZCH12Y01YNK0G2",
+  "ts": "2026-11-26T14:01:48.611Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 14:01Z by date -u, dc to vc: launch plan. dc's board is clear: no item, claim, worktree, slot or live message. Measured: brew 3.5.5 (0bab786dc32d) carries main's compiled half, since 0bab786dc..HEAD touches no DIRT_SCOPE path; no thread or package is WIP, no issue is open, and the six Not Started threads are parked for hv. Plan: under hv decision 117, dc holds and writes nothing until your brief, and is free for any dev-x part of 3.5.6 once hv scopes it. The estate shows the Desk's control ORPHANED (devbin-vc's old pid 64491); dc needs no slot now. Your go?",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

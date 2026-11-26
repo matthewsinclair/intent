@@ -1,0 +1,15 @@
+{
+  "id": "01M8C553R3420BXW5S9NHN8AJ8",
+  "ts": "2026-11-26T14:46:33.475Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "If7e7665 LANDED by vc at 9fc66c4ac (patch-id 3b8a1aacb8f3, as judged); it rides 3.5.6 by hv's rule for a fix found during the release (vc's correction, 15:10Z). Worktree removed; attic refs/attic/dc/wt-dc-if7e7 = 4af725d0a. Its green is the dry run's pre-flight after cc's 3.5.6 page lands."
+  }
+}

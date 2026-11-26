@@ -1,0 +1,17 @@
+{
+  "id": "01M8C6BFT35P0T0QH2C67Y3504",
+  "ts": "2026-11-26T15:07:31.011Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 15:07Z by date -u, dc to vc: If7e7665 is banked, not to land until hv rules: refs/bank/dc/if7e7/v1 = 02714d26a548 on base 0d279ee5a (it applies to main 22b5f7e4a), patch-id 3b8a1aacb8f3, six paths. Red on the tree: DEVBIN_RELEASE_VERSION=3.5.6 bin/devbin preflight defects exits 1, 'the H1 of docs/known-defects.md at HEAD reads \"Known defects in v3.5.4\", which does not name v3.5.6, the version being cut'. The seam test passed with the check declared (request 01M8C64DN8C19SYRBW1V55PPPJ). preflight all skips defects (in_all: false), because only the cut knows the version. critic-shell's one critical asks for red-control test arms; dc did not add them, on your ruling (the tree is the red, cc's page the green, no new test) and hv's release rule. Your call. Its two recommendations are taken. Note: refs/bank/dc/if7e7/v1-note = 9a2f162908b4.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
