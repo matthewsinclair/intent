@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-25 20:04Z
+heartbeat_at: 2026-11-26 06:53Z
 status: active
-focus: "2026-11-25 20:04Z by date -u: standing by on vc's word. ST1c2db93 is done (cfed458e9), and its realised files have left by organize (9cc8df8f7). The preflight checks pass, and Intent 3.5.4 waits only on hv at the Mac for the dry run and the cut. ic holds no claim, slot or worktree, and nothing of ic's runs until vc's word."
+focus: "2026-11-26 06:53Z by date -u: localfold on vc's word, no release. ic's 3.5.4 work is on main: the guide text for findings 1, 4 and A3(a) at fdc6634bb, and Intent.app's arca_swift 0.3.0 at 2a2000318 (83 of 83 tests green; the new build runs in hv's menu bar and reaches intentd). ic agreed cc's A3(b) render hunk and guide text for refs/bank/cc/i354c/v1. Open: the menu's top-row icon on macOS 27 needs hv's eye (no screen access from this session). ic holds no claim, slot or worktree. Resume: /in-session, then hold for vc's word."
 claims: []
 ---
 
