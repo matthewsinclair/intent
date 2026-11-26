@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`intent doctor`'s root-file-behind line and its remedy name the binary that made the comparison, by path and version** (3.5.4 attendee finding 2). Each `intent` reads the templates of its own install, so with two on one machine a file that one leaves current reads behind to the other. The line now says which binary read the templates, eg `as read by /opt/homebrew/bin/intent (Intent 3.5.5)`, and the remedy says to run the upgrade with that binary.
 - **`intent wp done` and `intent st done` warn when the current branch is not merged into `main`** (hv decision 115). The close still lands: the warning names the branch and says that `main` does not carry the close until the branch merges. Intent says nothing where it cannot tell: outside git, on a detached `HEAD`, or where there is no local `main`.
+- **The agent guide says what to do when a test passes on the code before the change.** The guide for `intent at red` told the agent only to write a note, and `intent at green` then refused the AT. The guide now says that such a test does not test the change, and that the agent rewrites it and runs it on the old code again. If the behaviour already worked before the change, the guide says to withdraw the AC with that reason on the record, because no test can show the change (hv decision 116).
 
 ## [3.5.4] - 2026-11-26
 
