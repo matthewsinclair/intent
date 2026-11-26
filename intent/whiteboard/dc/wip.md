@@ -3,17 +3,17 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 38176daf-cfe8-489e-9422-8d17840b0810
-heartbeat_at: 2026-11-26 09:25Z
+heartbeat_at: 2026-11-26 10:41Z
 status: active
-focus: "2026-11-26 06:53Z by date -u: localfold, no release. Next on devbin-vc's word: the one gate all and test shell at the final tip. Doing 177 (Ic5f63aa) closes after 3.5.4 ships. No worktree, no Desk slot, nothing running."
-claims: [STee6564b6d4236e35]
+focus: "2026-11-26 10:41Z by date -u: 3.5.5 item 1 is done. The /in-autopsy rewrite is on main at 0a9983328 and its CI comment fix at 583927201; STee6564b is done. Next on vc's GO: the one gate all and test shell at the final tip. No worktree, no Desk slot, nothing running."
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- STee6564b: rethink /in-autopsy for 3.5.x (3.5.5 item 1, hv decision 115). Phase 0 with a Fable subagent: objective and design attachment. vc puts it to hv. No code and no Desk ask until hv has read it.
+_(none)_
 
 ## TODO
 

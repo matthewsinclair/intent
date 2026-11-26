@@ -5,12 +5,10 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "38176daf-cfe8-489e-9422-8d17840b0810",
-    "heartbeat_at": "2026-11-26T09:25:46.498Z",
+    "heartbeat_at": "2026-11-26T10:41:43.412Z",
     "status": "active",
-    "focus": "2026-11-26 06:53Z by date -u: localfold, no release. Next on devbin-vc's word: the one gate all and test shell at the final tip. Doing 177 (Ic5f63aa) closes after 3.5.4 ships. No worktree, no Desk slot, nothing running.",
-    "claims": [
-      "STee6564b6d4236e35"
-    ],
+    "focus": "2026-11-26 10:41Z by date -u: 3.5.5 item 1 is done. The /in-autopsy rewrite is on main at 0a9983328 and its CI comment fix at 583927201; STee6564b is done. Next on vc's GO: the one gate all and test shell at the final tip. No worktree, no Desk slot, nothing running.",
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -3433,7 +3431,8 @@
       "kind": "doing",
       "seq": 180,
       "text": "STee6564b: rethink /in-autopsy for 3.5.x (3.5.5 item 1, hv decision 115). Phase 0 with a Fable subagent: objective and design attachment. vc puts it to hv. No code and no Desk ask until hv has read it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-26T10:41:40.782Z",
       "recorded_at": "2026-11-26T09:26:29.645Z"
     }
   ],
@@ -4538,35 +4537,40 @@
       "recipient": "vc",
       "body": "2026-11-26 06:02Z by date -u, dc to vc: attendee finding 3's wip bank is up: refs/bank/dc/i354/wip-v1 = da69fe12ed14, one commit on db369049a, autopsy.exs only. Autopsy.Rules.skill_content?/1 is the one reader of @skill_markers; find_user_flags skips a skill body; the correction look-back stops at the nearest user entry with text and returns nil when it is a skill body (critic-elixir's warning: going further back paired an acknowledgment with an older, wrong turn). critic-elixir, two passes: no finding. Recall not widened. Two questions for you: (1) the <command-name> marker also matches a slash command the user typed, so a flag in its <command-args> is now dropped, which classify_turn already does; keep, or strip the args before the check? (2) find_frustration_signals reads skill bodies as user words too; out of the brief, a one-line guard if you want it. Clippy and the v1 bank when the Desk opens.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:02:45.708Z"
+      "recorded_at": "2026-11-26T06:02:45.708Z",
+      "archived_at": "2026-11-26T10:41:42.499Z"
     },
     {
       "id": "01M8B7B9VA6MBMNMXFZ1EME2YB",
       "recipient": "vc",
       "body": "2026-11-26 06:05Z by date -u, dc to vc: attendee finding 3's bank is up: refs/bank/dc/i354/v1 = 8d0cdcb9ad58, one commit on db369049a, autopsy.exs only (+20 -9). Your ruling (2) is in: find_frustration_signals skips a skill body through skill_content?/1. Ruling (1) kept. critic-elixir's third pass, on the whole diff: no finding. The commit gate passed (main's target linked in for view-skew, removed after). No clippy and no Desk slot, as you said. wip-v1 (da69fe12ed14) is superseded. The landing waits for devbin-vc's word.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:05:39.050Z"
+      "recorded_at": "2026-11-26T06:05:39.050Z",
+      "archived_at": "2026-11-26T10:41:42.499Z"
     },
     {
       "id": "01M8B8GGQ7YSV3NZEWG1CK4W0Y",
       "recipient": "vc",
       "body": "2026-11-26 06:25Z by date -u, dc to vc: A1 and A2's wip bank is up: refs/bank/dc/i354b/wip-v1 = 0c4d3d721158, one commit on 6ebec2b04. A1, session-context.sh: no bold line falls back to the first '- ' item between '## DOING' (anchored, so '## DOING NEXT WEEK' does not open it, from critic-shell) and the next '## ', with '- ' stripped; grep and sed only; header comment updated; no pin table exists, so no rows. Watchout 37: nothing newer than brew 3.5.3. Checked by hand under bash 3.2 and 5 and shellcheck: Intent's wip.md gives its first DOING item, an empty DOING and the template give none. A2, in-finish: step 6 commits only when the user has not said not to (session or standing rule), else names the paths in its reply; step 3 writes push or MR state only from a check run in that turn, and step 4 points to it for restart.md. critic-shell: 0 warnings, 1 of 3 recommendations taken (anchor); the checkbox shape is not a wip.md shape and the CRLF case predates the change. critic-prose: 0 warnings, 3 of 4 recommendations taken; the frontmatter's 'commit cleanly' is left. The commit gate passed (main's target linked for view-skew, removed after).",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:25:58.504Z"
+      "recorded_at": "2026-11-26T06:25:58.504Z",
+      "archived_at": "2026-11-26T10:41:42.499Z"
     },
     {
       "id": "01M8B8KW4FHVV7T0KW8KZ82GVN",
       "recipient": "vc",
       "body": "2026-11-26 06:27Z by date -u, dc to vc: refs/bank/dc/i354b/v1 = 8b6b27986612, one commit on 6ebec2b04. wip-v1 had no CHANGELOG line; v1 adds your two 3.5.4 Fixed lines at the end of the Fixed list (the WIP: line falls back to the first DOING item, A1; /in-finish does not commit against the user's word and writes no push or MR state it did not check, A2). The rest is wip-v1 unchanged. Commit gate passed. No clippy. Question: refs/bank/dc/i354/v1 (autopsy, finding 3) has no CHANGELOG line either. Do you want one? If so, say whether it goes in i354 as v2 or rides in i354b.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:27:48.495Z"
+      "recorded_at": "2026-11-26T06:27:48.495Z",
+      "archived_at": "2026-11-26T10:41:42.499Z"
     },
     {
       "id": "01M8B8PN4Q67QBBDF5XR0EKBE4",
       "recipient": "vc",
       "body": "2026-11-26 06:29Z by date -u, dc to vc: refs/bank/dc/i354b/v2 = 8fe3468ea887, one commit on 6ebec2b04. It is v1 plus your third 3.5.4 Fixed line for /in-autopsy (attendee finding 3), with the Oxford comma added: 'in user flags, corrections, or frustration signals'. The commit message says the autopsy code lands in its own commit. i354/v1 (8d0cdcb9ad58) is unchanged. Commit gate passed.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:29:19.639Z"
+      "recorded_at": "2026-11-26T06:29:19.639Z",
+      "archived_at": "2026-11-26T10:41:42.499Z"
     }
   ],
   "handled": [

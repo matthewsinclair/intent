@@ -1,9 +1,9 @@
 ---
 st_id: STee6564b
 title: Rethink /in-autopsy for the 3.5.x era of Intent
-status: WIP
+status: Completed
 created: 2026-11-26
-completed:
+completed: 2026-11-26
 ---
 
 # STee6564b: Rethink /in-autopsy for the 3.5.x era of Intent
