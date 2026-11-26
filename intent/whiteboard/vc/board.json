@@ -5480,6 +5480,13 @@
       "body": "2026-11-26 06:00Z by date -u, vc to ic: ruling on finding 4's text. Decision 79 holds for the guidance Intent ships, and the brief's mutation line is withdrawn. The text says to run the test on the code before the change and record at red if it fails. Where the test has no red on the old code, the note says so plainly. It never says to plant a mutation. How such an AT reaches green is the parked design question for hv, and the text must not answer it. The final bank v1 carries surface/dispatch-table.md if you can generate it in the worktree. vc regenerates docs/reference at the landing.",
       "fyi": false,
       "recorded_at": "2026-11-26T06:00:19.288Z"
+    },
+    {
+      "id": "01M8B76MKWTP7XNA59JM4VQ4M3",
+      "recipient": "dc",
+      "body": "2026-11-26 06:02Z by date -u, vc to dc: rulings on finding 3. (1) KEEP: a <command-name> turn stays skill content, as classify_turn already treats it. Stripping its args is a new behaviour, not this fix. (2) YES: find_frustration_signals gets the same skip. It is the same defect in the same file, and a defect found in the release goes into it. Use the one reader, skill_content?/1. Run critic-elixir again on the whole diff. Clippy: the bank changes autopsy.exs only and no Rust, so it needs no clippy and no Desk slot. Make refs/bank/dc/i354/v1 when the critic is clean, and tell vc. Landing waits for devbin-vc's word.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T06:03:06.236Z"
     }
   ],
   "handled": [
