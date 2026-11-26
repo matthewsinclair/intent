@@ -9,8 +9,9 @@
 #   which the wip.md template leads with the thread id as Intent printed it, of
 #   either id family. No id pattern is read, so a git-style id whose hex opens
 #   with a letter is found as an ordinal is. The template's unfilled
-#   `**<thread id>` placeholder is skipped, and a wip.md with no other bold
-#   line yields no `WIP:` line.
+#   `**<thread id>` placeholder is skipped. A wip.md with no other bold line
+#   gives the first list item under its `## DOING` heading, without the `- `.
+#   A wip.md with neither yields no `WIP:` line.
 #
 # Contract:
 #   - Invoked by `.claude/settings.json` SessionStart hook.
@@ -47,8 +48,16 @@ fi
 wip_summary=""
 wip_file="$project_dir/intent/wip.md"
 if [ -f "$wip_file" ]; then
+  wip_line="$(grep -m1 -E '^\*\*[^*<[:space:]]' "$wip_file" 2>/dev/null || true)"
+  if [ -z "$wip_line" ]; then
+    # The first `- ` item between `## DOING` and the next `## ` heading.
+    wip_line="$(
+      sed -n -e '/^## DOING[[:space:]]*$/,/^## /{' -e '/^- /{' -e 's/^- //p' -e 'q' -e '}' -e '}' \
+        "$wip_file" 2>/dev/null || true
+    )"
+  fi
   wip_summary="$(
-    grep -m1 -E '^\*\*[^*<[:space:]]' "$wip_file" 2>/dev/null \
+    printf '%s\n' "$wip_line" \
       | sed -e 's/\*\*//g' -e 's/  */ /g' \
       | cut -c1-160 \
       || true

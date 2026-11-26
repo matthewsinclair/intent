@@ -47,6 +47,8 @@ Finished work already has homes that outlive the session and cannot rot -- the c
 
 The test before you write a line here: **would this line still be true if the work were abandoned tomorrow?** DOING and TODO survive that question. _What was accomplished_ does not -- it is a claim about the past, and `wip.md` is not a log.
 
+**Write a branch's push or merge request (MR) state only from a check you ran in this turn**, eg `git status -sb`, `git ls-remote`, or the forge's CLI (`gh pr view`, `glab mr view`). If you did not run one, leave the push or MR state out of `wip.md`. A state from memory or from an earlier turn can be wrong when you write it.
+
 ### 4. Update restart context, where the project keeps one
 
 Where the project keeps an `intent/restart.md`, update it with:
@@ -54,6 +56,8 @@ Where the project keeps an `intent/restart.md`, update it with:
 - Key context the next session needs
 - Any decisions made or deferred
 - Pointers to relevant files and STs
+
+The rule in step 3 for a branch's push or MR state applies here too, for `restart.md`.
 
 A `.claude/restart.md`, where the project keeps one, is the ENTRY POINT and holds NO STATE: it says where to start and points at the files above. Leave it alone unless the entry procedure itself changed. One fact in two of these files gets two values, so if you find yourself writing a supersedes banner, delete what it supersedes instead.
 
@@ -64,7 +68,7 @@ A `.claude/restart.md`, where the project keeps one, is the ENTRY POINT and hold
 
 ### 6. ONLY update .md doc files
 
-Do NOT write new code during session finish. This step is documentation only. Commit the documentation updates, exactly the paths the verbs you ran printed, as `/in-essentials` says.
+Do NOT write new code during session finish. This step is documentation only. If the user said not to commit, in this session or in a standing rule, do not commit: name the paths in your reply and leave them uncommitted. Otherwise, commit the documentation updates, exactly the paths the verbs you ran printed, as `/in-essentials` says.
 
 ## Skill Chain
 
