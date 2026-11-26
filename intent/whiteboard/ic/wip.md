@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-26 09:25Z
+heartbeat_at: 2026-11-26 10:44Z
 status: active
-focus: "2026-11-26 07:04Z by date -u: holding for vc's word. ic's 3.5.4 work is landed (fdc6634bb, 2a2000318), and A3(b)'s render hunk is agreed. ic holds no claim, slot or worktree."
+focus: "2026-11-26 10:44Z by date -u: localfold for hv's compact (cycle 5), not released. Hold until vc gives the word after the 3.5.5 gate. ic's 3.5.5 item 2 is on main at b15ac0839, and items 3 and 4 texts are agreed. ic holds no claim, slot or worktree."
 claims: []
 ---
 

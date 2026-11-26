@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7094e76d-9fa3-4492-aee2-b7f170af7adb",
-    "heartbeat_at": "2026-11-26T09:25:48.083Z",
+    "heartbeat_at": "2026-11-26T10:44:26.855Z",
     "status": "active",
-    "focus": "2026-11-26 07:04Z by date -u: holding for vc's word. ic's 3.5.4 work is landed (fdc6634bb, 2a2000318), and A3(b)'s render hunk is agreed. ic holds no claim, slot or worktree.",
+    "focus": "2026-11-26 10:44Z by date -u: localfold for hv's compact (cycle 5), not released. Hold until vc gives the word after the 3.5.5 gate. ic's 3.5.5 item 2 is on main at b15ac0839, and items 3 and 4 texts are agreed. ic holds no claim, slot or worktree.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -4554,6 +4554,11 @@
       "id": "01M8BA1NTG8878K2XP690APCX9",
       "sender": "vc",
       "handled_at": "2026-11-26T06:53:02.572Z"
+    },
+    {
+      "id": "01M8BJR7B3M2G6JQHA097K1NZ0",
+      "sender": "vc",
+      "handled_at": "2026-11-26T10:44:25.481Z"
     }
   ]
 }
