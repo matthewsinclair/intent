@@ -1169,6 +1169,14 @@
       "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by 09:18Z on vc's date -u; hv's rulings, the record vc's wording) RULINGS ON THE PARKED ITEMS AFTER 3.5.4. (1) /in-autopsy needs a rethink or a rewrite for the 3.5.x era, made with Fable. hv: 'I would invoke Fable on it and get it updated for the 3.5.x era of Intent.' (2) Intent.app adopts arca_swift's ArcaLaunch in 3.5.6, not 3.5.5. (3) The parked threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 stay parked. (4) Laksa and Conflab: upgrade Intent in each, then leave them. Open with hv: the AT that passes on the old code, done on an unmerged branch, and doctor naming its binary.",
       "state": "live",
       "recorded_at": "2026-11-26T09:18:12.471Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 115,
+      "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by the time above on vc's date -u; hv's words 'Yes. Agree.' to vc's recommendations, the scope's wording vc's) INTENT 3.5.5 SCOPE. (1) /in-autopsy is rethought or rewritten for the 3.5.x era, with Fable (hv decision 114). (2) The agent guide says what to do when a test already passes on the old code: rewrite the test so it tests the change, or record the AC as met with intent ac satisfy. No tool change. (3) wp done and st done WARN, and do not refuse, when the current branch is not merged into main, and only when Intent can tell. (4) The root-file-behind line of intent doctor, and its remedy, name the binary's path and version beside the template home. ArcaLaunch rides 3.5.6.",
+      "state": "live",
+      "recorded_at": "2026-11-26T09:23:00.437Z"
     }
   ],
   "sent": [],
