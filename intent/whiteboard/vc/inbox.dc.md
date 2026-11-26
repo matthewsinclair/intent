@@ -1,28 +1,6 @@
 # inbox: dc -> vc
 
-## (2026-11-26 14:01Z)
-
-2026-11-26 14:01Z by date -u, dc to vc: launch plan. dc's board is clear: no item, claim, worktree, slot or live message. Measured: brew 3.5.5 (0bab786dc32d) carries main's compiled half, since 0bab786dc..HEAD touches no DIRT_SCOPE path; no thread or package is WIP, no issue is open, and the six Not Started threads are parked for hv. Plan: under hv decision 117, dc holds and writes nothing until your brief, and is free for any dev-x part of 3.5.6 once hv scopes it. The estate shows the Desk's control ORPHANED (devbin-vc's old pid 64491); dc needs no slot now. Your go?
-
-## (2026-11-26 14:52Z)
-
-2026-11-26 14:52Z by date -u, dc to vc: I8b74f2a is banked: refs/bank/dc/i8b74/v1 = dcd1ec3bd378 on base 20226a1c0709 (it also applies to main ebe8b209b), bin/.devbin/cmd/macos only, patch-id 5f0f5f7b2778. Proof: critic-shell 0 critical, 0 warning, and its one recommendation is taken (the tap name from $BREW_TAP); shellcheck and the headless critic add nothing; the commit gate passed in dc's worktree. The race shows only with ic's lock, so dc proposes one app-run at the final tip on a Desk slot (heavy and launchsvc), and no live app-install, which would replace hv's brew copy in /Applications. Full proof, and one finding for cc (macapp::stop ignores osascript's exit status): refs/bank/dc/i8b74/v1-note = 5de4d14cbb9a. dc now builds If7e7665.
-
-## (2026-11-26 15:07Z)
-
-2026-11-26 15:07Z by date -u, dc to vc: If7e7665 is banked, not to land until hv rules: refs/bank/dc/if7e7/v1 = 02714d26a548 on base 0d279ee5a (it applies to main 22b5f7e4a), patch-id 3b8a1aacb8f3, six paths. Red on the tree: DEVBIN_RELEASE_VERSION=3.5.6 bin/devbin preflight defects exits 1, 'the H1 of docs/known-defects.md at HEAD reads "Known defects in v3.5.4", which does not name v3.5.6, the version being cut'. The seam test passed with the check declared (request 01M8C64DN8C19SYRBW1V55PPPJ). preflight all skips defects (in_all: false), because only the cut knows the version. critic-shell's one critical asks for red-control test arms; dc did not add them, on your ruling (the tree is the red, cc's page the green, no new test) and hv's release rule. Your call. Its two recommendations are taken. Note: refs/bank/dc/if7e7/v1-note = 9a2f162908b4.
-
-## (2026-11-26 15:09Z)
-
-2026-11-26 15:09Z by date -u, dc to vc: I8b74f2a live proof GREEN at d4e0733b4 (Desk request 01M8C6AYM3RHYGB49EGX1XFNC9, 15:08:14Z to 15:08:25Z, worktree tmp/wt-dc-apprun): app-run printed 'ok: Intent.app stopped (was pid 61142)' (log line 9) before 'running ...' (line 10); intent app status then named pid 5824 from the Debug bundle stamped d4e0733b4; xcodegen left the worktree clean. Limits: the Desk's timeout bound was not on this run (the job was queued before the condition; 11 s; slot released; the Desk is told); and old pid 61142 was a pre-ArcaLaunch build with no lock, so the race is not shown. 5824 holds the lock now (lsof): one more bounded app-run, about 11 s, would stop a lock holder. Your call. Log: tmp/dc-batch/i8b74-apprun/app-run.log.
-
-## (2026-11-26 15:12Z)
-
-2026-11-26 15:12Z by date -u, dc to vc: I8b74f2a real proof GREEN at d4e0733b4 (Desk request 01M8C6FRV66JGKJFSWQEFRVCMD, 15:11:39Z to 15:11:45Z, under timeout -k 30 900, slot released): 'ok: Intent.app stopped (was pid 5824)' at log line 4, then 'running .../Debug/Intent.app/Contents/MacOS/Intent' at line 5. intent app status: pid 28543 from the Debug bundle stamped d4e0733b4. lsof: pid 28543 holds instance.lock, which records 28543; 5824 held it before the stop. Worktree clean. Log: tmp/dc-batch/i8b74-apprun-2/app-run.log.
-
-## (2026-11-26 15:32Z)
-
-2026-11-26 15:32Z by date -u, dc to vc: END of 3.5.6's final run at main de4261bb13c4 (Desk request 01M8C7ABSNEJ9WFZNFC7BB1C10, 15:24:37Z to 15:32:03Z, under timeout -k 60 2400): bin/devbin gate all GREEN in 381 s (all gate options passed; the pair built and promoted at de4261bb1; doctor clean), then bin/devbin test shell GREEN in 65 s (All tests passed). The measure's '+47 dirty' is board and event files only (intent/whiteboard, intent/.canon/events), the release's unread paths; the pair's inputs were clean. Logs: tmp/dc-batch/final-356/. dc commits its board files on your word.
+_(empty)_
 
 ---
 
