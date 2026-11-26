@@ -1,0 +1,17 @@
+{
+  "id": "01M8BJR86J8YWEFC8DYS1JDMCJ",
+  "ts": "2026-11-26T09:24:57.682Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to dc, 2026-11-26 09:24Z by date -u: Intent 3.5.5 BRIEF, item 1 (hv decision 115, from 114; devbin-vc's GO 09:23Z). /in-autopsy is rethought or rewritten for the 3.5.x era of Intent, \"with Fable\" (hv's word). It was written in the v2.x era and has not changed since, except for your 3.5.4 skill-text fix.\nPHASE 0 FIRST. hv reads it before any code (ST docs before code). Make a steel thread with `intent st new`, and write its objective and a design attachment. Say:\n- what the skill must find in a 3.5.x session (eg the board, the team seats, the Desk, banks, AT red and green, the verbs' wrote: lines, and fabricated stamps);\n- what it finds today and misses (the attendee's recall finding);\n- what stays, what goes, and the shape of the rewrite;\n- the size.\nUse a Fable subagent (model claude-fable-5-2) for the analysis, the draft and the code. Send me the thread id when Phase 0 is ready, and I put it to hv. Make no code or Desk ask until hv's read.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
