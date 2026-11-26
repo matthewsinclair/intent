@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`intent doctor`'s root-file-behind line and its remedy name the binary that made the comparison, by path and version** (3.5.4 attendee finding 2). Each `intent` reads the templates of its own install, so with two on one machine a file that one leaves current reads behind to the other. The line now says which binary read the templates, eg `as read by /opt/homebrew/bin/intent (Intent 3.5.5)`, and the remedy says to run the upgrade with that binary.
+
 ## [3.5.4] - 2026-11-26
 
 ### Fixed

@@ -136,6 +136,24 @@ fn a_root_file_off_its_template_is_reported_uncounted_until_an_apply_lands_it() 
     "CLAUDE.md's line says its project block is carried across: {}",
     detail("CLAUDE.md")
   );
+  // 3.5.5 item 4: two `intent`s read two template sets, so the line and its
+  // remedy name the binary that compared, by path and version.
+  let binary = format!(
+    "{} (Intent {})",
+    std::env::current_exe()
+      .expect("this test's own path")
+      .display(),
+    intentsvcs::VERSION
+  );
+  for f in &found {
+    assert!(
+      f.detail.contains(&binary) && f.remedy().contains(&binary),
+      "{}'s line and remedy name the binary that compared, {binary}: {} / {}",
+      f.file,
+      f.detail,
+      f.remedy()
+    );
+  }
   assert_eq!(
     (stale.actionable(), stale.exit_code()),
     (quiet.actionable(), quiet.exit_code()),

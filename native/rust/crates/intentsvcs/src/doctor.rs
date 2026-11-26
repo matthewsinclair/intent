@@ -2921,10 +2921,19 @@ fn root_file_findings(project: &Project, ctx: &RenderContext<'_>) -> Vec<Finding
       format!("the root files were not compared with their templates: {cause}"),
     )]
   };
-  let home = match crate::install::home() {
+  // The binary is named beside its templates (3.5.5 item 4, attendee finding
+  // 2): `install::home` resolves from the running binary, so two `intent`s
+  // on one machine compare against two template sets, and a file one leaves
+  // current the other reads behind.
+  let exe = match std::env::current_exe() {
+    Ok(exe) => exe,
+    Err(e) => return unchecked(crate::install::InstallError::Exe(e).to_string()),
+  };
+  let home = match crate::install::resolve(&exe) {
     Ok(home) => home,
     Err(e) => return unchecked(e.to_string()),
   };
+  let binary = format!("{} (Intent {})", exe.display(), crate::VERSION);
   let hooks = crate::canon::hooks_dir(root);
   let render = RenderContext {
     version: ctx.version,
@@ -2960,12 +2969,16 @@ fn root_file_findings(project: &Project, ctx: &RenderContext<'_>) -> Vec<Finding
         project.relative(&w.path),
         FindingClass::RootFileBehind,
         format!(
-          "differs from what the templates in {} would write -- {} {}",
+          "differs from what the templates in {} would write, as read by {binary} -- {} {}",
           home.display(),
           upgrade_door(root, &w.path),
           w.keeps.clause()
         ),
       )
+      .with_remedy(format!(
+        "{}. Run it with {binary}, the binary that made this comparison: another `intent` reads the templates of its own install",
+        FindingClass::RootFileBehind.remedy()
+      ))
     })
     .collect()
 }
