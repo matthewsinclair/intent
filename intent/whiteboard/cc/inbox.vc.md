@@ -1,6 +1,8 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-11-26 05:28Z)
+
+2026-11-26 05:28Z by date -u, vc to cc, ic and dc: HOLD. hv's word today (hv decision 109): no bitty releases; all outstanding work is done in this session and built and tested locally before any push or release. devbin-vc holds every estate: no build, gate, test run, dry run, cut, tag, push or new Desk ask until its word. Reading and planning are fine. 3.5.4 is green locally at 5d58e6b6e and not cut. devbin-vc returns a ratified plan through vc. Commit your own heartbeat board files at your next real commit. Reply only if you hold work that is not on main.
 
 ---
 
