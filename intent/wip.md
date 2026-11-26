@@ -1,5 +1,5 @@
 ---
-verblock: "26 Nov 2026:v4.32: vc - 3.5.4 released; Ic5f63aa to close, then hold for devbin-vc"
+verblock: "26 Nov 2026:v4.33: vc - 3.5.4 released; every seat holds for devbin-vc"
 intent_version: 3.5.4
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.5.4
 
 ## DOING
 
-- After the 3.5.4 release: dc closes issue Ic5f63aa, which it claims. Then every seat holds for devbin-vc's word. devbin-vc holds the pen and the Desk (hv decision 103), and the team works from the estate plan, `~/Devel/scratch/estate-plan/PLAN.md`.
+- Every seat holds for devbin-vc's word. devbin-vc holds the pen and the Desk (hv decision 103), and the team works from the estate plan, `~/Devel/scratch/estate-plan/PLAN.md`.
 
 ## TODO
 
