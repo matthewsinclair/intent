@@ -308,6 +308,8 @@ defmodule Autopsy.Corrections do
 
     messages
     |> Enum.filter(&(&1["type"] == "user"))
+    # A skill's body holds no words the user typed, so it gives no signal.
+    |> Enum.reject(&Autopsy.Rules.skill_content?(Autopsy.Parser.message_text(&1)))
     |> Enum.flat_map(fn msg ->
       text = Autopsy.Parser.message_text(msg)
       line = msg["_line"]
@@ -344,13 +346,14 @@ defmodule Autopsy.Corrections do
       text = Autopsy.Parser.message_text(msg)
       line = msg["_line"]
 
-      # Skip tool_result messages (they contain content from system, not user)
+      # Skip tool results and skill bodies: neither holds words the user typed.
       content = get_in(msg, ["message", "content"])
 
       is_tool_result =
         is_list(content) and Enum.any?(content, &(is_map(&1) and &1["type"] == "tool_result"))
 
-      if not is_tool_result and Enum.any?(@user_flag_patterns, &Regex.match?(&1, text)) do
+      if not is_tool_result and not Autopsy.Rules.skill_content?(text) and
+           Enum.any?(@user_flag_patterns, &Regex.match?(&1, text)) do
         [
           %{
             "session_id" => session.session_id,
@@ -371,13 +374,18 @@ defmodule Autopsy.Corrections do
     Enum.any?(@acknowledgment_patterns, &Regex.match?(&1, text))
   end
 
+  # The nearest user turn with text is the one the acknowledgment answers. When
+  # that turn is a skill body, nothing the user typed is answered, so there is
+  # no correction: the look-back does not go further back to an older turn.
   defp find_preceding_user_message(messages, assistant_idx) do
-    messages
-    |> Enum.take(assistant_idx)
-    |> Enum.reverse()
-    |> Enum.find(fn msg ->
-      msg["type"] == "user" and has_text_content?(msg)
-    end)
+    nearest =
+      messages
+      |> Enum.take(assistant_idx)
+      |> Enum.reverse()
+      |> Enum.find(&(&1["type"] == "user" and has_text_content?(&1)))
+
+    if nearest && not Autopsy.Rules.skill_content?(Autopsy.Parser.message_text(nearest)),
+      do: nearest
   end
 
   defp has_text_content?(msg) do
@@ -553,11 +561,14 @@ defmodule Autopsy.Rules do
   @compaction_markers ~r/This session is being continued|<compacted-conversation/i
   @skill_markers ~r/Base directory for this skill|<command-name>|<command-message>/
 
+  @doc "True when the text is a skill's body or a slash command's wrapper, which no person typed."
+  def skill_content?(text) when is_binary(text), do: Regex.match?(@skill_markers, text)
+
   defp classify_turn(text) do
     cond do
       Regex.match?(@peer_markers, text) -> "peer_message"
       Regex.match?(@compaction_markers, text) -> "compaction"
-      Regex.match?(@skill_markers, text) -> "skill_content"
+      skill_content?(text) -> "skill_content"
       Regex.match?(@reminder_markers, text) -> "system_reminder"
       true -> "authored"
     end
