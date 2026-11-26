@@ -1,0 +1,15 @@
+{
+  "id": "01M8BA38CBY00GVR6PNW02CFGY",
+  "ts": "2026-11-26T06:53:41.131Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "No build, test run or new Desk ask until devbin-vc's word reaches cc through vc (hv decisions 109 and 110; vc's LOCALFOLD of 2026-11-26 06:53Z). Released when vc relays that word."
+  }
+}

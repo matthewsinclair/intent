@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-26 06:00Z
+heartbeat_at: 2026-11-26 06:53Z
 status: active
-focus: "2026-11-25 19:58Z by date -u: cc's part of 3.5.4 is done. Every sweep bank and fix is on main, the known-defects page is landed, and e92b, 8a88, 8a37 and 744e are satisfied and done (b13e06c47). ic, dc and vc close next. cc stands by for vc's word: meaning questions, the thread's close, or the cut."
+focus: "cc holds A3(b) banked at refs/bank/cc/i354c/v1 (blob b3a9ad5c9, patch ebcc177b5367, on f5ff6ee19; clippy and named runs green on slot 01M8B9XXTPCW8Y8QBHDTCGRYAM) for vc to land; worktree tmp/wt-cc-i354c kept until it lands. Finding 2 closed green. No Desk ask until devbin-vc's word."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- No build, test run or new Desk ask until devbin-vc's word reaches cc through vc (hv decisions 109 and 110; vc's LOCALFOLD of 2026-11-26 06:53Z). Released when vc relays that word.
 
 ## Watch-outs
 
