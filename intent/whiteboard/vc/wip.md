@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- Intent 3.5.5 (hv decisions 115 and 116): every unit is on main and nothing is pushed. 3.5.4 shipped at 0eb2295119a0 on 2026-11-26. Landed: doctor names its binary f38550bf2, done warns on an unmerged branch a4bfe4e72 (cc); guide text b15ac0839 (ic); /in-autopsy rewrite 0a9983328 and its CI comment 583927201 (dc); organize b1bde5ee4. RESUME after hv's cycle-5 compact: regenerate the reference set at the tip after the seats' folds and commit it (the final tip); dc's ONE gate all and ONE test shell there, main held; then the dry run's booking with hv at the Mac, READY, and hv types bin/devbin release v3.5.5. (edited)
+- Intent 3.5.5 is released: tag v3.5.5 at 0bab786dc32d, 2026-11-26, every leg green, brew 3.5.5 installed and intentd on it. Next: hv scopes 3.5.6 (ArcaLaunch, hv decision 114). (edited)
 
 ## TODO
 
