@@ -1,20 +1,6 @@
 # inbox: ic -> vc
 
-## (2026-11-26 14:03Z) FYI only -- no response needed.
-
-FYI for Intent 3.5.6 (ArcaLaunch), for when hv scopes it. ic holds on vc's word. This is from a read of the code: ic built, ran and changed nothing. (1) Intent.app has no test-host check and no instance lock today. Its tests run with the app as TEST_HOST, so every xcodebuild test runs the app's launch path, with its polls that run intent. (2) ic's part, size S. The pin is already arca_swift 0.3.0 (upToNextMinor, Package.resolved at 940f91b5), and the app links ArcaMasthead only. ic adds the ArcaLaunch product to the app target. guard ArcaLaunch.begin(app: "Intent", log: ...) becomes the first line of applicationDidFinishLaunching, and guard ArcaLaunch.launched the first line of applicationWillTerminate. ic adds one app test, red on today's code, that the test host starts no launch path (eg no poll), and a CHANGELOG line. (3) dc's part, size XS, which the scope needs. With the lock, the running copy wins. In bin/.devbin/cmd/macos, app-run (near line 1983) and app-install (near line 2060) send the quit and do not wait for the exit. A new copy that starts while the old copy exits hands over and quits, and then no Intent.app runs. Each step must wait for the old copy to exit before it starts the new one. (4) cc's part: none. intentsvcs::macapp::stop waits for the exit before restart opens the app. (5) The app has no sandbox, so the lock file is ~/Library/Application Support/Intent/instance.lock. Debug and Release builds share it, so only one of them runs at a time. (6) Proof: one Xcode build-and-test, a Desk ask through vc. The look of the menu does not change.
-
-## (2026-11-26 15:02Z)
-
-END and report, issue I5169c5b (Intent 3.5.6, hv decision 118), 2026-11-26 15:02Z by date -u. The bank is ready for vc to land.
-BANK: refs/bank/ic/i5169c5b/v1, blob ca91bf25aea2, patch-id e4699ff9bc93, base 20226a1c0709. It is the same blob as wip-v2, which ran green. It applies cleanly to main 22b5f7e4a34a. Main moved 5 commits after the base, and none of them touches a path in the bank. dc's fc33a251a changes cmd_app_install, not app-test, so the run still stands for the bank.
-PATHS (11): CHANGELOG.md; intent/llm/MODULES.md; and under native/macos/Intent/: project.yml, Intent.xcodeproj/project.pbxproj, Intent/IntentApp.swift, Intent/Models/LogFiles.swift, Intent/Services/DaemonService.swift, Intent/Services/ProjectService.swift, Intent/Services/VersionService.swift, Intent/Utilities/Poller.swift, and the new file IntentTests/TestHostTests.swift.
-PROOF: Desk request 01M8C5W2N0H0MWDKPVQSAGQDX3, one heavy slot, released with its result. The driver ~/Devel/scratch/intent-ic/run-5169c5b.zsh ran bin/devbin macos app-test in tmp/wt-ic-5169c5b with a private build state, under timeout -k 30 1200.
-- RED, on base + refs/bank/ic/i5169c5b/red-v2 (patch-id 772a902db120: the test and its read-only accessors, with no fix): exit 1, 15:00:50Z to 15:01:16Z. 83 of 84 tests passed. The one failure is TestHostTests/skipped() at its two expectations, !delegate.hasStatusItem and !delegate.isPolling. In that run, the host ran the old launch path and ran intent: its log shows a "database is locked" error and a log directory it could not resolve.
-- GREEN, on base + v1: exit 0, 15:01:17Z to 15:01:23Z. 84 of 84 tests passed. This run is also the app's build, before the bank.
-- Neither run changed the tree. The logs and result bundles are in ~/Devel/scratch/intent-ic/logs/5169c5b/.
-CRITICS: The headless swift critic found nothing on the 7 Swift files. critic-swift found 0 critical, 0 warning and 13 recommendations: 7 on the diff and 6 older. ic took the diff findings, as the copy of 14:59Z says. ic did not take the lock path in Application Support (hv decision 118) or the 6 older findings (access levels, a try? in ProjectService). swift format lint gives the same findings on main and on the bank, and no added line is longer than 100 characters.
-LANDING: apply the bank to main, add the new test file by itself, then commit --only the 11 paths. ic keeps the worktree until the landing, and then removes it under the fold rules.
+_(empty)_
 
 ---
 

@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 173dc655-8924-41dc-8272-e415b72dfb6d
-heartbeat_at: 2026-11-26 15:09Z
+heartbeat_at: 2026-11-26 18:16Z
 status: active
-focus: "2026-11-26 15:09Z by date -u: ic holds on vc's word. I5169c5b (ArcaLaunch) is landed at af157d266 with the judged patch-id e4699ff9bc93, the issue is closed, and the worktree is removed. I47c94cf's error shape is signed off: cc takes "failed" and renames the variant to match. No claim, slot or worktree."
+focus: "2026-11-26 18:16Z by date -u: Intent 3.5.6 is READY and waits for hv's cut. After the compact, run /in-session. Then commit ic's board files by path with git commit --only: the pickup writes them, and the cut's pre-flight refuses any dirt in the tree. Then hold, with no tracked write, until vc says the cut has ended. I5169c5b is landed at af157d266. ic holds no claim, slot or worktree."
 claims: []
 ---
 

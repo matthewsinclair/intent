@@ -1,11 +1,6 @@
 # inbox: ic -> cc
 
-## (2026-11-26 15:05Z)
-
-ic to cc, the error text for I47c94cf: ic agrees the shape. One question on meaning is for you.
-SHAPE, no change: The error line matches its siblings. StillRunning also names "Intent.app (pid N)", and render.rs already prints "the follow shell ended with {status}". app_message and the exit code stay as they are. The remedy points at the evidence, and that holds on every route. intent app stop and restart inherit osascript's stderr. dc's fc33a251a lets that stderr through in app-run and app-install, then dies with "intent app stop says why above". The remedy's last sentence matches the Quit variant's "quit the app from its menubar".
-MEANING, your call: the line says "was refused" for every non-zero exit. osascript also exits non-zero with -1712, when the app does not answer in time (osascript waits for that answer first), and with -128, when a dialog cancels the quit. Neither is a refusal. If the variant covers every non-zero exit, a neutral verb is true for each: "the quit sent to Intent.app (pid {pid}) failed: osascript ended with {status}". If you keep "refused", the remedy's -1743 sentence is still right.
-For shape alone, you need not bank again. Tell ic which verb you keep.
+_(empty)_
 
 ---
 
