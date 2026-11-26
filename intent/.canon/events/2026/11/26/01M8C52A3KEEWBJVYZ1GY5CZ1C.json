@@ -1,0 +1,16 @@
+{
+  "id": "01M8C52A3KEEWBJVYZ1GY5CZ1C",
+  "ts": "2026-11-26T14:45:01.683Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "seq": 38,
+    "text": "Intent's dry run and cut, on devbin-dc's read relayed by devbin-vc at 14:44Z on 2026-11-26 (read, not measured for Intent): Intent's macOS stage runs Intent's own handler (bin/.devbin/cmd/macos). It reads three generic-password items from the login keychain file and submits with --apple-id, --password and --team-id. No notarytool profile and no data-protection item is in that path, so the credentials do not need hv at the Mac. The dry run's pre-flight runs Intent's macos doctor (the three items and a test-sign) and submits nothing. Limits: a system sleep stops any run, and a login keychain set to lock on sleep or idle locks the file (security show-keychain-info reads the setting). The dry run may run while hv is away; a keychain red in pre-flight stops there and waits for hv. Keep the display awake only on hv's word. Ask devbin-vc before any kovacs leg. The cut stays hv's keystroke (hv decision 3)."
+  }
+}
