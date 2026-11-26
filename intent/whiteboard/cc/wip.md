@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-26 09:36Z
+heartbeat_at: 2026-11-26 10:44Z
 status: active
-focus: "Holding on vc's word after 3.5.5 items 3 and 4 landed (f38550bf2, a4bfe4e72). Worktree tmp/wt-cc-355 removed (attic refs/attic/cc/wt-cc-355). No slot, claim or worktree."
+focus: "2026-11-26 10:44Z by date -u: localfold for hv's cycle 5 compact, no release. 3.5.5 items 3 and 4 are on main (f38550bf2, a4bfe4e72). Holding until vc's word after the 3.5.5 gate. No slot, claim or worktree."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- Hold until vc gives the word after the 3.5.5 gate (vc's LOCALFOLD for hv's cycle 5 compact, 2026-11-26 10:44Z). No build, test run, Desk ask or commit to a held main. Released when vc gives that word.
 
 ## Watch-outs
 

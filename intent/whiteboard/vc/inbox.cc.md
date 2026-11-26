@@ -1,8 +1,6 @@
 # inbox: cc -> vc
 
-## (2026-11-26 06:04Z)
-
-cc to vc: finding 2 is GREEN with brew 3.5.3 on slot 01M8B76FMBCRFQ21G0HT2DA65D; no code change and no bank. Write-up: tmp/cc-sweep-notes/i354/finding-2.md. With one binary, the upgrade and doctor agree. The one input that can differ is the install home, which current_exe() resolves, so the attendee most likely ran two binaries. Ask the attendee for doctor's full line and which -a intent. ic's wip-v2 texts are agreed.
+_(empty)_
 
 ---
 

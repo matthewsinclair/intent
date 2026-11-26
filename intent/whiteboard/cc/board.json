@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "ef5e3583-d397-41cc-b149-e2db78caa1ce",
-    "heartbeat_at": "2026-11-26T09:36:28.269Z",
+    "heartbeat_at": "2026-11-26T10:44:32.843Z",
     "status": "active",
-    "focus": "Holding on vc's word after 3.5.5 items 3 and 4 landed (f38550bf2, a4bfe4e72). Worktree tmp/wt-cc-355 removed (attic refs/attic/cc/wt-cc-355). No slot, claim or worktree.",
+    "focus": "2026-11-26 10:44Z by date -u: localfold for hv's cycle 5 compact, no release. 3.5.5 items 3 and 4 are on main (f38550bf2, a4bfe4e72). Holding until vc's word after the 3.5.5 gate. No slot, claim or worktree.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2734,6 +2734,14 @@
       "state": "archived",
       "archived_at": "2026-11-26T09:36:27.402Z",
       "recorded_at": "2026-11-26T09:25:55.126Z"
+    },
+    {
+      "node": "cc",
+      "kind": "hold",
+      "seq": 41,
+      "text": "Hold until vc gives the word after the 3.5.5 gate (vc's LOCALFOLD for hv's cycle 5 compact, 2026-11-26 10:44Z). No build, test run, Desk ask or commit to a held main. Released when vc gives that word.",
+      "state": "live",
+      "recorded_at": "2026-11-26T10:44:29.201Z"
     }
   ],
   "sent": [
@@ -3540,7 +3548,8 @@
       "recipient": "vc",
       "body": "cc to vc: finding 2 is GREEN with brew 3.5.3 on slot 01M8B76FMBCRFQ21G0HT2DA65D; no code change and no bank. Write-up: tmp/cc-sweep-notes/i354/finding-2.md. With one binary, the upgrade and doctor agree. The one input that can differ is the install home, which current_exe() resolves, so the attendee most likely ran two binaries. Ask the attendee for doctor's full line and which -a intent. ic's wip-v2 texts are agreed.",
       "fyi": false,
-      "recorded_at": "2026-11-26T06:04:20.569Z"
+      "recorded_at": "2026-11-26T06:04:20.569Z",
+      "archived_at": "2026-11-26T10:44:27.764Z"
     }
   ],
   "handled": [
