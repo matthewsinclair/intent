@@ -1153,6 +1153,14 @@
       "text": "(hv, 2026-11-26, by selection in devbin-vc's window; relayed by devbin-vc at 06:42Z on its date -u and read by vc by 06:43Z on vc's date -u; not heard first-hand by vc; the option's wording devbin-vc's from vc's rule, the choice hv's) A3(b) IS IN 3.5.4: \"In 3.5.4 (Recommended)\". When a test row's cited line no longer carries its AT id and exactly one line of the same file carries it for the thread, the gate counts the row there and prints the at edit command that records the move. Zero lines, or more than one, still block, and the gate never rewrites the row. cc builds it (refs/bank/cc/i354c), and ic owns the output shape. In the same relay hv refuted vc's arca_swift claim: Intent.app's menu icon showed on macOS 27 before 0.3.0. vc corrected the CHANGELOG forward at bed2fdc44.",
       "state": "live",
       "recorded_at": "2026-11-26T06:44:39.443Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 113,
+      "text": "(hv, 2026-11-26, in devbin-vc's window; relayed by devbin-vc at 06:45Z on its date -u; not heard first-hand by vc) The arca_swift 0.3.0 bump STAYS in 3.5.4 as a plain dependency move, as bed2fdc44's CHANGELOG line states. Intent.app's own drawsImage stays as it is. hv's words: \"Why is this a thing? What's wrong with intent's icons?\" Nothing is wrong, so nothing changes, no run is added, and it is not raised again in this release.",
+      "state": "live",
+      "recorded_at": "2026-11-26T06:45:38.595Z"
     }
   ],
   "sent": [],

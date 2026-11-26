@@ -1,0 +1,15 @@
+{
+  "id": "01M8B9MH5340FHR1YY5YSJ5EDF",
+  "ts": "2026-11-26T06:45:38.595Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, in devbin-vc's window; relayed by devbin-vc at 06:45Z on its date -u; not heard first-hand by vc) The arca_swift 0.3.0 bump STAYS in 3.5.4 as a plain dependency move, as bed2fdc44's CHANGELOG line states. Intent.app's own drawsImage stays as it is. hv's words: \"Why is this a thing? What's wrong with intent's icons?\" Nothing is wrong, so nothing changes, no run is added, and it is not raised again in this release."
+  }
+}
