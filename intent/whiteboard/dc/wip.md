@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 38176daf-cfe8-489e-9422-8d17840b0810
-heartbeat_at: 2026-11-26 10:41Z
+heartbeat_at: 2026-11-26 10:44Z
 status: active
-focus: "2026-11-26 10:41Z by date -u: 3.5.5 item 1 is done. The /in-autopsy rewrite is on main at 0a9983328 and its CI comment fix at 583927201; STee6564b is done. Next on vc's GO: the one gate all and test shell at the final tip. No worktree, no Desk slot, nothing running."
+focus: "2026-11-26 10:44Z by date -u: localfold for hv's compact, cycle 5, no release. Resume: /in-session, then wait for vc's final tip and GO, then ONE gate all and ONE test shell on one Desk slot. No worktree, no slot, no claim."
 claims: []
 ---
 
@@ -17,11 +17,11 @@ _(none)_
 
 ## TODO
 
-- On devbin-vc's word: run the one gate all and test shell at the final tip, on a Desk slot, and send START and END to devbin-vc, vc, cc and ic. The 3.5.4 attendee fixes are on main: autopsy at 4ff2c0a13, A1 and A2 at 01b821bb5.
+- 3.5.5 final run, on vc's final tip and GO after the compacts: ONE bin/devbin gate all and ONE bin/devbin test shell at that tip, on one Desk slot. The ask names the tip and the driver's sha256 (tmp/dc-batch/run-pair.zsh and drive-batch.zsh), and says that gate all builds no Elixir; test_autopsy.bats runs in test shell. START and END to devbin-vc, vc, cc and ic.
 
 ## Holds
 
-- HOLD (hv decisions 109 and 110): no build, gate, test run, dry run, cut, tag, push or new Desk ask. Releases when devbin-vc gives its word through vc. Reading and planning are allowed. (edited)
+_(none)_
 
 ## Watch-outs
 

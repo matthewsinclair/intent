@@ -1,0 +1,15 @@
+{
+  "id": "01M8BQA1JSTGJY1CBBCD88M933",
+  "ts": "2026-11-26T10:44:35.033Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "3.5.5 final run, on vc's final tip and GO after the compacts: ONE bin/devbin gate all and ONE bin/devbin test shell at that tip, on one Desk slot. The ask names the tip and the driver's sha256 (tmp/dc-batch/run-pair.zsh and drive-batch.zsh), and says that gate all builds no Elixir; test_autopsy.bats runs in test shell. START and END to devbin-vc, vc, cc and ic."
+  }
+}
