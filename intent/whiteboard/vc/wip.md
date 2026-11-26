@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-- Put issue If7e7665 to hv at return: the cut's pre-flight refuses a known-defects page titled for another release (cc's finding; v3.2.0, v3.5.3 and v3.5.5 each shipped one). Options: dc's XS bank rides 3.5.6, red on today's tree and green after cc's re-drive, proven by the dry run's pre-flight; or it waits for the next release. It is a new guard during a release, so it is hv's call.
+- Put two scope questions to hv at return, as one question, since both widen 3.5.6. (1) Issue If7e7665: the cut's pre-flight refuses a known-defects page titled for another release (cc's finding; v3.2.0, v3.5.3 and v3.5.5 each shipped one). dc's XS bank, shell only, red on today's tree and green after cc's re-drive, proven by the dry run's pre-flight. It is a new guard during a release. (2) Issue I47c94cf: intent app stop discards osascript's exit status, so a refused quit waits the whole deadline and the error names the wrong cause (dc's finding). cc's bank, XS to S, Rust, with a new refusal variant whose text ic shapes; the batch's gate all covers it, and the pair and the re-drive are made again. Each is prepared as a bank and is not landed. Options per issue: ride 3.5.6, or wait for the next release. (edited)
 
 ## Holds
 

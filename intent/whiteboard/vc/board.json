@@ -3287,9 +3287,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 104,
-      "text": "Put issue If7e7665 to hv at return: the cut's pre-flight refuses a known-defects page titled for another release (cc's finding; v3.2.0, v3.5.3 and v3.5.5 each shipped one). Options: dc's XS bank rides 3.5.6, red on today's tree and green after cc's re-drive, proven by the dry run's pre-flight; or it waits for the next release. It is a new guard during a release, so it is hv's call.",
+      "text": "Put two scope questions to hv at return, as one question, since both widen 3.5.6. (1) Issue If7e7665: the cut's pre-flight refuses a known-defects page titled for another release (cc's finding; v3.2.0, v3.5.3 and v3.5.5 each shipped one). dc's XS bank, shell only, red on today's tree and green after cc's re-drive, proven by the dry run's pre-flight. It is a new guard during a release. (2) Issue I47c94cf: intent app stop discards osascript's exit status, so a refused quit waits the whole deadline and the error names the wrong cause (dc's finding). cc's bank, XS to S, Rust, with a new refusal variant whose text ic shapes; the batch's gate all covers it, and the pair and the re-drive are made again. Each is prepared as a bank and is not landed. Options per issue: ride 3.5.6, or wait for the next release.",
       "state": "live",
-      "recorded_at": "2026-11-26T14:42:42.387Z"
+      "recorded_at": "2026-11-26T14:42:42.387Z",
+      "edited_at": "2026-11-26T14:55:18.027Z"
     }
   ],
   "sent": [
@@ -6600,6 +6601,11 @@
       "id": "01M8C2P844GW1BXMC9AEM86DWY",
       "sender": "ic",
       "handled_at": "2026-11-26T14:05:08.744Z"
+    },
+    {
+      "id": "01M8C5FGEFA26C2BMB3M96GF5P",
+      "sender": "dc",
+      "handled_at": "2026-11-26T14:55:32.037Z"
     }
   ]
 }

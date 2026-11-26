@@ -1,0 +1,15 @@
+{
+  "id": "01M8C5M6VRWJN7BXK1CBFN7F79",
+  "ts": "2026-11-26T14:54:48.194Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I47c94cfd682433bf"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent app stop waits the whole deadline and names the wrong cause when macOS refuses the quit"
+  }
+}
