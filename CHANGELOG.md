@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Intent.app runs one copy at a time, and its tests start none of its polls** (issue I5169c5b). The app now calls arca_swift's `ArcaLaunch` first at launch. A second copy says on stderr and in the system log (subsystem `com.matthewsinclair.intent.macos`) that Intent already runs, with the running copy's pid, and quits. The lock is `~/Library/Application Support/Intent/instance.lock`, so a Debug build and the installed app do not run at the same time. A copy that cannot take the lock logs why and runs without it. When xcodebuild hosts the app's tests, the app skips its launch path, so it makes no menu bar item and no poll runs `intent` under a test.
+- **`intent app stop` says at once when the quit fails** (issue I47c94cf). When osascript cannot quit Intent.app, eg because macOS has not let your terminal control it (error -1743), `intent app stop` and `intent app restart` now fail at once and name the failed quit, and the remedy says where to allow the Automation permission. Before, they waited for the quit deadline and then said that the app was still running.
 
 ## [3.5.5] - 2026-11-26
 
