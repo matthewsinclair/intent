@@ -366,6 +366,16 @@ pub enum AppError {
   },
   #[error("could not ask Intent.app to quit: {source}")]
   Quit { source: std::io::Error },
+  /// `osascript` ran and ended in failure, so the quit did not take (issue
+  /// I47c94cf): eg macOS withheld the Automation permission (-1743), the app
+  /// did not answer in time (-1712), or a dialog cancelled the quit (-128).
+  /// **A FAILED QUIT, NOT A WAIT.** [`stop`] returns this at once and never
+  /// polls for the app to go.
+  #[error("the quit sent to Intent.app (pid {pid}) failed: osascript ended with {status}")]
+  QuitFailed {
+    pid: u32,
+    status: std::process::ExitStatus,
+  },
   #[error(
     "a quit was delivered to Intent.app (pid {pid}) and it is still running after {waited:?}"
   )]
@@ -414,6 +424,10 @@ impl crate::remedy::Remedy for AppError {
         bundle.display()
       ),
       Self::Quit { .. } => "`osascript` could not deliver the quit. It ships with macOS, so its absence means this is not a macOS machine; otherwise quit the app from its menubar.".to_string(),
+      // **osascript's OWN ERROR SAYS WHY, AND IT IS ALREADY ON THE SCREEN**
+      // (issue I47c94cf): its stderr is inherited, so it prints above this
+      // line. -1743 is the failure an operator can act on.
+      Self::QuitFailed { .. } => "`osascript`'s error above says why. Error -1743 means macOS has not let the app you run this from (eg your terminal) control Intent.app: allow it in System Settings > Privacy & Security > Automation, then run this again. For any other error, quit Intent.app from its menubar.".to_string(),
       // **THE PID IS THE REMEDY, AND `kill` IS OFFERED LAST DELIBERATELY.** The
       // app was ASKED to quit and declined, which is usually an app doing
       // something rather than an app stuck; killing it discards whatever that
@@ -482,20 +496,44 @@ fn start_on(os: &'static str) -> Result<(u32, PathBuf), AppError> {
 /// Returns the pid it stopped, or `None` when nothing was running -- the caller
 /// needs the difference to avoid reporting an act it did not perform.
 pub fn stop() -> Result<Option<u32>, AppError> {
-  let Some(pid) = pid() else {
+  stop_with(
+    pid,
+    || {
+      Command::new("/usr/bin/osascript")
+        .args([
+          "-e",
+          &format!("tell application id \"{BUNDLE_ID}\" to quit"),
+        ])
+        .status()
+    },
+    std::iter::from_fn(|| {
+      std::thread::sleep(SETTLE_POLL_INTERVAL);
+      Some(crate::macapp::pid().is_none().then_some(()))
+    }),
+  )
+}
+
+/// `stop` over its readers: the running pid, the quit, and the readings taken
+/// while the app goes.
+///
+/// **A QUIT `osascript` FAILED RETURNS AT ONCE** (issue I47c94cf). Its exit
+/// status was discarded, so a failed quit, eg one macOS refused, was polled to
+/// `QUIT_DEADLINE` and then reported as an app that had not gone, which names
+/// the wrong cause. **PURE
+/// OVER ITS READERS**, as `running_in` is, so the verdict is driven without an
+/// app.
+fn stop_with(
+  running_pid: impl FnOnce() -> Option<u32>,
+  quit: impl FnOnce() -> std::io::Result<std::process::ExitStatus>,
+  readings: impl IntoIterator<Item = Option<()>>,
+) -> Result<Option<u32>, AppError> {
+  let Some(pid) = running_pid() else {
     return Ok(None);
   };
-  Command::new("/usr/bin/osascript")
-    .args([
-      "-e",
-      &format!("tell application id \"{BUNDLE_ID}\" to quit"),
-    ])
-    .status()
-    .map_err(|source| AppError::Quit { source })?;
-  let readings = std::iter::from_fn(|| {
-    std::thread::sleep(SETTLE_POLL_INTERVAL);
-    Some(crate::macapp::pid().is_none().then_some(()))
-  });
+  let status = quit().map_err(|source| AppError::Quit { source })?;
+  if !status.success() {
+    return Err(AppError::QuitFailed { pid, status });
+  }
   match awaited(readings, QUIT_DEADLINE, SETTLE_POLL_INTERVAL) {
     Some(()) => Ok(Some(pid)),
     None => Err(AppError::StillRunning {
@@ -686,6 +724,56 @@ mod tests {
     assert!(said.contains("did not register with it within"), "{said}");
     assert!(!said.contains("did not start"), "{said}");
     assert!(e.remedy().contains("`intent app status`"), "{}", e.remedy());
+  }
+
+  /// What `osascript` ends with: exit 0 when the quit is delivered, and exit 1
+  /// when it fails, with its own error on stderr (eg -1743 when macOS withholds
+  /// the Automation permission).
+  fn osascript_ended(code: i32) -> std::process::ExitStatus {
+    use std::os::unix::process::ExitStatusExt;
+    std::process::ExitStatus::from_raw(code << 8)
+  }
+
+  /// Issue I47c94cf: a quit `osascript` failed came back only after the whole
+  /// QUIT_DEADLINE, as an app that had not gone. It now comes back at once, and
+  /// names the failed quit.
+  #[test]
+  fn a_quit_osascript_fails_returns_at_once_and_names_the_failure() {
+    use crate::remedy::Remedy;
+    // A reading taken after the failure is the defect: the wait to the deadline.
+    let readings = std::iter::from_fn(|| -> Option<Option<()>> {
+      panic!("stop polled for the app to go after osascript failed the quit")
+    });
+    let Err(e) = stop_with(|| Some(4242), || Ok(osascript_ended(1)), readings) else {
+      panic!("a failed quit must be an error");
+    };
+    assert!(
+      matches!(e, AppError::QuitFailed { pid: 4242, status } if status.code() == Some(1)),
+      "{e:?}"
+    );
+    assert_eq!(
+      e.to_string(),
+      "the quit sent to Intent.app (pid 4242) failed: osascript ended with exit status: 1"
+    );
+    assert!(
+      e.remedy()
+        .contains("System Settings > Privacy & Security > Automation"),
+      "{}",
+      e.remedy()
+    );
+  }
+
+  /// The path a delivered quit still takes: the app going confirms it, and the
+  /// pid it stopped is reported.
+  #[test]
+  fn a_delivered_quit_is_confirmed_once_the_app_has_gone() {
+    let gone_on_the_third_reading = [None, None, Some(())];
+    let stopped = stop_with(
+      || Some(4242),
+      || Ok(osascript_ended(0)),
+      gone_on_the_third_reading,
+    );
+    assert!(matches!(stopped, Ok(Some(4242))), "{stopped:?}");
   }
 
   #[test]
