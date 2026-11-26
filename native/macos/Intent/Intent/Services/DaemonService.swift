@@ -31,6 +31,9 @@ final class DaemonService {
     poller.stop()
   }
 
+  /// Whether the poll runs: true from `startPolling` until `stopPolling`.
+  var isPolling: Bool { poller.isRunning }
+
   /// One read of the health predicate. `daemon status` reports live, stale or
   /// absent and its stdout is the answer whatever the exit code; a launch
   /// failure is `unknown`, never a silent `absent`. A lifecycle verb in flight

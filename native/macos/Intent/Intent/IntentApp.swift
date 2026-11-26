@@ -1,4 +1,5 @@
 import AppKit
+import ArcaLaunch
 import OSLog
 import ServiceManagement
 
@@ -33,6 +34,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   /// again as the menu opens.
   private var rebuildItem: NSMenuItem?
 
+  /// Whether the launch path made the menu bar item, and whether any of the
+  /// app's polls runs. The test-host test reads both (issue I5169c5b).
+  var hasStatusItem: Bool { statusItem != nil }
+  var isPolling: Bool { daemon.isPolling || project.isPolling || version.isPolling }
+
   static let firstRunKey = "FirstRunDone"
 
   /// Whether this launch registers the app as the login item (issue 0687): a
@@ -62,6 +68,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    // What the launch does first (issue I5169c5b): arca_swift's ArcaLaunch. In
+    // XCTest's host it skips the launch path. Otherwise it takes the instance
+    // lock, so one copy runs at a time. A second copy logs why, and quits. A
+    // copy that cannot take the lock logs why, and launches without it.
+    guard ArcaLaunch.begin(app: "Intent", log: { Self.logger.notice("\($0, privacy: .public)") })
+    else { return }
     setupMainMenu()
 
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -102,6 +114,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   }
 
   func applicationWillTerminate(_ notification: Notification) {
+    // A copy that ran no launch path, the test host or a hand-over, stops nothing.
+    guard ArcaLaunch.launched else { return }
     daemon.stopPolling()
     project.stopPolling()
     version.stopPolling()

@@ -29,4 +29,7 @@ final class Poller {
     task?.cancel()
     task = nil
   }
+
+  /// Whether the loop runs: true from `start` until `stop`.
+  var isRunning: Bool { task != nil }
 }

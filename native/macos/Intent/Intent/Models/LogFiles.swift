@@ -9,7 +9,7 @@ struct LogPaths: Equatable, Sendable {
   let daemonLog: String
   let daemonErrLog: String
 
-  /// The one file the app writes: every command it runs for the operator.
+  /// The one log file the app writes: every command it runs for the operator.
   static let appLogName = "Intent.app.log"
 
   var appLog: String {

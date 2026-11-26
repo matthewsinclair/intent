@@ -36,6 +36,9 @@ final class ProjectService {
     poller.stop()
   }
 
+  /// Whether the poll runs: true from `startPolling` until `stopPolling`.
+  var isPolling: Bool { poller.isRunning }
+
   /// One read through the GraphQL door. No configured project -> nil, and the
   /// menu shows nothing rather than a machine-level query's not-in-project
   /// error; a query the app cannot decode is nil, never a wrong count.

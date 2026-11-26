@@ -64,6 +64,9 @@ final class VersionService {
     poller.stop()
   }
 
+  /// Whether the poll runs: true from `startPolling` until `stopPolling`.
+  var isPolling: Bool { poller.isRunning }
+
   /// One read of `intent version`. A failure is logged and carried as `failed`
   /// with its cause, never a version kept from an earlier read. The state is
   /// assigned only when it changes, so an unchanged answer does not repaint the

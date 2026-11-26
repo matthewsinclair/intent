@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.6] - in progress
+
+### Fixed
+
+- **Intent.app runs one copy at a time, and its tests start none of its polls** (issue I5169c5b). The app now calls arca_swift's `ArcaLaunch` first at launch. A second copy says on stderr and in the system log (subsystem `com.matthewsinclair.intent.macos`) that Intent already runs, with the running copy's pid, and quits. The lock is `~/Library/Application Support/Intent/instance.lock`, so a Debug build and the installed app do not run at the same time. A copy that cannot take the lock logs why and runs without it. When xcodebuild hosts the app's tests, the app skips its launch path, so it makes no menu bar item and no poll runs `intent` under a test.
+
 ## [3.5.5] - 2026-11-26
 
 ### Fixed

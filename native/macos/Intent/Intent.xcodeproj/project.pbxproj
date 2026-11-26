@@ -12,10 +12,12 @@
 		2997E46680241912D530A7B5 /* HealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29672806305D887EA65656B8 /* HealthTests.swift */; };
 		39B9EAFE62DD941B78D87ABA /* DaemonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20934AD411AEAE2B4F79A01B /* DaemonService.swift */; };
 		4B328322E4B5E1654755D2B8 /* IndexStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A608D56567168B6BC52DCEDF /* IndexStatus.swift */; };
+		4B7E9986B96853226027625B /* TestHostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F4F698235210D64A32AD2D /* TestHostTests.swift */; };
 		5910CF9C6715843EC84B04EE /* RebuildItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B25AA8A895725C425E1E64D /* RebuildItemTests.swift */; };
 		63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */; };
 		65666ACB8C7B0D7EF2F1A36F /* DaemonMenuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C024B86BFF2B9F2CCF9536B6 /* DaemonMenuTests.swift */; };
 		692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC7A046D343F9FF30FC56EA /* LoginShell.swift */; };
+		6C98400E319778AE5794B533 /* ArcaLaunch in Frameworks */ = {isa = PBXBuildFile; productRef = E3C17ED8B7687147CFEDA777 /* ArcaLaunch */; };
 		6D344093FBD0AE445553E351 /* ArcaMasthead in Frameworks */ = {isa = PBXBuildFile; productRef = 12FDADDC843D4F426680980F /* ArcaMasthead */; };
 		719EBEB038E2C35780785F96 /* intent-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = C459D833BDA43CC006FB3644 /* intent-logo.png */; };
 		77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */; };
@@ -57,6 +59,7 @@
 		29672806305D887EA65656B8 /* HealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthTests.swift; sourceTree = "<group>"; };
 		2BBD05359383F74A925C859E /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.entitlements; sourceTree = "<group>"; };
+		43F4F698235210D64A32AD2D /* TestHostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHostTests.swift; sourceTree = "<group>"; };
 		4634133A4EB56FC2D1AED35E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4AF69039A2E9F208B08C436D /* IntentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D734695C399BAEB5B65CF71 /* LogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogService.swift; sourceTree = "<group>"; };
@@ -96,6 +99,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6D344093FBD0AE445553E351 /* ArcaMasthead in Frameworks */,
+				6C98400E319778AE5794B533 /* ArcaLaunch in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,6 +167,7 @@
 				0F5239B62131AAEC064369EE /* MastheadTests.swift */,
 				B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */,
 				8B25AA8A895725C425E1E64D /* RebuildItemTests.swift */,
+				43F4F698235210D64A32AD2D /* TestHostTests.swift */,
 				DC383096DF8A7D0628802048 /* VersionServiceTests.swift */,
 			);
 			path = IntentTests;
@@ -234,6 +239,7 @@
 			name = Intent;
 			packageProductDependencies = (
 				12FDADDC843D4F426680980F /* ArcaMasthead */,
+				E3C17ED8B7687147CFEDA777 /* ArcaLaunch */,
 			);
 			productName = Intent;
 			productReference = D9ED4FC1411ABD3535ED4A3F /* Intent.app */;
@@ -351,6 +357,7 @@
 				CFC853B0CA7DB897444DC065 /* MastheadTests.swift in Sources */,
 				63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */,
 				5910CF9C6715843EC84B04EE /* RebuildItemTests.swift in Sources */,
+				4B7E9986B96853226027625B /* TestHostTests.swift in Sources */,
 				B2A4082D2E9259C1F405DFFC /* VersionServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -625,6 +632,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D05AC65B7D9D49E8758760F5 /* XCRemoteSwiftPackageReference "arca_swift" */;
 			productName = ArcaMasthead;
+		};
+		E3C17ED8B7687147CFEDA777 /* ArcaLaunch */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D05AC65B7D9D49E8758760F5 /* XCRemoteSwiftPackageReference "arca_swift" */;
+			productName = ArcaLaunch;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

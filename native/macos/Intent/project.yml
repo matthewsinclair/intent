@@ -12,7 +12,8 @@ options:
 # itself cut from Conflab's. The menubar app shells out to `intent` (and to
 # `/bin/zsh` once per launch, for the login PATH) and holds no product logic
 # (AC-01.1). One package, arca_swift, for the menu's masthead row and its About
-# window, as Gtools' and menuz's specs take it (issue 0607). Both configs sign
+# window, as Gtools' and menuz's specs take it (issue 0607), and for what the
+# launch does first (ArcaLaunch, issue I5169c5b). Both configs sign
 # with the Geodica ADC team on this machine; Developer ID signing +
 # notarisation for distribution is the `int macos app-sign | app-notarize` path
 # (AC-01.7), never this spec.
@@ -63,6 +64,8 @@ targets:
     dependencies:
       - package: ArcaSwift
         product: ArcaMasthead
+      - package: ArcaSwift
+        product: ArcaLaunch
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.matthewsinclair.intent.macos
