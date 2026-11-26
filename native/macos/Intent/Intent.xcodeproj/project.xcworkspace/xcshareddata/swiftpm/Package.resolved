@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/builtwitharca/arca_swift",
       "state" : {
-        "revision" : "5a17571c568838a63930aab4c85bbf4846383a9d",
-        "version" : "0.1.1"
+        "revision" : "940f91b5440b2ca5b280c9283a0164a884157426",
+        "version" : "0.3.0"
       }
     },
     {

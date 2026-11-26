@@ -615,7 +615,7 @@
 			repositoryURL = "https://github.com/builtwitharca/arca_swift";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.1.1;
+				minimumVersion = 0.3.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

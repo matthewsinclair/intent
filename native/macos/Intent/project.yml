@@ -26,7 +26,7 @@ packages:
   # above meet.
   ArcaSwift:
     url: https://github.com/builtwitharca/arca_swift
-    minorVersion: 0.1.1
+    minorVersion: 0.3.0
 settings:
   base:
     SWIFT_VERSION: "6.0"
