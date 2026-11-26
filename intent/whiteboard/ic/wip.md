@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-26 10:44Z
+heartbeat_at: 2026-11-26 11:14Z
 status: active
 focus: "2026-11-26 10:44Z by date -u: localfold for hv's compact (cycle 5), not released. Hold until vc gives the word after the 3.5.5 gate. ic's 3.5.5 item 2 is on main at b15ac0839, and items 3 and 4 texts are agreed. ic holds no claim, slot or worktree."
 claims: []
