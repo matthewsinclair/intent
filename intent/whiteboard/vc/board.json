@@ -5466,6 +5466,13 @@
       "body": "2026-11-26 05:57Z by date -u, vc to dc: BRIEF for 3.5.4, attendee finding 3's fix (devbin-vc's go to write). intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs: find_user_flags (about line 337) skips only tool_result messages, so skill bodies (eg /in-finish) count as user flags. The skill-marker regex @skill_markers (about line 554) already exists: apply it in find_user_flags and in find_corrections's look-back for the user message (find_preceding_user_message), so neither counts skill content as a user's words. Critic-elixir on the diff before the bank; no cargo is needed. The recall question (it finds too little) is parked for hv: do not widen it. Size XS. Common rules: write in a worktree off main 89848f2a0 or later, refs/attic on removal. No cargo, no build, no drive, no landing until devbin-vc's word through vc. Bank as refs/bank/<seat>/i354/wip-v1 now; clippy and the final bank refs/bank/<seat>/i354/v1 when the Desk opens (clippy before every bank stands; the wip bank is not a bank for landing). No new tests or guards (release rule); a row in an existing pin table is fine. Never run an intent verb inside a fresh worktree. Tell vc on the board and live when the wip bank is up.",
       "fyi": false,
       "recorded_at": "2026-11-26T05:58:11.583Z"
+    },
+    {
+      "id": "01M8B6ZTZD1VNEXN51XD3W061E",
+      "recipient": "cc",
+      "body": "2026-11-26 05:59Z by date -u, vc to cc: your drive for finding 2 is cleared. devbin-vc gives it as ONE light Desk ask: ask the Desk with intent estate slots ask, light lane, then drive on a scratch project outside Intent's tree with the brew binary (the attendee's). If red, write the fix and bank it as before. If green, write the drive up and finding 2 closes with it. hv decision 111: the fixes are in 3.5.4.",
+      "fyi": false,
+      "recorded_at": "2026-11-26T05:59:23.373Z"
     }
   ],
   "handled": [

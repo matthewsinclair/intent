@@ -1,0 +1,15 @@
+{
+  "id": "01M8B6ZMSXZ3K81F0D950MF9SJ",
+  "ts": "2026-11-26T05:59:17.053Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, in devbin-vc's window, on devbin's own late finding; relayed by devbin-vc at 05:58Z on its date -u and read by vc by 05:59Z on vc's date -u; not heard first-hand by vc; hv's words as relayed) \"Yes, please fix. We can wait. I want to close these outstanding niggles out completely.\" devbin-vc's reading, which it is confirming with hv: Intent 3.5.4 takes the attendee fixes 1 (the guards format in the guide), 2 (doctor's root-file-behind after --skip-settings, if cc's drive is red), 3's fix (autopsy counts skill bodies) and 4's text (AT red by mutation). gate all and test shell run again at the final tip, after the devbin 0.1.34 sweep. Parked for hv as design questions: 3's recall, 4's undo or new path, and 5 (done on an unmerged branch). 6 closes as fixed in 3.5.3."
+  }
+}
