@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "If7e7665d6632c2a8",
+  "origin": "01M8C4XJX9483Z3R2CVTANCC6H",
+  "realised": true,
+  "slug": "the-cut-s-pre-flight-does-not-refuse-a-known-def",
+  "title": "The cut's pre-flight does not refuse a known-defects page titled for another release",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-26",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by cc on 2026-11-26, while it prepared the 3.5.6 re-drive. vc read the tags.\n\nWhat is broken: releasing.md step 2 says to re-drive `docs/known-defects.md` whole and to retitle it for the release before the cut. Nothing checks that it was done. Three cuts shipped the page titled for an older release:\n\n- v3.2.0 ships \"Known defects in v3.1.0\".\n- v3.5.3 ships \"Known defects in v3.5.2\".\n- v3.5.5 ships \"Known defects in v3.5.4\".\n\nWhat it costs: a reader of the tag reads defects that were driven against another build, on a page that says it describes this release.\n\nThe fix, size XS, owner dc: `bin/.devbin/cut/preflight` refuses a cut when the page's H1 does not name the version being cut. The file is Intent's own (devbin's manifest does not list `bin/.devbin/cut/`), so the fix needs no devbin release. The tree as it is now is the red: the page reads v3.5.4, and the next cut is v3.5.6. cc's 3.5.6 re-drive makes it green.\n\nScope: hv decides whether it rides 3.5.6. It is a new guard during a release, which hv's rule for releases forbids, and a found issue is not deferred without hv's word.\n"
+}

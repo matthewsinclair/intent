@@ -1,0 +1,15 @@
+{
+  "id": "01M8C4XJX9483Z3R2CVTANCC6H",
+  "ts": "2026-11-26T14:42:26.869Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "If7e7665d6632c2a8"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The cut's pre-flight does not refuse a known-defects page titled for another release"
+  }
+}

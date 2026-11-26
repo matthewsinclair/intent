@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 301174e0-2250-4de5-9e32-7381abe29fc6
-heartbeat_at: 2026-11-26 14:02Z
+heartbeat_at: 2026-11-26 14:36Z
 status: active
-focus: "2026-11-26 14:02Z by date -u: new session after hv's restart. Intent's team holds on hv decision 117: 3.5.6 (ArcaLaunch) waits for hv's word. cc, ic and dc are told to hold. vc holds no claim, slot or worktree."
+focus: "2026-11-26 14:36Z by date -u: Intent 3.5.6 is in build (hv decisions 118 and 119). ic builds I5169c5b and dc builds I8b74f2a; cc prepares releasing.md step 2's re-drive and shots. vc lands each bank on its proof. The dry run waits for hv's return unless devbin-dc clears the notary; the cut is hv's keystroke."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-_(none)_
+- Put issue If7e7665 to hv at return: the cut's pre-flight refuses a known-defects page titled for another release (cc's finding; v3.2.0, v3.5.3 and v3.5.5 each shipped one). Options: dc's XS bank rides 3.5.6, red on today's tree and green after cc's re-drive, proven by the dry run's pre-flight; or it waits for the next release. It is a new guard during a release, so it is hv's call.
 
 ## Holds
 
