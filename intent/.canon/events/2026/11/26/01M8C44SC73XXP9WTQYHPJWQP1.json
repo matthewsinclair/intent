@@ -1,0 +1,15 @@
+{
+  "id": "01M8C44SC73XXP9WTQYHPJWQP1",
+  "ts": "2026-11-26T14:28:54.279Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by 14:28Z on vc's date -u; hv's words: \"Ok, sync your plan with devbin-vc and then get ready to go.\") INTENT 3.5.6 GOES, FROM ic'S SCOPE (vc todo 103). vc's reading, not hv's words: \"Ok\" takes the option vc recommended, over \"Start with a Phase 0 review\" and \"Keep holding\". ic builds its S part: Intent.app takes ArcaLaunch from arca_swift 0.3.0, with one app test that is red on today's code, and a CHANGELOG line. dc builds its XS part: app-run and app-install in bin/.devbin/cmd/macos wait for the old copy to exit. cc has no part. Each part is one issue, and there is no separate Phase 0 review. hv accepts that Debug and Release builds share one lock file, so only one of them runs at a time. vc syncs the plan with devbin-vc (the Desk) before the seats start. At READY, hv types the cut (hv decision 3)."
+  }
+}

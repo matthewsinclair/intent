@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- Intent 3.5.5 is released: tag v3.5.5 at 0bab786dc32d, 2026-11-26, every leg green, brew 3.5.5 installed and intentd on it. Next: hv scopes 3.5.6 (ArcaLaunch, hv decision 114). (edited)
+- Intent 3.5.6 (hv decision 118): ic builds issue I5169c5b (S, Intent.app takes ArcaLaunch), and dc builds issue I8b74f2a (XS, app-run and app-install wait for the old copy to exit). cc has no part. Now: devbin-vc agrees the plan, and the seats start on its reply. Then: each seat banks; ic's one Xcode build-and-test; vc lands both and makes the reference set; dc's one gate all and test shell at the final tip; the dry run with hv at the Mac; READY; hv types the cut.
 
 ## TODO
 
-- Intent 3.5.6 (ArcaLaunch) waits for hv's word (hv decisions 114 and 117). Its scope, from ic's read of the code on 2026-11-26 (ic built, ran and changed nothing): ic's part, S: Intent.app links the ArcaLaunch product of arca_swift 0.3.0 (already pinned), guards begin in applicationDidFinishLaunching and launched in applicationWillTerminate, adds one app test that is red on today's code (the test host starts no launch path), and adds a CHANGELOG line. dc's part, XS: app-run and app-install in bin/.devbin/cmd/macos, Intent's own file and not devbin's, wait for the old copy to exit before they start the new one; with the lock the running copy wins, so without this no Intent.app runs. cc's part: none, since intentsvcs::macapp::stop waits for the exit. Debug and Release builds share one lock file, so only one of them runs at a time. Proof: one Xcode build-and-test on a Desk slot.
+_(none)_
 
 ## Holds
 

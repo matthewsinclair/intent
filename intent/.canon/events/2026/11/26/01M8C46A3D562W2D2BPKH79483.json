@@ -1,0 +1,15 @@
+{
+  "id": "01M8C46A3D562W2D2BPKH79483",
+  "ts": "2026-11-26T14:29:44.173Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Intent 3.5.6 (hv decision 118): ic builds issue I5169c5b (S, Intent.app takes ArcaLaunch), and dc builds issue I8b74f2a (XS, app-run and app-install wait for the old copy to exit). cc has no part. Now: devbin-vc agrees the plan, and the seats start on its reply. Then: each seat banks; ic's one Xcode build-and-test; vc lands both and makes the reference set; dc's one gate all and test shell at the final tip; the dry run with hv at the Mac; READY; hv types the cut."
+  }
+}

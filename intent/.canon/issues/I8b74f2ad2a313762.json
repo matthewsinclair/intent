@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I8b74f2ad2a313762",
+  "origin": "01M8C45RD0EC2J28KVKXZMNDZG",
+  "realised": true,
+  "slug": "app-run-and-app-install-wait-for-the-old-intent",
+  "title": "app-run and app-install wait for the old Intent.app to exit before they start the new one",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-26",
+  "reporter": "Matthew Sinclair",
+  "body": "Intent 3.5.6, hv decision 118. The scope comes from ic's read of the code on 2026-11-26.\n\nWith ArcaLaunch's instance lock (ic's part, in its own issue), the running copy wins. A new copy that starts while the old copy exits hands over and quits, and then no Intent.app runs.\n\nIn `bin/.devbin/cmd/macos`, `cmd_app_run` (near line 1983) and `cmd_app_install` (near line 2060) send the quit through osascript and do not wait for the exit. This file is Intent's own: devbin's manifest lists only `bin/.devbin/lib/cmd/macos`, and says that `cmd/` belongs to the project. So the fix needs no devbin release.\n\nThe fix, size XS, owner dc: each step waits for the old copy to exit before it starts the new one.\n\ncc has no part: `intentsvcs::macapp::stop` already waits for the exit before restart opens the app.\n\nProof: dc names it.\n"
+}
