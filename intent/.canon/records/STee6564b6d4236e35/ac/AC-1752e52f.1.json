@@ -1,0 +1,9 @@
+{
+  "id": "AC-1752e52f.1",
+  "text": "SKILL.md gives the 3.5.x procedure and report format, banned-words.txt and the v2 reports are removed, the CHANGELOG has its line, and one proof run on the four seats' sessions finds the stamp at 38176daf line 5702, the refusal at line 7586, and cc's correction at ef5e3583 line 936, with no entry given as a person's that no person typed.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "main 0a9983328 (bank refs/bank/dc/autopsy/v1, patch id c8d4ba1dd68c); tests/unit/test_autopsy.bats 40 of 40 ok at 71ce5418d on Desk request 01M8BPSTEDF8S6MS1NFM76RAKQ, log tmp/dc-batch/autopsy-1/autopsy-bats.log; the proof run of 2026-11-26 10:34Z by date -u, reported to vc"
+  }
+}

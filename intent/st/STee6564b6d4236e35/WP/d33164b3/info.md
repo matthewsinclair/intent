@@ -2,14 +2,14 @@
 wp_id: WP-d331
 title: The reader: transcript sources, turns, protocol events, the CLI, the selectors, and JSON in place of Jason
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-d331: The reader: transcript sources, turns, protocol events, the CLI, the selectors, and JSON in place of Jason
 
 ## Objective
 
-_(not yet written)_
+Read a 3.5.x transcript as it is: who wrote each entry, the session's seat, and each tool call with its result as a protocol event.
 
 ## Acceptance
 

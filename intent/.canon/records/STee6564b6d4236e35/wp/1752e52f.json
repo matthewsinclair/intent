@@ -3,8 +3,8 @@
   "origin": "01M8BMK34MH4EJE9S8HCZG2KEN",
   "title": "SKILL.md, the report format, removals of banned-words.txt and the v2 reports, the CHANGELOG line, and the one proof run",
   "scope": "S",
-  "status": "not-started",
-  "objective": "",
+  "status": "done",
+  "objective": "Give the skill its 3.5.x procedure and report format, remove what the rewrite retires, and prove the whole with one run on real sessions.",
   "body": "",
   "preamble": ""
 }

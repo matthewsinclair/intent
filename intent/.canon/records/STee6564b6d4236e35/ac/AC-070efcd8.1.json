@@ -1,0 +1,9 @@
+{
+  "id": "AC-070efcd8.1",
+  "text": "Each named check finds the fixture line that breaks its rule and no line that keeps it, the output lists each check that ran or did not run, and the signals and the pattern scan read only what their source wrote.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "main 0a9983328 (bank refs/bank/dc/autopsy/v1, patch id c8d4ba1dd68c); tests/unit/test_autopsy.bats 40 of 40 ok at 71ce5418d on Desk request 01M8BPSTEDF8S6MS1NFM76RAKQ, log tmp/dc-batch/autopsy-1/autopsy-bats.log"
+  }
+}

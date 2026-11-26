@@ -1,0 +1,14 @@
+{
+  "id": "01M8BPYFDGQBREPHXDHQK7TW4E",
+  "ts": "2026-11-26T10:38:15.988Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "STee6564b6d4236e35/AC-1752e52f.1"
+  },
+  "payload": {
+    "evidence": "main 0a9983328 (bank refs/bank/dc/autopsy/v1, patch id c8d4ba1dd68c); tests/unit/test_autopsy.bats 40 of 40 ok at 71ce5418d on Desk request 01M8BPSTEDF8S6MS1NFM76RAKQ, log tmp/dc-batch/autopsy-1/autopsy-bats.log; the proof run of 2026-11-26 10:34Z by date -u, reported to vc"
+  }
+}

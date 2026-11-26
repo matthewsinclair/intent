@@ -3,8 +3,8 @@
   "origin": "01M8BMK18KSM7FKNJ830MGC6XT",
   "title": "The reader: transcript sources, turns, protocol events, the CLI, the selectors, and JSON in place of Jason",
   "scope": "S",
-  "status": "not-started",
-  "objective": "",
+  "status": "done",
+  "objective": "Read a 3.5.x transcript as it is: who wrote each entry, the session's seat, and each tool call with its result as a protocol event.",
   "body": "",
   "preamble": ""
 }

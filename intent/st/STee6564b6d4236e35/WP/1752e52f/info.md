@@ -2,14 +2,14 @@
 wp_id: WP-1752
 title: SKILL.md, the report format, removals of banned-words.txt and the v2 reports, the CHANGELOG line, and the one proof run
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-1752: SKILL.md, the report format, removals of banned-words.txt and the v2 reports, the CHANGELOG line, and the one proof run
 
 ## Objective
 
-_(not yet written)_
+Give the skill its 3.5.x procedure and report format, remove what the rewrite retires, and prove the whole with one run on real sessions.
 
 ## Acceptance
 

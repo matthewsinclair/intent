@@ -1,0 +1,9 @@
+{
+  "id": "AC-d33164b3.1",
+  "text": "autopsy.exs names who wrote each user entry and the session's seat, reads each tool call with its result as protocol events, takes the new selectors, uses Elixir's JSON module, and reports each line or argument it cannot read.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "main 0a9983328 (bank refs/bank/dc/autopsy/v1, patch id c8d4ba1dd68c); tests/unit/test_autopsy.bats 40 of 40 ok at 71ce5418d on Desk request 01M8BPSTEDF8S6MS1NFM76RAKQ, log tmp/dc-batch/autopsy-1/autopsy-bats.log"
+  }
+}

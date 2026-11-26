@@ -2,14 +2,14 @@
 wp_id: WP-070e
 title: The checks, the signals, and the pattern scan, with their arms in test_autopsy.bats
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-070e: The checks, the signals, and the pattern scan, with their arms in test_autopsy.bats
 
 ## Objective
 
-_(not yet written)_
+Run the named checks, the signals, and the pattern scan on those events, and prove each check with one arm in tests/unit/test_autopsy.bats.
 
 ## Acceptance
 
