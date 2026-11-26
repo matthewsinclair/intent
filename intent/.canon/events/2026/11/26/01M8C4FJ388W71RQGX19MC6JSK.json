@@ -1,0 +1,17 @@
+{
+  "id": "01M8C4FJ388W71RQGX19MC6JSK",
+  "ts": "2026-11-26T14:34:47.272Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Intent 3.5.6 (hv decisions 118 and 119), cc's part: releasing.md step 2's known-defects re-drive and the explorer shots. Prepare now; run on vc's word that ic's and dc's banks are landed. (1) bin/devbin build all at that HEAD, booked with the Desk, copy vc; START and END to vc and the seats; main stays still between them. (2) Re-drive docs/known-defects.md WHOLE against that pair, in a fresh scratch project under an isolated HOME; retitle it for v3.5.6 (v3.5.5 shipped it titled for v3.5.4; the last re-drive is 8fd7a2d41). (3) gen_explorer_shots.sh after build all ends, booked with the Desk; keep only a PNG whose magick compare count is not zero. (4) Bank the page and the PNGs you keep, and send vc the ref.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

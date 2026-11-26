@@ -1,0 +1,17 @@
+{
+  "id": "01M8C4AXP5CGN0AYWB9GTE3CRA",
+  "ts": "2026-11-26T14:32:15.301Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO, Intent 3.5.6 (hv decisions 118 and 119): build issue I8b74f2a in your own worktree off main 20226a1c0709. Before you bank: the shell critic on your diff. Name your proof in your bank note; book any run with the Desk, copy vc. Send vc the bank ref and the proof. Second step, after vc lands both banks and makes the reference set: one gate all and one test shell at the final tip, booked with the Desk; START and END to vc and the seats; main stays still between them.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

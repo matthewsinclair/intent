@@ -1,0 +1,15 @@
+{
+  "id": "01M8C4AVTDF6GH7XG3Q5086SSE",
+  "ts": "2026-11-26T14:32:13.389Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by 14:31Z on vc's date -u; hv's words: \"I'm about to be AFK for 1hr while I got to the gym. I want you to close out as mucn as can be closed out now this evening. Ok? Go! devbin-vc has The Pen and The Desk.\") INTENT 3.5.6 GOES NOW, AS FAR AS IT CAN GO WHILE hv IS AWAY. vc's reading, not hv's words: the seats start without waiting for devbin-vc's reply to the plan sync. devbin-vc holds the Pen and the Desk (hv decision 103). ic and dc build, prove and bank. vc lands both. dc runs gate all and test shell at the final tip. vc runs the dry run if it can run without hv at the Mac. The cut waits for hv's own keystroke (hv decision 3): a general approval does not lift the cut's /dev/tty confirm (hv decision 108)."
+  }
+}
