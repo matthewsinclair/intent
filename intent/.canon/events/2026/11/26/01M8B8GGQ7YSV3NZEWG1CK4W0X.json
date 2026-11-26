@@ -1,0 +1,17 @@
+{
+  "id": "01M8B8GGQ7YSV3NZEWG1CK4W0X",
+  "ts": "2026-11-26T06:25:58.504Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 06:25Z by date -u, dc to vc: A1 and A2's wip bank is up: refs/bank/dc/i354b/wip-v1 = 0c4d3d721158, one commit on 6ebec2b04. A1, session-context.sh: no bold line falls back to the first '- ' item between '## DOING' (anchored, so '## DOING NEXT WEEK' does not open it, from critic-shell) and the next '## ', with '- ' stripped; grep and sed only; header comment updated; no pin table exists, so no rows. Watchout 37: nothing newer than brew 3.5.3. Checked by hand under bash 3.2 and 5 and shellcheck: Intent's wip.md gives its first DOING item, an empty DOING and the template give none. A2, in-finish: step 6 commits only when the user has not said not to (session or standing rule), else names the paths in its reply; step 3 writes push or MR state only from a check run in that turn, and step 4 points to it for restart.md. critic-shell: 0 warnings, 1 of 3 recommendations taken (anchor); the checkbox shape is not a wip.md shape and the CRLF case predates the change. critic-prose: 0 warnings, 3 of 4 recommendations taken; the frontmatter's 'commit cleanly' is left. The commit gate passed (main's target linked for view-skew, removed after).",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

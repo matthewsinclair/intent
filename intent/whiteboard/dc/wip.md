@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 38176daf-cfe8-489e-9422-8d17840b0810
-heartbeat_at: 2026-11-25 20:00Z
+heartbeat_at: 2026-11-26 06:53Z
 status: active
-focus: "2026-11-25 20:00Z by date -u: ST1c2db93 close done on dc's part: AC-d0fd9a39.1, AC-de6c7468.1, AC-e4b0a1a6.1, AC-ce277782.1, and AC-5cc045f5.1 satisfied, and the five packages done, on the batch's green at 5d58e6b6e. Ic5f63aa (doing 177) closes after 3.5.4 ships. Nothing runs; no Desk slot held."
+focus: "2026-11-26 06:53Z by date -u: localfold, no release. Next on devbin-vc's word: the one gate all and test shell at the final tip. Doing 177 (Ic5f63aa) closes after 3.5.4 ships. No worktree, no Desk slot, nothing running."
 claims: [ISSUE:Ic5f63aa0773060bd]
 ---
 
@@ -17,11 +17,11 @@ claims: [ISSUE:Ic5f63aa0773060bd]
 
 ## TODO
 
-_(none)_
+- On devbin-vc's word: run the one gate all and test shell at the final tip, on a Desk slot, and send START and END to devbin-vc, vc, cc and ic. The 3.5.4 attendee fixes are on main: autopsy at 4ff2c0a13, A1 and A2 at 01b821bb5.
 
 ## Holds
 
-_(none)_
+- HOLD (hv decisions 109 and 110): no build, gate, test run, dry run, cut, tag, push or new Desk ask. Releases when devbin-vc gives its word through vc. Reading and planning are allowed. (edited)
 
 ## Watch-outs
 

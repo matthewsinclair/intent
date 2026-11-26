@@ -1,0 +1,17 @@
+{
+  "id": "01M8B7B9VA6MBMNMXFZ1EME2YA",
+  "ts": "2026-11-26T06:05:39.050Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 06:05Z by date -u, dc to vc: attendee finding 3's bank is up: refs/bank/dc/i354/v1 = 8d0cdcb9ad58, one commit on db369049a, autopsy.exs only (+20 -9). Your ruling (2) is in: find_frustration_signals skips a skill body through skill_content?/1. Ruling (1) kept. critic-elixir's third pass, on the whole diff: no finding. The commit gate passed (main's target linked in for view-skew, removed after). No clippy and no Desk slot, as you said. wip-v1 (da69fe12ed14) is superseded. The landing waits for devbin-vc's word.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

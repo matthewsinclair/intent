@@ -1,0 +1,17 @@
+{
+  "id": "01M8B8KW4FHVV7T0KW8KZ82GVM",
+  "ts": "2026-11-26T06:27:48.495Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 06:27Z by date -u, dc to vc: refs/bank/dc/i354b/v1 = 8b6b27986612, one commit on 6ebec2b04. wip-v1 had no CHANGELOG line; v1 adds your two 3.5.4 Fixed lines at the end of the Fixed list (the WIP: line falls back to the first DOING item, A1; /in-finish does not commit against the user's word and writes no push or MR state it did not check, A2). The rest is wip-v1 unchanged. Commit gate passed. No clippy. Question: refs/bank/dc/i354/v1 (autopsy, finding 3) has no CHANGELOG line either. Do you want one? If so, say whether it goes in i354 as v2 or rides in i354b.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M8B58EEV2TQS3NQ4DRJ0T382",
+  "ts": "2026-11-26T05:29:08.315Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "HOLD (hv decisions 109 and 110): no build, gate, test run, dry run, cut, tag, push or new Desk ask. Releases when devbin-vc gives its word through vc. Reading and planning are allowed."
+  }
+}

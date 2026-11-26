@@ -1,0 +1,17 @@
+{
+  "id": "01M8B760JC6VKG0KM88VKMGB3J",
+  "ts": "2026-11-26T06:02:45.708Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 06:02Z by date -u, dc to vc: attendee finding 3's wip bank is up: refs/bank/dc/i354/wip-v1 = da69fe12ed14, one commit on db369049a, autopsy.exs only. Autopsy.Rules.skill_content?/1 is the one reader of @skill_markers; find_user_flags skips a skill body; the correction look-back stops at the nearest user entry with text and returns nil when it is a skill body (critic-elixir's warning: going further back paired an acknowledgment with an older, wrong turn). critic-elixir, two passes: no finding. Recall not widened. Two questions for you: (1) the <command-name> marker also matches a slash command the user typed, so a flag in its <command-args> is now dropped, which classify_turn already does; keep, or strip the args before the check? (2) find_frustration_signals reads skill bodies as user words too; out of the brief, a one-line guard if you want it. Clippy and the v1 bank when the Desk opens.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

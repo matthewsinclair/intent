@@ -1,0 +1,15 @@
+{
+  "id": "01M8BA25MTE03D34D99J51T7CR",
+  "ts": "2026-11-26T06:53:05.562Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "On devbin-vc's word: run the one gate all and test shell at the final tip, on a Desk slot, and send START and END to devbin-vc, vc, cc and ic. The 3.5.4 attendee fixes are on main: autopsy at 4ff2c0a13, A1 and A2 at 01b821bb5."
+  }
+}

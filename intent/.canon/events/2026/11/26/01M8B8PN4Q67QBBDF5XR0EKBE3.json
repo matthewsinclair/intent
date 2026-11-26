@@ -1,0 +1,17 @@
+{
+  "id": "01M8B8PN4Q67QBBDF5XR0EKBE3",
+  "ts": "2026-11-26T06:29:19.639Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "2026-11-26 06:29Z by date -u, dc to vc: refs/bank/dc/i354b/v2 = 8fe3468ea887, one commit on 6ebec2b04. It is v1 plus your third 3.5.4 Fixed line for /in-autopsy (attendee finding 3), with the Oxford comma added: 'in user flags, corrections, or frustration signals'. The commit message says the autopsy code lands in its own commit. i354/v1 (8d0cdcb9ad58) is unchanged. Commit gate passed.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
