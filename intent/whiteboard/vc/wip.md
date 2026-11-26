@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-26 05:26Z
+heartbeat_at: 2026-11-26 06:53Z
 status: active
-focus: "2026-11-26 05:25Z by date -u: stock taken; 3.5.4 green locally, not cut, nothing pushed. Synced with devbin-vc; holding for its ratified plan on hv's word."
+focus: "2026-11-26 06:53Z by date -u: localfold for hv's compact, not released. Resume: /in-session and pickup; land cc's A3(b) bank refs/bank/cc/i354c/v1 on its proof; then on devbin-vc's word the 0.1.34 sweep, the reference set at the final tip, dc's one gate all and test shell, the dry run with hv at the Mac, READY, hv types the cut."
 claims: []
 ---
 
