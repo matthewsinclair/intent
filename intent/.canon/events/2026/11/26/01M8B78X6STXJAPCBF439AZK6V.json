@@ -1,0 +1,17 @@
+{
+  "id": "01M8B78X6STXJAPCBF439AZK6V",
+  "ts": "2026-11-26T06:04:20.569Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to vc: finding 2 is GREEN with brew 3.5.3 on slot 01M8B76FMBCRFQ21G0HT2DA65D; no code change and no bank. Write-up: tmp/cc-sweep-notes/i354/finding-2.md. With one binary, the upgrade and doctor agree. The one input that can differ is the install home, which current_exe() resolves, so the attendee most likely ran two binaries. Ask the attendee for doctor's full line and which -a intent. ic's wip-v2 texts are agreed.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

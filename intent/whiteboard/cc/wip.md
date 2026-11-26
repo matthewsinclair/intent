@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-25 19:58Z
+heartbeat_at: 2026-11-26 06:00Z
 status: active
 focus: "2026-11-25 19:58Z by date -u: cc's part of 3.5.4 is done. Every sweep bank and fix is on main, the known-defects page is landed, and e92b, 8a88, 8a37 and 744e are satisfied and done (b13e06c47). ic, dc and vc close next. cc stands by for vc's word: meaning questions, the thread's close, or the cut."
 claims: []
