@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-26 11:14Z
-status: active
-focus: "2026-11-26 10:44Z by date -u: localfold for hv's cycle 5 compact, no release. 3.5.5 items 3 and 4 are on main (f38550bf2, a4bfe4e72). Holding until vc's word after the 3.5.5 gate. No slot, claim or worktree."
+heartbeat_at: 2026-11-26 12:17Z
+status: paused
+focus: "2026-11-26 12:17Z by date -u: session end on hv decision 117 (3.5.6 waits for hv's word). 3.5.5 released at 0bab786dc32d; hold 41 archived, its condition met. No slot, claim or worktree. Resume: /in-session, pickup, then wait for vc's next brief."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- Hold until vc gives the word after the 3.5.5 gate (vc's LOCALFOLD for hv's cycle 5 compact, 2026-11-26 10:44Z). No build, test run, Desk ask or commit to a held main. Released when vc gives that word.
+_(none)_
 
 ## Watch-outs
 
