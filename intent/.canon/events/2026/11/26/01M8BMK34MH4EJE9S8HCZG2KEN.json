@@ -1,0 +1,15 @@
+{
+  "id": "01M8BMK34MH4EJE9S8HCZG2KEN",
+  "ts": "2026-11-26T09:57:05.823Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "STee6564b6d4236e35/1752e52f"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "SKILL.md, the report format, removals of banned-words.txt and the v2 reports, the CHANGELOG line, and the one proof run"
+  }
+}
