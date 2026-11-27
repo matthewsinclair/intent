@@ -3,8 +3,8 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 173dc655-8924-41dc-8272-e415b72dfb6d
-heartbeat_at: 2026-11-27 09:33Z
-status: active
+heartbeat_at: 2026-11-27 09:35Z
+status: paused
 focus: "2026-11-27 09:33Z by date -u: DOING: nothing. TODO: nothing for ic; the parked threads wait on hv."
 claims: []
 ---
