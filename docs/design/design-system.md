@@ -26,7 +26,7 @@
 
 **The rows above are a selection, not the output of a count.** The corpus contains prefixes absent here, eg `critic:`, `doctor:`, `events:`, `status:`, `removed:` and `lint:`, some of which outrank listed ones by frequency. The command below re-derives the ranking.
 
-**The selection rule:** a row is here if it describes **what happened to the operation**. It is excluded if it names **who is speaking** (`critic:`, `doctor:`, `gate:` and `ac:` label the reporting command, not an outcome) or if it is a **field label inside a report** (`status:`, `reason:`, `severity:`, `scope:`).
+**The selection rule:** a row is here if it describes **what happened to the operation**. It is excluded if it names **who is speaking** (`critic:`, `doctor:`, `gate:` and `ac:` label the reporting command, not an outcome) or if it is a **field label inside a report** (`status:`, `reason:`, `severity:`, `scope:`). Prefixes that are outcomes but belong to one verb's report rather than the general vocabulary, `unchanged:` and `preserved:` from `intent claude upgrade`, are excluded on the same ground and are the least comfortable exclusions in the set.
 
 **A choice was made, so the coherence argument is weaker than "we did not choose the palette" and is still the argument.** What the site inherits is a vocabulary the tool already speaks, filtered by a rule stated above; what it does not do is invent severity levels the tool has no word for. **If Decision A is reopened, this is part of it** -- the question is not only whether the accent can be red, but which prefixes carry semantic weight at all.
 
