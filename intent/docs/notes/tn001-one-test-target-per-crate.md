@@ -1,65 +1,20 @@
 ---
-verblock: "24 Sep 2026:v1.1: Matthew Sinclair - Updated in the 3.2.1 doc audit"
+verblock: "27 Nov 2026:v1.2: Matthew Sinclair - Synced to the code, history cut"
 ---
 
-# TN001 -- One test target per crate: the ruling Intent made and did not apply
+# TN001: One test target per crate
 
-**Status: RULED (hv, 2026-08-27, estate-wide). APPLIED IN INTENT AT `71a96213` (dc, 2026-09-01), AND THE FULL CYCLE HAS BEEN RUN AND WATCHED BY hv.** Every live figure below is given as the command that regenerates it, never as a number, and every historical figure is dated -- because a technote is read at boot and a figure in one goes stale silently.
+hv ruled this for every estate on 2026-08-27. Intent applied it at `71a96213` on 2026-09-01, and a test enforces it (below). A live figure on this page is given as the command that reads it. A historical figure is dated, and is here only as evidence.
 
-_This line read "APPLICATION IN FLIGHT" through v0.4 and was true when written. It is kept as a correction rather than overwritten silently, because a status is a live claim and the note's whole subject is claims that expire._
+## The defect
 
-**AND AS OF 2026-09-09 IT IS ENFORCED RATHER THAN READ (vc, at hv's direction).** Until then this note was the ruling's ONLY home: measured over canon rather than the disk -- **`autotests` appeared in no acceptance criterion, nor did `line-tables`, the issue register returned nothing, and none of `critic-rust`'s rules touched build topology.** A decision in a sentence, an application in a commit, and nothing joining them. That is the note's own subject arriving at the note.
-
-Written by vc at hv's direction, on dc's census and dc's build. Circulated to every Intent-using project so each can make its own version rather than inherit ours.
-
-## The defect in one line
-
-**Under cargo's default `autotests = true`, every `.rs` file in a crate's `tests/` directory becomes its own test target -- a separate compile and a separate FULL LINK of the crate and all its dependencies.** A crate with N test files links N binaries to run its tests. Nothing warns you; it is the default, it is invisible in the output, and it grows one file at a time.
-
-## Why this is a technote and not a ticket
-
-**Intent ruled this estate-wide on 2026-08-27 and then did not do it.**
-
-| estate     | what happened, and when                                                                                         |
-| ---------- | --------------------------------------------------------------------------------------------------------------- |
-| Laksa      | adopted **2026-08-27**, the day of the ruling; its `Cargo.toml` quoted the ruling verbatim                      |
-| Lamplight  | consolidated **2026-08-27**, its one crate that has tests, zero orphans                                         |
-| **Intent** | ruled **2026-08-27**, applied **2026-09-01** at `71a96213` -- **five days, in the estate that made the ruling** |
-
-**THIS TABLE HELD A STATUS COLUMN UNTIL v0.6 AND THE COLUMN IS THE ONE PLACE THIS NOTE BROKE ITS OWN OPENING RULE** (raised by devbin-vc, adjudicated by vc, blessed by hv). Every figure here carries the command that regenerates it -- except a per-estate status, which carries none and cannot. **A DOCUMENT HAS A REVISION AND A MESSAGE DOES NOT, SO THE MESSAGE IS THE COPY THAT ROTS -- AND A PER-ESTATE STATUS TABLE IS A MESSAGE WEARING A DOCUMENT'S CLOTHES.** It looks checkable, and what it asserts is true only at a moment nothing records.
-
-**IT HAD ALREADY ROTTED TWICE, AND THE SECOND ONE WAS STILL SITTING HERE WHEN THIS EDIT WAS MADE.** The Lamplight row understated Lamplight's compliance through v0.1 and v0.2 -- in the direction that punishes compliance, corrected while hv was ruling this note fleet canon. And the Intent row read `NO -- not one crate` from v0.1 to v0.5, which stopped being true at `71a96213` and **stayed on the page for the rest of that day**, contradicted by this note's own status line above it.
-
-**THE TEST THAT REPLACED THE COLUMN IS TENSE, NOT IMPORTANCE** (vc's amendment, and it is the half a reader can apply): a PRESENT-TENSE claim about another estate's STATE rots the moment that estate edits anything, silently; a DATED claim about an EVENT survives whatever happens next. `Laksa's Cargo.toml quotes the ruling verbatim` was the first kind. `Laksa adopted it on 2026-08-27, quoting the ruling verbatim` is the second, and nothing Laksa does can falsify it.
-
-**THE REGENERATING COMMANDS, WITH THEIR DISPOSITIONS ATTACHED.** Two instruments, and which one ADJUDICATES is not a matter of taste -- item 1 below already ruled it, and a note that grew a second rule contradicting its first would be the exact defect it is about.
-
-```
-bin/devbin check autotests                                      # DIAGNOSES, per-crate, runs anywhere
-cargo test --manifest-path native/rust/Cargo.toml --workspace --no-run 2>&1 | grep -c 'Executable tests/'   # ADJUDICATES
-```
-
-**THE GATE STATES ITS OWN POPULATION ON EVERY PATH INCLUDING PASSES** -- `N crate(s) with tests/, M in breach (pruned: ...)` -- which is what makes it citable at all rather than merely available. Its own comment gives the reason: an empty walker is silent and an empty parser is loud, and only one of those is safe. **A gate that reported a verdict without its population would be the instrument this note warns about, wearing a uniform.**
-
-**ITS CRITERION IS `is discovery controlled`, NOT ARITHMETIC, AND THIS ESTATE IS WHY** (devbin-vc, `4afef84` in devbin's repo -- `git show 4afef84:lib/cmd/check`). An earlier version made more than one declared target a breach. **`intent-cli` and `intentd` each declare more than one DELIBERATELY, for the reasons this note gives below -- so the literal rule reddened the estate that authored the ruling.** Declared blocks now pass at any count with the count reported. Among crates that declare `autotests = false`, the one refusal left is the genuinely silent case: **discovery off, nothing declared, `.rs` files sitting in `tests/` -- compiled by nobody and run in no suite.** A crate with discovery on still breaches as soon as `tests/` holds more than one `.rs` file.
-
-**THE LAMPLIGHT ROW IN v0.1 AND v0.2 OF THIS NOTE WAS WRONG** (corrected by lamplight-vc, measured with this note's own instrument). **Lamplight's only crate with test files was consolidated on 2026-08-27 with no orphans**, so every crate that had tests was done, and the row reported a small fraction. The correction arrived while hv was ruling at Lamplight that this note becomes fleet canon -- **so the wrong figure was one step from propagating into every estate.**
-
-Intent is the estate that made the ruling. **Most of its test files landed in the same month the ruling was made**, so the cost was accruing fastest exactly where the decision had been taken. A ruling that is not applied where it was authored is not a slow rollout; it is a ruling nobody is enforcing, and the author is the last to notice because they remember deciding it.
-
-**That is the transferable half of this note. The Cargo settings below are mechanical. The failure was that a decision and its application were separately tracked, and only one of them was.**
-
-## The mechanism
-
-Cargo's `autotests` defaults to `true`. Each file directly under `tests/` becomes a `[[test]]` target. A target is not a cheap thing: it is a full link of the crate under test plus its whole dependency graph, and linking dominates the cost -- so the total is roughly linear in FILE COUNT, not in test count or in code volume.
-
-Adding a test file is therefore not a marginal cost. It adds a link.
+Cargo's `autotests` is `true` by default. Then every `.rs` file directly under a crate's `tests/` becomes its own test target: a separate compile and a separate full link of the crate and all its dependencies. Linking is most of the cost, so the cost grows with the number of test files, not with the number of tests. Nothing warns you, and the cost grows one file at a time.
 
 ## The fix, in four parts
 
-Three are per-crate; the fourth is per-repo.
+Parts 1 to 3 are for each crate. Part 4 is for the workspace.
 
-**1. Turn off automatic discovery and declare one target.** In each crate's `Cargo.toml`:
+**1. Turn off discovery and declare one target.** In each crate's `Cargo.toml`:
 
 ```toml
 autotests = false
@@ -69,22 +24,14 @@ name = "suite"
 path = "tests/suite.rs"
 ```
 
-**2. Make the former targets modules of the one target.** `tests/suite.rs` becomes a list of `#[path]` module declarations, one per file that used to be its own target. The test bodies do not move and do not change.
+**2. Make each former target a module of that one target.** `tests/suite.rs` is a list of `#[path]` module declarations, one for each file that was a target. The test bodies do not move or change.
 
-**3. Guard against orphans, because step 2 is hand-maintained and will drift.** A file added to `tests/` after the switch is compiled by nobody and runs in no suite -- **it passes by not existing.**
+**3. Guard against orphans.** After the change, a file added to `tests/` and not declared in `suite.rs` is compiled by nothing and runs in no suite, so it passes without running. Before the change, a stray file became an extra binary. Neither case announces itself, so the guard is part of the change, not a later task.
 
-**THE FAILURE MODE INVERTS AND STAYS SILENT, WHICH IS THE WHOLE ARGUMENT** (laksa-vc). Before the change, a stray file silently became an extra binary. After it, a stray file silently becomes nothing. **Neither announces itself, so consolidation without a guard trades a LOUD WASTE for a QUIET HOLE.** That is why the guard is not optional and not a follow-up.
-
-**Four subtleties, all from Laksa's implementation, and a guard built from a summary would miss three of them:**
-
-- **KEY ON `#[path = "..."]`, NEVER THE `mod` NAME.** The two are free to diverge and only the path decides what compiles. A mod-name detector agrees with a path detector on every line of a healthy file and diverges the first time somebody renames one without the other -- **which is exactly when you needed it.**
-- **PLANT A REAL FILE; A SYNTHETIC CONTROL IS NOT ENOUGH.** A synthetic control proves the SUBTRACTION works. It cannot prove the DIRECTORY READER reaches the right place -- and a walker that returns an empty list on a `read_dir` error finds no files, therefore no orphans, and goes **GREEN** when aimed at a moved or renamed directory. Laksa planted a real `zz_orphan_probe.rs`, got a red naming it, removed it, got green, in one atomic command with the tree verified clean after. **Both instruments must also assert their own corpus is non-empty, because an empty walker is silent while an empty parser is loud, and only one of those is safe.**
-- **ONLY THE UNDECLARED DIRECTION NEEDS GUARDING.** A path DECLARED with no file behind it is a `#[path]` compile error -- loud, immediate, and needing nothing. Stated so nobody adds the other half later thinking it was missed.
-- **THE GUARD CANNOT CATCH ITS OWN OMISSION, AND NO TEST CLOSES THIS.** Dropped from `suite.rs` it stops being compiled and stops reporting -- its own defect applied to itself. **Its declaration line is load-bearing and must not be tidied away.** Say this in your own note; do not let it be discovered several estates later.
-
-**AND THE TRAP IN PROVING THE GUARD, WHICH CAUGHT dc ON THE FIRST ATTEMPT AND GENERALISES WELL PAST THIS JOB: `cargo test <filter>` EXITS 0 WHEN THE FILTER MATCHES NOTHING.** dc's first proof filtered `--exact` on a bare test name; the test lives in a module, so it matched nothing, ran zero tests, and exited 0 -- **reporting the guard as decoration.** The baseline arm added as a control passed the same vacuous way, because **exit 0 over a run that filtered out every test is byte-identical to exit 0 over one pass.**
-
-**SO EVERY ARM MUST ASSERT THE COUNT, NOT THE EXIT CODE.** The general form: **any harness that selects by name and checks only `$?` is green from the moment the name drifts** -- and name drift is silent, routine, and exactly what refactoring does.
+- Key the guard on `#[path = "..."]`, never on the `mod` name. Only the path decides what compiles.
+- Prove the guard with a real file planted in `tests/`, not only a synthetic control. A walker that returns an empty list on a `read_dir` error finds no orphans and goes green on a moved directory. Make each instrument assert that its own corpus is not empty.
+- Guard only the undeclared direction. A declared `#[path]` with no file behind it is already a compile error.
+- The guard cannot catch its own removal from `suite.rs`. Do not tidy its declaration away.
 
 **4. Cut debuginfo, once, at the workspace root.**
 
@@ -93,174 +40,62 @@ path = "tests/suite.rs"
 debug = "line-tables-only"
 ```
 
-`cargo test` inherits `dev`, so one key here reaches every test target rather than needing a `[profile.test]` beside it. `line-tables-only` keeps the file and line in a backtrace -- what a person actually reads off a failure -- and drops the type and variable detail that only a debugger consumes.
+`cargo test` inherits `dev`, so this one key reaches every test target. `line-tables-only` keeps the file and line in a backtrace and drops the detail that only a debugger reads.
 
-**And separately: pass `--no-fail-fast` at every `cargo test` call site.** With one target, the first failure otherwise stops the whole suite.
+**Pass `--no-fail-fast` at every `cargo test` call site.** Cargo stops after the first failing target, so without the flag one failure hides the results of every target after it. This applies as soon as a workspace has more than one target, a lib and a bin included. Lamplight's CI lost every failing target's report but the first on 2026-08-27, when its targets became one.
 
-**THIS IS NOT A TIDINESS FLAG AND LAMPLIGHT HAS THE SHARP VERSION: CONSOLIDATION MAKES A BARE `cargo test` STRICTLY WORSE THAN IT WAS.** Their CI ran a bare `cargo test` before consolidation and after it -- and on 2026-08-27, **every independently-failing target became one target, so the first failure hid all the others.** Before consolidation a bare run reported every failing target; after it, one. **You do not lose the flag's benefit by omitting it; you lose CI information you previously had.** Add it in the same commit as `autotests = false`, not after.
+## Keep the files where they are
 
-## Do not move the files
+Use `#[path]` so that no test file moves. An acceptance test (AT) row cites its test file by path, and `intent ac gate` refuses a green or red AT whose cited file does not exist (issue 0015). A move therefore blocks the gate of each thread that cites a moved file, until `intent at edit --file` retargets each row. Lamplight moved its files on 2026-08-27, and the stale citations stayed unseen for five days.
 
-**Use `#[path]` so that NO FILE MOVES.** Laksa did this deliberately and it is the reason the green acceptance-test rows citing those files by path never went stale.
+## Measure with cargo, not with grep
 
-**AND ON `v3.0.0` THERE IS NO WAY BACK FROM MOVING THEM.** Driven, both artefacts, 2026-09-01; `v3.0.1` driven 2026-09-11:
-
-| binary                 | `intent at edit --file`              |
-| ---------------------- | ------------------------------------ |
-| published `v3.0.0` keg | **`unrecognized subcommand 'edit'`** |
-| unreleased dev HEAD    | present                              |
-| `v3.0.1`               | present                              |
-
-**So on an estate still running `v3.0.0`, a row's cited file cannot be retargeted by any verb.** A consolidation that moved files would put contract prose and green statuses at risk in order to fix a path -- **real damage, to avoid a cosmetic problem.** From `v3.0.1`, `intent at edit --file` retargets a row, and a move still costs one retarget per citation it stales.
-
-**AND THE PRICE OF THE OTHER CHOICE IS MEASURED, NOT ARGUED** (lamplight-vc, who paid it). Lamplight consolidated by MOVING every file from `tests/*.rs` into `tests/main/*.rs`. **That staled AT citations across several threads -- ST0290, ST0286, ST0264, ST0315 and ST0351 -- undetected for five days.** It compounds with the check Intent added for issue `0015`: `intent ac gate` refuses a green or red AT whose cited file does not exist, so a move blocks the gate of every thread citing a moved file until each row is retargeted.
-
-**IT ALSO MANUFACTURED A FALSE FINDING, WHICH IS THE MORE USEFUL HALF.** On 2026-08-27 Lamplight filed that `ST0264`'s `AT-16.4` cited a file _"GENUINELY absent -- a real finding"_. It was not absent; it had moved at 12:22:47Z that morning, and the symptom was filed at 18:44Z without anyone looking for a cause. **THE REMEDY WAS WHAT WAS AT RISK: _absent_ points at voiding a green AT whose test exists and passes; _moved_ points at a path update.** Retracted by its author.
-
-**So "no file moves" is worth every citation a move would stale, and the wrong findings that follow them.** `#[path]` costs nothing and sidesteps the whole question. Take it even where `at edit` is available.
-
-## The trap in measuring it, which cost us a wrong scope
-
-**Test FILES are not cargo TARGETS. They are equal only where `autotests` is default.**
-
-A census that counts files and reports targets will be right for every unconsolidated crate and wrong for every consolidated one -- so it systematically overstates the remaining work, and it overstates it MOST for the estates that already did what you asked. Laksa's test files compile to ONE target; a file count reports Laksa among the worst offenders in the fleet when it is the only estate that is finished.
-
-**On this fleet, a scope was taken off a file-count column and was twice the correct one.** The trees it wrongly included needed nothing: one already compliant, one with no test files at all, and a deliberately frozen fallback checkout whose Rust is a pre-cut snapshot. The caveat had been stated at the top of the census and was not applied to the reading below it.
-
-**AND THERE IS A SECOND HEAD OF THE SAME CAVEAT, WHICH PRODUCED THE WRONG LAMPLIGHT FIGURE ABOVE** (lamplight-vc). **On a fleet using worktree isolation, a `find`-based crate census counts every crate once per checkout.** Most of the `Cargo.toml` files a walk of Lamplight finds are not separate crates: **they are Lamplight's own crates seen again in `.worktrees/cc` and `.worktrees/ic`** -- git worktrees of the same repository -- plus gitignored dependency NIFs. A census that walks the tree counts every crate once per checkout.
-
-**BOTH HEADS PUSH THE SAME DIRECTION, AND IT IS THE DIRECTION THAT PUNISHES COMPLIANCE.** Files-not-targets overstates the work for whoever consolidated; worktrees-as-crates overstates it for whoever isolates. **The estates doing the right thing measure as the worst offenders**, and neither error announces itself.
-
-**So: state the caveat AND apply it, or do not state it. A caveat that sits above a table nobody re-reads is decoration.**
-
-## What each project should do
-
-1. **Count your real targets by asking cargo, not by grepping for them.** `cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'` is the only count that is not a proxy. The two greps -- `grep -c '^\[\[test\]\]' */Cargo.toml` and `grep -rn 'autotests' --include=Cargo.toml .` -- still DIAGNOSE, and they must not ADJUDICATE: read together with "absent `autotests` means `true`" they do reach the answer, but only by an inference the reader has to make correctly. Intent's own `testkit` showed the cost of getting it wrong until it was consolidated on 2026-09-09 -- `grep -c '^\[\[test\]\]'` found **no** declared target for it while cargo reported **one**, because a single test file with no `autotests` key is auto-discovered. **An estate reading the grep alone sees a crate reporting zero targets, concludes it needs consolidating, and consolidates something already correct.** In a note about instruments that answer confidently about what they never looked at, the measuring instruction must be the direct one.
-2. **Apply the four parts above** to every crate whose test files outnumber its declared targets.
-3. **Build the orphan guard before you consolidate, not after.** It is the only thing standing between a consolidated suite and a silently shrinking one.
-4. **Write your own version of this note.** Not a copy -- your crate layout, your counts, your call sites. A note that describes someone else's estate is read once and never checked.
-
-   **FILE IT WHERE YOUR TECHNOTES ALREADY LIVE, AND NUMBER IT NEXT IN YOUR OWN SEQUENCE. THE PATH AND THE NUMBER ARE YOURS, NOT INTENT'S TO CARRY ACROSS.** This paragraph replaces an instruction that said "if `intent/docs/notes/` does not exist yet, this will be your first" -- **which was wrong and would have done real damage** (found by conflab-vc, after it had already been circulated to other estates). Conflab's technotes live at `docs/notes/`, not `intent/docs/notes/`, and its `tn001` is taken by an unrelated note; followed literally, the instruction creates a SECOND notes tree containing a SECOND document numbered TN001 about a different subject. **Conflab's is `tn005`.** **And the failure is silent, because creating a directory always succeeds** -- nothing would have reported the duplicate.
-
-   The instruction generalised Intent's own layout from a small sample of estates that happened to agree. **Before filing, look for the notes tree you already have.**
-
-5. **If you own no Rust, check the PATH before you change the declaration.** Some estates declared `rust` in `intent/.config/config.json` while owning none -- as of 2026-09-01, Baize, whose only `Cargo.toml` files were dependency NIFs, and Gtools, which had **no** `Cargo.toml` anywhere (it gained a crate on 2026-09-15).
-
-   **THIS ITEM ORIGINALLY SAID A DECLARED-BUT-UNOWNED LANGUAGE "ARMS A CRITIC OVER CODE YOU DID NOT WRITE". THAT IS AN ASSERTED CONSEQUENCE AND IT WAS NEVER TRACED** (corrected by baize-vc, who measured the path instead of accepting the claim). In Baize it does not hold, and structurally rather than by luck: `.gitignore` carries `/deps/`, so every Rust file there is ignored and can never be staged; and `check critic` defaults to `--staged`, reporting NOT APPLICABLE when it scans nothing. **The only Rust that exists cannot enter the only corpus the gate reads, so the declaration is INERT, not armed.** Gtools was inert on 2026-09-01 for a simpler reason still -- no crates at all. **One asserted hazard, and no live instance in either estate.**
-
-   **SO THE RULE IS: A DECLARED RISK IS NOT A LIVE RISK UNTIL YOU FIND THE PATH BY WHICH IT REACHES SOMETHING.** That is this note's own orphan-guard argument pointed the other way -- an instrument reading green is not evidence until something makes it go red, and a hazard read off a config is not a hazard until something makes it bite. **Do not churn a config against a standing ruling to remove an exposure you have not measured.**
-
-6. **If your first crate does not exist yet, you have the cheapest path on the fleet and nobody else does.** Every estate in the table above is RETROFITTING. Baize is not: `autotests = false`, the single `[[test]]`, the orphan guard driven to both verdicts, and `line-tables-only` can all land in the same commit as the first test file, with nothing to migrate and no green rows to put at risk. **Greenfield adopters should take all four parts at once rather than deferring the guard**, which is the part retrofitters keep leaving until last.
-
-   **AND ITEM 6's TRIGGER IS THE FIRST TEST FILE, NOT TODAY.** A crate whose tests are entirely inline `#[cfg(test)]` modules has no `tests/` directory, nothing to consolidate, and no orphan risk -- setting `autotests = false` there only ARMS the quiet hole. **Leave the default, which is loud, and put the guard on the TRANSITION instead.** Utilz nodes derived this independently on 2026-09-09 and each still had to ask, because nothing readable answered it.
-
-7. **Put the transition under a check, not under a note.** The four parts govern crates that already have integration tests; nothing in them watches a crate GROW one. A workspace-level guard costs an afternoon and covers the window the orphan guard structurally cannot reach. **If you record the decision and its application separately, you now have two things that can rot independently** -- make one artefact that fails if either is missing, and the guard is that artefact.
-
-## What enforces this, and what deliberately does not
-
-**THE CRITIC HOSTS THE DOCTRINE; A TEST HOSTS THE ENFORCEMENT. That split is measured, not stylistic.**
-
-`IN-RS-TEST-003` (one declared test target per crate) and `IN-RS-TEST-004` (trim debuginfo, never fail fast) are in the rule library, `applies_to: **/Cargo.toml`. **The critic runner does reach a manifest** -- driven: `staged_subjects()` applies no extension filter, `run()` reads whatever it is handed, `applies_to` is a general glob, and an absent `applies_to` means universal. No tool change was needed.
-
-**BOTH RULES ARE NEVERTHELESS DECLARED UNANSWERABLE IN THE HEADLESS GATE, AND THE REASON IS THE POINT.** Every violation here is an ABSENCE -- a manifest that does not carry a key -- and the runner matches only positively. **The one positive token was driven and rejected rather than waived:** in this repository's manifests `debug = true` occurs only inside the comment at the workspace root explaining what the cargo default is. A proxy on it would warn on the manifest that implements the rule, in the sentence documenting the remedy. **A rule that cannot fire is worse than an absent rule, because it reads as coverage** -- so both declare the limit and the census counts them as asked-of-nothing rather than reporting a green over a question never put.
-
-**THE MECHANICAL ARM IS `test_target_topology_guard.rs` (`native/rust/crates/intentsvcs/tests/`, a member of that crate's suite)**, a workspace-level test that walks every crate manifest with comments stripped and asserts: a crate holding `tests/*.rs` declares `autotests = false` AND a `[[test]]` target; and `autotests = false` never stands without one. It asserts its own population before asserting the property. Driven red on each assertion, each restored to green.
-
-### The window the four parts never covered
-
-**THE ENFORCEMENT MECHANISM CANNOT EXIST BEFORE THE THING IT ENFORCES.** The orphan guard lives inside `tests/suite.rs`; `suite.rs` exists only after consolidation. So a crate with no `tests/` directory has nothing holding the property, and the first file added there decides silently which régime the crate is in. **That is why the tripwire is not a duplicate of the orphan guard and is deliberately weaker than it** -- it reads a directory listing and a manifest and never reads `suite.rs`, which is exactly what lets it cover the pre-suite window.
-
-**THIS NOTE LOOKED STRAIGHT AT A LIVE INSTANCE AND DID NOT SEE IT.** Item 1 above uses `testkit` to show that `grep -c '[[test]]'` is a bad instrument. **testkit also had no `autotests` key at all**, so its one test file was auto-discovered and a second would have joined it in silence. Cargo reported one more target than the manifests declared. The crate was used as an illustration of measurement error while being an instance of the defect, for eight days. **Consolidated 2026-09-09; every target is now declared and the two sets are identical.**
-
-**AND FIXING IT NAIVELY WOULD HAVE MADE THINGS WORSE, WHICH IS THE PART WORTH CARRYING.** The orphan guard was a byte-identical file copied across crates with no drift test between them -- so "add the guard to testkit" meant one more copy. It is now single-homed as `testkit::assert_no_orphan_suite_members`, called from a thin `no_orphan_suite_member.rs` in each crate. **A guard is an IMPLEMENTATION, not an index, so a drift test would not have licensed the copies.** The crate that exists to end copy-pasted test helpers was the one carrying a copy-pasted test helper.
-
-### `--no-fail-fast` is a multi-target artefact, not a consolidation artefact
-
-Stated in part 4 as something to add "in the same commit as `autotests = false`", which reads as though it only matters once you consolidate. **It bites as soon as there is more than one target.** Cargo stops after the first failing target, so a workspace with a lib and a bin already hides one result behind another, and every crate added widens it. An estate with no `tests/` directory anywhere still wants it at every call site.
-
-## Verifying a consolidation, which is the part we got wrong twice in an hour
-
-**THE CHARACTERISTIC RISK OF THIS CHANGE IS FLAKINESS, AND N CLEAN RUNS CANNOT DETECT FLAKINESS.** Merged targets are threads in one process where they were separate processes, so anything sharing process state stops failing cleanly and starts failing sometimes. That is the whole cost, and it is the one thing a green run does not speak to.
-
-Intent shipped two claims on clean-run evidence on 2026-09-01 and both were wrong:
-
-| claim                                        | evidence offered                          | what it was worth                      |
-| -------------------------------------------- | ----------------------------------------- | -------------------------------------- |
-| the merge is safe                            | the workspace compiles, targets confirmed | nothing about intermittents            |
-| `daemon_subscriptions` fixed by isolating it | **8 clean full-workspace runs**           | nothing -- hv hit it again immediately |
-
-**Driven two-sided afterwards, the second claim inverted outright: 0 failures in 10 parallel runs, 2 failures in 9 at `--test-threads=1`.** Serialising made it _worse_, so parallelism -- the stated cause -- could not have been the cause. **A two-verdict drive disproved in nineteen runs what nineteen clean runs could not have confirmed.**
-
-So: **before claiming a consolidation is safe, run the suite in a loop under full-workspace contention until you have either a failure or a number of runs you can defend.** A single failure at 1-in-9 means three clean runs is what you would expect whether or not anything was fixed. And **when you think you have found the cause, drive the opposite arm** -- if removing the supposed cause does not help, the diagnosis is dead regardless of how many greens follow it.
-
-### Files that stayed separate, and one that must not
-
-`dual_path_conformance.rs` and `daemon_subscriptions.rs` keep their own `[[test]]` targets: one mutates process cwd, the other drives a per-process file-watch stream. **Both are asking for something a shared process cannot give, so isolation restores an isolation they always had.**
-
-**`daemon_address.rs` was the one that looked identical and was not.** It failed intermittently under contention too, and isolating it would have gone green immediately. But its failure was a REAL race in the product, which the added concurrency merely exposed: a forked child inherited the daemon lock's descriptor, so the holder's own close did not release the lock (fixed at `3fc1d152`, 2026-09-01; the file stays in the suite). **Isolating it would have lowered the concurrency until the window stopped being hit: the failure disappears and the race does not.** That is the denominator attack, and an estate that reaches for isolation whenever a merged suite goes red will quietly convert every product race it surfaces into a green.
-
-**The discriminator: does the test need isolation, or does the PRODUCT need fixing?** Ask what the test is asserting. A test asserting something about the process it runs in wants its own process. A test asserting something about the product wants the product fixed.
-
-### The transform is not symmetric
-
-Merging removes a file's `mod common;` and rewrites its paths to `crate::common::`. **Un-merging must put the declaration back**, or the file stops compiling with an error naming the helper rather than the move that broke it. Every estate that consolidates will eventually pull one file back out, and this is the first thing it meets.
-
-## What it cost Intent, and what holding the cache cost instead
-
-**Applied at `71a96213`.** `bin/devbin check autotests` reports each crate's declared targets. **Verified by asking cargo, not by counting files** -- which is this note's own trap, so the verification must not walk into it:
+Test files are not cargo targets. They are equal only where `autotests` has its default. Count the real targets by asking cargo:
 
 ```
 cargo test --manifest-path native/rust/Cargo.toml --workspace --no-run 2>&1 | grep -c 'Executable tests/'
 ```
 
-**THIS SECTION PRINTED ITS ANSWERS -- A PER-CRATE BEFORE-AND-AFTER TABLE, AND THE COUNT AS A COMMENT ON THAT COMMAND -- AND BOTH ARE GONE ON PURPOSE** (vc's amendment, and it corrects a rule this note had been prescribing to the whole fleet). **A PRINTED NUMBER GETS READ INSTEAD OF RUN.** Stating a figure with its regenerating command beside it makes the figure AUDITABLE and does nothing whatever for its CURRENCY -- the table proved it by going stale with the command printed directly underneath. So the rule this note now holds, and the one it failed:
+`bin/devbin check autotests` reports each crate's declared targets, and `grep -c '^\[\[test\]\]' */Cargo.toml` and `grep -rn 'autotests' --include=Cargo.toml .` help to diagnose. Only the cargo count decides. A crate with one test file and no `autotests` key shows no declared target to grep, but cargo builds one.
 
-- **A LIVE figure: print the COMMAND ALONE. Delete the number.** The reader runs it and gets today's answer, which is the only answer that was ever true.
-- **A HISTORICAL figure: DATE IT, and only when it is the evidence for a finding.** A count of tests, targets, files or suites is a live figure however it is dated, so it is never printed.
+A census that walks the file system also counts each crate once for each git worktree that holds a copy of it. Both errors make an estate that did the work look like one that did not.
 
-**THE SECOND HALF IS THE TENSE TEST FROM THE ESTATE TABLE ABOVE, ARRIVING BY A DIFFERENT ROUTE** -- one argument started from what other estates do to a document, the other from what the authoring estate does to itself, converging on the same place: **the only figures that belong on a page are ones that already happened.**
+## What enforces it in Intent
 
-**AND IT VINDICATES THE ORIGINAL ASK MORE THAN ANY OF THE REFINEMENTS DID.** devbin-vc asked for the verdicts to be dropped so a reader would run the command and get their own answer. Several of us then improved that into a scheme for printing better figures. **The thing that failed was the scheme.**
+- `native/rust/crates/intentsvcs/tests/test_target_topology_guard.rs` walks every crate manifest with comments stripped. It asserts that a crate with `tests/*.rs` declares `autotests = false` and a `[[test]]` target, and that `autotests = false` never stands without one. It asserts its own population first.
+- `testkit::assert_no_orphan_suite_members` is the one orphan guard. Each crate calls it from a thin `tests/no_orphan_suite_member.rs`.
+- `IN-RS-TEST-003` (one declared test target per crate) and `IN-RS-TEST-004` (trim debuginfo, never fail fast) are in the rule library. The headless gate cannot answer them, because each violation is an absent key and the runner matches only what is present. `critic-rust` applies them in review, and the test above enforces them.
+- `test rust` in `bin/.devbin/config.yaml` and the test step in `.github/workflows/rust.yml` both run `cargo test --workspace --no-fail-fast`. `--workspace` with no `--lib` builds and runs the `suite` targets and the orphan guards.
 
-**THE TABLE'S `intentd` ROW WAS TRUE WHEN IT WAS WRITTEN AND WENT STALE WITHIN THE DAY** (caught by vc, adjudicated with the command above). `33ac4348` gave `intentd` a SECOND declared target back -- `daemon_subscriptions`, which earned it by failing -- **1h37m after `71a96213` recorded the figure.** Later revisions then passed over the table without touching it, **including `73857a72`, whose own subject line names `33ac4348`.**
+## Intent's separate targets
 
-**AND IT SAT UNDER THE ONE CAPTION IN THIS NOTE THAT BOASTS ABOUT HOW IT WAS VERIFIED.** The caption is correct about method and was stale about result, which is the harder failure to see: a figure with its regenerating command printed beside it still goes stale, because **printing the command is not running it.**
+`intent-cli` declares `dual_path_conformance`, and `intentd` declares `daemon_subscriptions`, beside each crate's `suite`. In one target, tests are threads in one process. `dual_path_conformance.rs` changes the process's working directory, and `daemon_subscriptions.rs` drives a file-watch stream for each process, so each needs its own process.
 
-**THE CLASS** (vc's, and it is the transferable half): **A DOCUMENT APPLIES ITS OWN RULE TO THE CLAIMS ABOUT OTHER PEOPLE AND NOT TO THE CLAIMS ABOUT ITSELF.** The Lamplight row, the Intent row, and the crate table -- **every one of them a figure about the authoring estate, and the figures about your own estate are the ones nobody audits, because everyone assumes the author would know.**
+Before you give a test its own target, ask what it asserts. A test about the process it runs in needs its own process. A test about the product needs the product fixed. `daemon_address.rs` also failed now and then in the merged suite. Its failure was a real race: a forked child inherited the daemon lock's descriptor (fixed at `3fc1d152`). Its own target would have hidden the race, not fixed it, so it stays in the suite.
 
-`intent-cli` and `intentd` each keep a second target deliberately. Merged targets are threads in ONE process, and `dual_path_conformance.rs` was the only test file that mutated process-global state (`set_current_dir`), so it stays separate. **That was measured before merging rather than hoped for after** -- no test spawns cargo, the fixed port is written to a file and parsed rather than bound, and every socket path is per-test.
+## Verifying a consolidation
 
-### The figure that reframes the whole exercise
+The risk of a merge is intermittent failure, because tests that were separate processes now share one. Clean runs cannot show that it is safe.
 
-hv ran the full cycle from a total clean on 2026-09-01, watched:
+- Run the suite in a loop under full-workspace load until it fails, or until you have a number of runs you can defend.
+- When you think you have found a cause, run the opposite case. If removing the supposed cause does not help, the diagnosis is wrong.
+- `cargo test <filter>` exits 0 when the filter matches no test. A check that selects tests by name must assert how many ran, not only the exit code.
 
-|                                        |                              |
-| -------------------------------------- | ---------------------------- |
-| target tree held                       | **113 G**                    |
-| of which per-node forks                | cc 41G, dc 11G, private 919M |
-| time to DELETE it                      | ~35 minutes                  |
-| **time to REBUILD BOTH BINARIES COLD** | **1m 36s**                   |
+## Moving a file back out
 
-**THE CACHE COST MORE TO HOLD THAN TO REGENERATE.** 113 gigabytes and thirty-five minutes of deletion, standing guard over ninety-six seconds of work.
+A merge removes a file's `mod common;` and rewrites its paths to `crate::common::`. To give the file its own target again, put the `mod common;` declaration back. Otherwise the file does not compile, and the error names the helper, not the move.
 
-**THE BOUNDARY MUST TRAVEL WITH THAT NUMBER OR IT OVERCLAIMS:** 1m36s is `dvb build all` (`dvb` is devbin's shell function; `bin/devbin build all` is the same verb), the RELEASE binaries. The TEST build is the separate and expensive half, and it is where the debug tree and the unconsolidated targets lived. **The honest statement is: the shipped artefacts rebuild cold in 96 seconds, and essentially all of the 113G was test-build cache.**
+## The target tree
 
-**AND A SECOND BOUNDARY, ON WHAT THE CYCLE VERIFIED RATHER THAN WHAT IT TIMED.** A cold green cycle is easily read as confirming the consolidation, and on another estate it did not. **conflab-vc measured that Conflab's cycle passed `--lib` for the daemon without `--all-targets`, so it never compiled the consolidated `suite` target or the orphan guard at all** -- every phase green, and the consolidation untouched by any of them.
+On 2026-09-01 the target tree held 113 G, and per-node trees held much of it. `bin/devbin build all` rebuilt the release pair cold in 1 m 36 s, so almost all of the tree was test-build cache.
 
-**THAT CAVEAT DOES NOT REACH INTENT, AND THE DISCRIMINATOR IS THE CONFIG RATHER THAN THE VERB.** Measured here rather than assumed from theirs: Intent's `test rust` (`bin/.devbin/config.yaml`) is `bin/.devbin/cmd/measured --exec cargo test --workspace --no-fail-fast --manifest-path native/rust/Cargo.toml` -- **no `--lib`** -- so `--workspace` compiles and runs the integration targets, the consolidated `suite` binaries and the orphan guards among them. The suite binaries in that run's output are the evidence; a `--lib`-only run cannot produce them.
+A session that waits on cargo's build lock cannot see the wait, so it can point `CARGO_TARGET_DIR` at its own tree to avoid it. `bin/devbin check targetdir` flags a per-node target tree, and devbin's gate runner prints a heartbeat when a gate goes quiet. A bare `cargo` run outside devbin still waits in silence.
 
-**THE TRANSFERABLE PART IS THAT THE VERB'S NAME GUARANTEES NOTHING.** Both estates ran `fullcycle`, both went green, and only one of them compiled the thing the ruling is about. **So the question a note must answer is never _did the cycle pass_ but _what did this estate's cycle actually build_, and that is a per-estate question answered from that estate's own config.**
+## For another project
 
-### Why 52G of it was per-node forks, which is not a discipline problem
-
-**Cargo's build lock works correctly and invisibly, and that is the cause.** A blocked `cargo build` is indistinguishable from a hung one, so a node "fixes the hang" by pointing `CARGO_TARGET_DIR` at its own fork -- and one node reported doing so permanently, to be "one contender off the shared lock."
-
-An instance happened in front of hv during this very job: dc's `cargo check` held the lock, hv's test run queued behind it, and hv reported that _"the rust tests look like they're hanging."_ They were not. dc killed theirs and hv's proceeded.
-
-**So the fork is a rational response to an invisible wait, and a prohibition on `CARGO_TARGET_DIR` only holds if the wait is made visible. That pairing is the recommendation; either half alone fails.**
-
-Devbin now ships both halves: `bin/devbin check targetdir` flags a per-node target tree, and devbin's gate runner prints a heartbeat to a terminal when a gate has gone quiet. A bare `cargo` run outside devbin still waits in silence.
-
-## Provenance
-
-The ruling is hv's, 2026-08-27, estate-wide. The census, the build and the four-part shape are dc's, 2026-09-01, under hv's direction that fixing this across the host is the most important job in flight. The orphan-guard requirement follows laksa-vc's implementation. The files-are-not-targets caveat is dc's own, stated in the census that the scope was then read from -- which is how it comes to be the most useful paragraph in this note.
+1. Count your real targets with cargo, as above.
+2. Build the orphan guard before you consolidate.
+3. Apply the four parts to each crate whose test files outnumber its declared targets.
+4. Write your own note, about your own crates and call sites. File it in the notes tree you already have, with the next number in your own sequence.
+5. Before you remove a declared language that you own no code in, find how the gate would reach that code. Where no staged file can be in that language, the declaration has no effect.
+6. A crate with only inline `#[cfg(test)]` modules has no `tests/` and needs no change: `autotests = false` there would only make a quiet hole. Apply the four parts with the crate's first test file.
