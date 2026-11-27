@@ -1,0 +1,10 @@
+{
+  "id": "6aacd1c2",
+  "origin": "01M8E3GX0F35J988KRQKBSW09Q",
+  "title": "vocab_adequacy_check.sh fails open: make it fail closed",
+  "scope": "S",
+  "status": "not-started",
+  "objective": "`intent/st/ST0056/parity/tools/vocab_adequacy_check.sh` fails open on a fault it should report. dc's critics found it in the 3.5.4 close sweep, and hv parked the fix here (hv decision 104, 2026-11-25). Make the check fail closed, and prove it with a run that the old script passes and the fixed one refuses.",
+  "body": "",
+  "preamble": ""
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M8E3GYHCG4JE0G4P253HE7NR",
+  "ts": "2026-11-27T08:56:33.083Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0084/583717bb"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "instrument_reach_census.sh reads no AT rows since the canon move: fix it or retire it"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "583717bb",
+  "origin": "01M8E3GYHCG4JE0G4P253HE7NR",
+  "title": "instrument_reach_census.sh reads no AT rows since the canon move: fix it or retire it",
+  "scope": "S",
+  "status": "not-started",
+  "objective": "`intent/st/ST0056/parity/tools/instrument_reach_census.sh` reads no AT rows since the canon move, and no gate runs it (item 1 of ST1c2db93's close sweep, reader C). hv parked it here (hv decision 105, 2026-11-25). Make it read the canon's AT rows, or retire it if nothing needs its census.",
+  "body": "",
+  "preamble": ""
+}

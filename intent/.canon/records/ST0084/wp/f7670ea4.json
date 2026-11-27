@@ -1,0 +1,10 @@
+{
+  "id": "f7670ea4",
+  "origin": "01M8E3GZXF1EG22GK5X5NC8B84",
+  "title": "stale_at_check.sh refuses a thread named by its shown id: build the canon path through Intent, with a test fixture",
+  "scope": "S",
+  "status": "not-started",
+  "objective": "`intent/st/ST0056/parity/tools/stale_at_check.sh`, a report-only gate tool, builds a thread's canon path by hand, so it refuses a thread that a person names by its shown id (item 5 of ST1c2db93's close sweep, reader C). The gate runs it with no id. hv parked the fix here (hv decision 106, 2026-11-25): resolve the id through Intent, and add the test fixture the fix needs.",
+  "body": "",
+  "preamble": ""
+}
