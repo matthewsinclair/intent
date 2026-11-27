@@ -45,6 +45,6 @@
   ],
   "title": "ProfileFront",
   "type": "object",
-  "x-intent-ver": "3.5.5",
+  "x-intent-ver": "3.5.6",
   "x-schema-json-ver": 28
 }
