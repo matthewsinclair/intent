@@ -1,0 +1,15 @@
+{
+  "id": "01M8E3PFW203NMV31VV3FFD5Y0",
+  "ts": "2026-11-27T08:59:34.676Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "STb142f54306b37617/d613a7a2"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Remove the v1-installed subagents on gyges and kovacs, by the route hv picks"
+  }
+}

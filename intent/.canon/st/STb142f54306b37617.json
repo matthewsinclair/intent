@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@4.0",
+  "id": "STb142f54306b37617",
+  "origin": "01M8E3NPB10XJ4873RJ7SZFKJW",
+  "title": "Subagents that the v1 manifest installed cannot be removed with intent claude subagents uninstall",
+  "slug": "subagents-that-the-v1-manifest-installed-cannot",
+  "status": "not-started",
+  "created": "2026-11-27",
+  "objective": "On a machine where the v1 agent manifest (`~/.local/share/intent/agents/installed-agents.json`) installed subagents, Intent's CLI can remove them, or the machine is cleaned once by hand and the thread records that no code change is needed.",
+  "context": "gyges-sysadm's finding of 2026-11-27 08:57Z, relayed by devbin-vc at the close-out. On gyges, five subagents (diogenes, socrates, elixir, intent and worker-bee) came from the v1 manifest, which 3.5.6 does not read. `intent claude subagents sync --force` fixed diogenes and socrates. `intent claude subagents uninstall elixir intent worker-bee` removed nothing (\"left 1 this build did not install\"), although each file matched its v1 checksum. kovacs is likely in the same state.\n\nThe question for hv: should `uninstall` honour the v1 record when the checksums match? The other route is a one-off clean of gyges and kovacs by their sysadm seats, with no code change, because v2 no longer exists.\n\nNot Started, for hv's call. Filed at the close-out of 2026-11-27 as a future, unstarted thread.",
+  "body": "",
+  "preamble": ""
+}

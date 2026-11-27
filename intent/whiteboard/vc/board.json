@@ -2274,7 +2274,8 @@
       "kind": "decision",
       "seq": 90,
       "text": "(hv, 2026-10-25) devbin-vc runs Intent's pushes to local and upstream, fast-forward only, on vc's \"push\" after build all at HEAD; cuts stay hv's.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-27T08:59:05.884Z",
       "recorded_at": "2026-10-25T18:51:18.864Z",
       "edited_at": "2026-10-28T19:57:04.905Z"
     },

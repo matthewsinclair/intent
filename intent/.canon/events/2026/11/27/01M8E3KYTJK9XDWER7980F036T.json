@@ -1,0 +1,15 @@
+{
+  "id": "01M8E3KYTJK9XDWER7980F036T",
+  "ts": "2026-11-27T08:58:11.666Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-27, first-hand in prose in vc's session, read by 08:40Z on vc's date -u; the same words reached devbin-vc, which relayed them to the estate; hv's words) WIP, RESTART FILES AND VERBLOCKS HOLD NO DONE WORK. hv: \"I'm espescially interested in ensuring that we are not writing tomes in the verblocks, WIPs, or restart files, and that they ONLY have WIP or TODO items, never DONE stuff.\" intent/wip.md, the restart files and each verblock hold only DOING and TODO, one short line each. Done work lives in git, in the closed items and in the release notes. In the same words: a partly done thread, package or issue is pruned to its done part and closed, and its unfinished work moves to a future, unstarted thread or package."
+  }
+}
