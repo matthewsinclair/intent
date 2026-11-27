@@ -43,24 +43,20 @@ Then declare which languages the project is in:
 
 ```
   $ intent lang init rust
+  wrote: intent/.config/config.json
   declared: rust
 
   Summary: 1 language(s) declared; 0 error(s).
+  wrote: AGENTS.md
 ```
 
 **It is a declaration, not a detection** — Intent will not guess from the files present, because file presence is unreliable evidence and a wrong guess loads the wrong rules. `lang init` takes more than one language and is idempotent, so you can add to it later.
 
-**Declaring a language does not rewrite `AGENTS.md`**, so regenerate it, and the agent contract then names the language's toolchain:
+**Declaring a language rewrites `AGENTS.md`**, so the agent contract names the language's toolchain at once. `intent lang remove` and `intent config set` rewrite it the same way.
 
-```
-  $ intent agents sync
-  Syncing AGENTS.md with latest project state...
-  ok: AGENTS.md updated at project root.
-```
+**You can also declare them as you initialise: `intent init --lang rust,shell`** creates the project with both already declared. An undeclarable name refuses before anything is written, and the refusal says nothing was created. `intent lang list` names the languages you can declare.
 
-**You can also declare them as you initialise: `intent init --lang rust,shell`** creates the project with both already declared, so the `AGENTS.md` it writes names them and no `agents sync` is needed. An undeclarable name refuses before anything is written, and the refusal says nothing was created. `intent lang list` names the languages you can declare.
-
-`AGENTS.md` is **generated from the templates and the project's configuration**: `intent init` writes the first one and `intent agents sync` regenerates it. Do not hand-edit it; the next sync will overwrite you. `intent doctor` says, as an uncounted advisory, when it is behind.
+`AGENTS.md` is **generated from the templates and the project's configuration**: `intent init` writes the first one, and `intent agents sync` regenerates it. Do not hand-edit it; the next sync will overwrite you. `intent doctor` says, as an uncounted advisory, when it is behind.
 
 **The two contracts can live in `.claude/` instead of the root.** `intent init --contracts dotclaude` writes `AGENTS.md` and `CLAUDE.md` there, for a tree whose root people read rather than tools, and `intent agents layout <root|dotclaude>` moves an existing project between the two.
 
@@ -110,7 +106,7 @@ Work packages are the units that get done. A thread with one work package is fin
   $ intent wp start ST6068b3545afd5d71/7baf61a9
 ```
 
-`intent wp list ST6068b3545afd5d71` shows where they stand. Statuses are `not-started`, `wip`, `done` and `cancelled` (the listing prints them as `Not Started`, `WIP`, `Done` and `Cancelled`), and they move with `wp start`, `wp unstart`, `wp done`, `wp cancel` and `wp reopen` rather than by editing a field. **`wp cancel` requires `--reason`** and refuses without one, because the reason is recorded on the work package as the reason for its current state. **`wp reopen` takes a `done` package back to `wip`**, and refuses one that has not started. The machine has no terminal states, so there is always a route, but it goes through the states rather than around them. `wp reopen`, `wp cancel` and `wp reinstate` all require `--reason`.
+`intent wp list ST6068b3545afd5d71` shows where they stand. Statuses are `not-started`, `wip`, `done` and `cancelled` (the listing prints them as `Not Started`, `WIP`, `Done` and `Cancelled`), and they move with `wp start`, `wp unstart`, `wp done`, `wp cancel` and `wp reopen` rather than by editing a field. **`wp cancel`, `wp reopen` and `wp reinstate` require `--reason`** and refuse without one, because the reason is recorded on the work package as the reason for its current state. **`wp reopen` takes a `done` package back to `wip`**, and refuses one that has not started. The machine has no terminal states, so there is always a route, but it goes through the states rather than around them.
 
 A work package has an objective of its own, and `wp new` leaves it unwritten: `intent set ST6068b3545afd5d71/7baf61a9 objective "..."` writes it, and `wp done` warns when it closes a package whose objective still says nothing.
 
@@ -217,4 +213,4 @@ Closing a thread unrealises it, and `st done` says so: its realised files leave 
 - `intent todo` — a flat DOING / TODO / DONE view across every thread and work package, generated from their real status.
 - `intent doctor` — findings about **this project**: a stale backup, a thread whose status disagrees with its own gate, a store that has drifted from committed canon. Its verdict counts only the project; it also prints advisories it does not count, such as a root file that differs from what your installed Intent would write. A class of finding your project has decided to keep can be acknowledged in `intent/.config/config.json` as `"doctor": {"acknowledged": {"<class>": "<reason>"}}`, using the class name `doctor` prints: it still runs and prints `acknowledged: <class> -- <reason> (N finding(s))`, and its findings leave the count and the exit code.
 
-**One thing worth doing early.** If you use a coding agent, run `intent agents sync` whenever you declare or remove a language, and after you upgrade Intent. It regenerates the agent contract from the templates and the project's configuration, which is the entire point: the file the agent reads is not maintained by hand, so it cannot quietly drift from the project.
+**One thing worth doing after you upgrade Intent.** If you use a coding agent, run `intent agents sync`. It regenerates the agent contract from the new templates and the project's configuration, which is the entire point: the file the agent reads is not maintained by hand, so it cannot quietly drift from the project. Declaring or removing a language regenerates it for you.
