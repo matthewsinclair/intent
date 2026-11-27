@@ -6,7 +6,7 @@ Not a ticket, not an epic, not a task. **A steel thread names something you are 
 
 The name comes from the engineering sense: the thinnest complete path through a system that actually works end to end. A steel thread in Intent is the same idea applied to intention — one thing you meant to achieve, followed from the reason it mattered through to the evidence it was done.
 
-Each thread lives in the store, is realised on disk at `intent/st/<ID>/` while it is declared in `intent/.intentfiles`, and carries:
+Each thread lives in the store, and is realised on disk at `intent/st/<ID>/` while its record says so. Starting, resuming or reopening a thread realises it; closing, holding or cancelling it takes it off disk; and `intent st hydrate` and `intent st dehydrate` set it by hand. A thread carries:
 
 |                         |                                                                |
 | ----------------------- | -------------------------------------------------------------- |
@@ -80,13 +80,7 @@ A cancelled thread reinstates to `not-started`, not to whatever it was before. C
 
 `wp unstart` exists because starting a work package by mistake is common and should not require cancelling it. It is not a state change with meaning; it is an undo.
 
-### Work packages can be cancelled, and that was not the original design
-
-The first design had no `cancelled` at work-package level, on the reasoning that a work package which stops mattering is a scope change on the thread rather than a state on the package. **That was wrong, and how it went wrong is worth knowing if you are modelling something similar.**
-
-A live project removed a work package's scope, withdrew every criterion under it, and then found `wp done` refused forever — correctly, because the gate declines to infer an exemption from an emptied contract. **An exemption has to be announced; it is never inferred from emptiness.** The only announced exemption available was thread-scoped, so using it would have discarded the standing of every other criterion on that thread.
-
-The interim workaround was to mark the package done and write a note, which put the distinction in prose because there was no field for it — **and a `done` work package that delivered nothing is then indistinguishable, by query, from one that delivered.** That is the same defect one layer along, which is what made the case for the state.
+**A work package whose scope is removed is cancelled, never marked done.** An exemption has to be announced and is never inferred from an emptied contract, and a `done` package that delivered nothing could not be told apart, by query, from one that delivered.
 
 ## Reading the state back
 
