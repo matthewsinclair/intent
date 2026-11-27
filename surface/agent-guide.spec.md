@@ -6,11 +6,9 @@ AC-09.4: _"`intent llm` renders the agent guide from the dispatch table; no hand
 
 ## Why the AC exists
 
-The v2 guide was a hand-maintained command list, `usage-rules.md`, and when it was measured against the surface on 2026-08-15 it had drifted in only one direction: it named under half of the surface's commands and invented none. Whole families (`issues`, `modules`, `lang`) were never documented as commands, and the guide never named `intent llm`, the command that printed it.
+**The failure mode of a hand-maintained command list is not drift into falsehood. It is silent omission**, and omission is the worse of the two for an agent. A wrong command earns an error the agent can react to; a missing command reads as a capability the tool does not have, and the agent quietly builds a workaround.
 
-**So the failure mode of a hand-maintained command list is not drift into falsehood. It is silent omission**, and omission is the worse of the two for an agent. A wrong command earns an error the agent can react to; a missing command reads as a capability the tool does not have, and the agent quietly builds a workaround.
-
-The list was maintained honestly and still ended up describing less than half the surface, because **the act that invalidates a hand-written list is not the act that updates it.** Adding a command is a different commit, usually a different day, from remembering the guide exists.
+A list maintained honestly still omits, because **the act that invalidates a hand-written list is not the act that updates it.** Adding a command is a different commit, usually a different day, from remembering the guide exists.
 
 ## What `intent llm guide` renders, in order
 
@@ -42,7 +40,7 @@ Rows group by FIRST APPEARANCE rather than by the `families` array, so `new_surf
 
 ### `exposed_on_mcp` is a routing note, not a gate
 
-It sat first in that list, glossed **"may an agent call this at all"**, until D45. Under that ruling the gloss is **false**: the agent's default route is the CLI, every shipped row is on it, and `exposed_on_mcp: false` withholds a row from the imprecise alternative, not from the agent. **Leading with a false gate would teach the reader that parts of the surface are closed** -- a larger silent-omission surface than the v2 guide had, arrived at by generating rather than forgetting. Completeness of the ROW SET comes for free. **The truth of each rendered field does not**, and no generator will ever check it.
+It does not say whether an agent may call a row. Under D45 the agent's default route is the CLI, every shipped row is on it, and `exposed_on_mcp: false` withholds a row from the imprecise alternative, not from the agent. **Rendered as a gate, it would teach the reader that parts of the surface are closed**, which is silent omission arrived at by generating rather than forgetting. Completeness of the ROW SET comes for free. **The truth of each rendered field does not**, and no generator will ever check it.
 
 **No policy is derivable from the flag, and this spec does not claim one.** The withheld rows include plain reads (`info`, `version`, `llm guide`) and plain mutations (`todo done`, `st attach`) alongside the estate-reshaping ones (`init`, `upgrade`, `daemon start`). `read_or_mutate` is too coarse to separate "writes a steel thread" from "reshapes the estate", and nothing in the projection does. If agent safety needs that distinction, it is a contract question for the table, and vc's to rule.
 
@@ -64,7 +62,7 @@ The guide renders INV-04 (the exit-code contract), INV-01 (results on stdout, fa
 
 `AUTHORED_HALF` in `guide.rs`, compiled into the binary. It carries what no table can supply: workflow sequences, methodology, conventions, and gate semantics -- the table knows `st new` exists and cannot know that a steel thread is documented before it is coded. Read it with `intent llm guide`; this spec does not copy it.
 
-**It is a second, separate text from `usage-rules.md`.** `intent llm usage_rules` prints the PROJECT's root `usage-rules.md`, verbatim (`render.rs`, `llm_usage_rules`). That file is user-owned: `intent claude upgrade --apply` seeds it when absent and nothing regenerates it after that, and the verb exits `1` when the project has none. This is a deliberate divergence from v2, which printed the install's copy (issue `0215`).
+**It is a second, separate text from `usage-rules.md`.** `intent llm usage_rules` prints the PROJECT's root `usage-rules.md`, verbatim (`render.rs`, `llm_usage_rules`). That file is user-owned: `intent claude upgrade --apply` seeds it when absent and nothing regenerates it after that, and the verb exits `1` when the project has none.
 
 ## How completeness is guaranteed, and what that costs
 
@@ -76,7 +74,7 @@ The guide renders INV-04 (the exit-code contract), INV-01 (results on stdout, fa
 
 That is weaker than a refusal in one specific way: **a test can be deleted and a `git push` still succeeds, where a generator refusal blocks the artefact.** The trade was made when the guide was designed to render on demand, which is the right call for a different reason -- it cannot go stale.
 
-**A projection into prose also finds defects no check compares.** Rendering the table as prose put fields side by side that nothing had ever read together. `doctor` once rendered `safety: read` beside a `does` line promising to fix things. Each field was fine considered alone, and every instrument in the repository was green on both.
+**A projection into prose also finds defects no check compares.** Rendering the table as prose puts fields side by side that nothing else reads together, such as a `safety: read` beside a `does` line that promises to fix things.
 
 ## The residue AC-09.4 does not close, and the control that does
 
