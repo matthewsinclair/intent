@@ -2,7 +2,7 @@
 
 # Intent
 
-Steel threads and intentd in the menu bar - and intent:// links from anywhere.
+Steel threads and intentd in the menu bar, and intent:// links from anywhere.
 
 - {app}
 - source tree {tree}
