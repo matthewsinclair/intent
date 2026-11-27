@@ -112,7 +112,7 @@ intent claude subagents uninstall <name>
 intent claude subagents show <name>
 ```
 
-The `intent claude skills` family takes the same verbs. Subagents install to `${CLAUDE_CONFIG_DIR:-~/.claude}/agents/<name>.md` and skills to `${CLAUDE_CONFIG_DIR:-~/.claude}/skills/<name>/SKILL.md`. Claude Code reads its subagent registry once at startup, so a subagent installed mid-session is visible to `Task()` from the next session.
+The `intent claude skills` family takes the same verbs. Subagents install to `${CLAUDE_CONFIG_DIR:-~/.claude}/agents/<name>.md` and skills to `${CLAUDE_CONFIG_DIR:-~/.claude}/skills/<name>/SKILL.md`. `intent/docs/critics.md` says when a newly installed subagent becomes visible to `Task()`.
 
 ### Rule library
 
