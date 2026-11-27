@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 301174e0-2250-4de5-9e32-7381abe29fc6
-heartbeat_at: 2026-11-27 09:37Z
+heartbeat_at: 2026-11-27 09:38Z
 status: active
-focus: "2026-11-27 09:37Z by date -u. DOING: Intent's close-out: one Desk run (01M8E3YY: build all, then the doc tests the seats named), then the push of main to local and upstream. TODO: the Not Started threads wait on hv (intent st list --status not-started)."
+focus: "2026-11-27 09:38Z by date -u. DOING: Intent's close-out: one Desk run (01M8E3YY: build all, then the doc tests the seats named), then the push of main to local and upstream. TODO: the Not Started threads wait on hv (intent st list --status tbc)."
 claims: []
 ---
 
