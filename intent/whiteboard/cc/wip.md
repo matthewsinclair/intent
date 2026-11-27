@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6487d471-52ef-4083-9fd8-f1f0c35e1b20
-heartbeat_at: 2026-11-26 18:22Z
+heartbeat_at: 2026-11-27 05:47Z
 status: active
-focus: "Intent 3.5.6 is READY and waits for hv's cut. After the compact, run /in-session, then commit your board files by path, because the pickup writes them and the cut's pre-flight refuses any dirt in the tree. Then hold with no tracked write until vc says the cut has ended."
+focus: "2026-11-27 05:47Z by date -u: Intent 3.5.6 is released, tagged v3.5.6 at 7a540bfc552a. No work is scoped for cc. cc holds no claim, slot or worktree, and waits for vc's word."
 claims: []
 ---
 
