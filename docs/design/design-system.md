@@ -1,16 +1,14 @@
 # Intent — design system
 
-**This is the design specification for `intent.laksa.io`.** `/design` at Laksa reads it, and laksa-{vc,cc} implement it as a Laksa custom theme (`theme/theme.yaml`, `theme/layout.liquid`, `assets/`) in `../Sites/intent`. `../Sites/appendix3` is the working reference for the theme structure. The explorer TUI takes the same semantic set, translated to the sixteen ANSI colours, in `native/rust/crates/intent-cli/src/tui/draw.rs` (`fn style`), so a change to what a semantic colour means lands there too. intentd's web face (`native/rust/crates/intentd/src/shell.html`) is not built to these tokens: it has its own palette, with a gold accent where §3 has steel, and system font stacks, and takes only the mark from this directory.
+**This is the design specification for `intent.laksa.io`.** `/design` at Laksa reads it, and laksa-{vc,cc} implement it as a Laksa custom theme (`theme/layout.liquid` and `assets/`) in `../Sites/intent`. `../Sites/appendix3` is the working reference for the theme structure. The explorer TUI takes the same semantic set, translated to the sixteen ANSI colours, in `native/rust/crates/intent-cli/src/tui/draw.rs` (`fn style`), so a change to what a semantic colour means lands there too. intentd's web face (`native/rust/crates/intentd/src/shell.html`) is not built to these tokens: it has its own palette, with a gold accent where §3 has steel, and system font stacks, and takes only the mark from this directory.
 
 **It specifies a one-page site.** Intent's documentation lives in this repository at [`docs/`](../) and the site links to it rather than reproducing it. Sections marked _docs shell_ apply only if the documentation is later hosted; everything else is needed for the one page.
-
-**This document was consolidated from independent drafts** — cc's, briefed by hv as simple / technical / coherent / self-contained and modelled on best-in-class tool home pages, and vc's, briefed by hv's selection of an editorial direction. Both were written without knowing the other existed. The measured prefix vocabulary in §1, the references in §2, the forbidden affordances in §8 and the budgets in §9 are cc's and are kept largely as written.
 
 ---
 
 ## 1. The founding principle: the site renders like the tool
 
-**The semantic palette is taken from the CLI's own output vocabulary rather than invented for the site.** Intent v3 emits line prefixes, all lowercase, all colon-terminated, no banners and no unicode decoration.
+**The semantic palette is taken from the CLI's own output vocabulary rather than invented for the site.** Intent emits line prefixes, all lowercase, all colon-terminated, no banners and no unicode decoration.
 
 | Prefix     | What it means                                                                 |
 | ---------- | ----------------------------------------------------------------------------- |
@@ -24,19 +22,19 @@
 
 **That vocabulary is the site's semantic colour system.** A callout is not a "tip" or an "info box" -- it is a `note:`, and it is styled as one. Where the page shows a failure the tool prints as `error:`, it renders in `--error`. The CLI prints its prefixes uncoloured, so what a reader of the tool already knows is the words; the colours are the terminal convention, which the explorer (`intent explore`) also follows for the same states: green for done, yellow for in flight, red for blocked.
 
-### This list is CURATED, and an earlier draft of this section implied it was not
+### This list is curated
 
-**The rows above are a selection, not the output of a count**, and saying otherwise was the defect in the first version of this document. Laksa nodes re-derived it independently and found the same thing: the corpus contains prefixes absent here -- `critic:`, `doctor:`, `events:`, `status:`, `removed:`, `lint:` and a long tail -- some of which outrank listed ones by frequency. The command below re-derives the ranking.
+**The rows above are a selection, not the output of a count.** The corpus contains prefixes absent here, eg `critic:`, `doctor:`, `events:`, `status:`, `removed:` and `lint:`, some of which outrank listed ones by frequency. The command below re-derives the ranking.
 
-**The selection rule, stated now because it was applied and never written down:** a row is here if it describes **what happened to the operation**. It is excluded if it names **who is speaking** (`critic:`, `doctor:`, `gate:`, `ac:` -- these label the reporting command, not an outcome) or if it is a **field label inside a report** (`status:`, `reason:`, `severity:`, `scope:`). Prefixes that are outcomes but belong to one verb's report rather than the general vocabulary -- `written:`, `unchanged:`, `preserved:` from `intent claude upgrade` -- are excluded on the same ground and are the least comfortable exclusions in the set.
+**The selection rule:** a row is here if it describes **what happened to the operation**. It is excluded if it names **who is speaking** (`critic:`, `doctor:`, `gate:` and `ac:` label the reporting command, not an outcome) or if it is a **field label inside a report** (`status:`, `reason:`, `severity:`, `scope:`).
 
 **A choice was made, so the coherence argument is weaker than "we did not choose the palette" and is still the argument.** What the site inherits is a vocabulary the tool already speaks, filtered by a rule stated above; what it does not do is invent severity levels the tool has no word for. **If Decision A is reopened, this is part of it** -- the question is not only whether the accent can be red, but which prefixes carry semantic weight at all.
 
-### The counts are a derivation over a corpus that moves, so they are not published here
+### The counts are not published here
 
-**The table carries no per-prefix counts, because independent measurements of the same corpus disagreed within the hour** -- not because anyone measured wrongly, but because sessions are committing into the corpus. **A count without a commit beside it describes a tree that no longer exists.**
+**The table carries no per-prefix counts, because sessions commit into the corpus all the time.** A count without a commit beside it describes a tree that no longer exists.
 
-The corpus is the CLI crate and the services crate it renders through. The `gate:` verdict lines and `ac:` tally lines are composed in `native/rust/crates/intentsvcs/src/contract.rs`, so a grep of the CLI crate alone misses them; it finds only the CLI's own `gate:` line in `intent bootstrap --check` and the `ac:` rows of `intent ac list`. Re-derive it if you need it, and pin it:
+The corpus is the CLI crate and the services crate it renders through: the `gate:` verdict lines and `ac:` tally lines are composed in `native/rust/crates/intentsvcs/src/contract.rs`. Re-derive it if you need it, and pin it:
 
 ```
   $ git rev-parse --short HEAD
@@ -44,9 +42,7 @@ The corpus is the CLI crate and the services crate it renders through. The `gate
       | sed 's/^"//; s/: $//' | sort | uniq -c | sort -rn
 ```
 
-The grep sees a prefix only where a string literal opens with it, so a prefix composed at run time is missed or undercounted: `intent claude upgrade`'s `written:` never appears, because `claude_upgrade` prints `{wrote}:`, and `residue:` counts once although every actionable finding line leads with it (`FindingClass::lead` in `native/rust/crates/intentsvcs/src/finding.rs`).
-
-**The paths are the full ones deliberately.** An earlier draft cited the corpus as `intent-cli/src`, which is not a directory anyone can change into, and both reviewers had to guess candidate paths before they could check the table at all. **A corpus you cannot `cd` to is one nobody re-runs, which is how a table stops being reproducible without anyone editing it.**
+The grep sees a prefix only where a string literal opens with it, so a prefix composed at run time is missed: `residue:` never appears, although every actionable finding line leads with it, because `FindingClass::lead` in `native/rust/crates/intentsvcs/src/finding.rs` composes it.
 
 ## 2. References, and what to take from each
 
@@ -135,28 +131,20 @@ Near-monochrome ground and ink, one accent, and the semantic set from §1. Lift 
 
 ### DECISION A, RULED — the accent is steel, and the accent cannot be red
 
-**Ruled by hv on 2026-09-15 (ruling 22).** The accent is **steel `#35618f`**, and the `--accent` values above are the decision rather than a placeholder. Everything below is kept as the record of how it was decided, because the reasoning is what makes the ruling checkable rather than a preference somebody asserted.
+**Ruled by hv on 2026-09-15 (ruling 22).** The accent is **steel `#35618f`**, and the `--accent` values above are the decision rather than a placeholder.
 
-**The reason is the constraint, not the taste.** Rust sits at ΔE 13.8 from the `error:` red. §1's founding principle inherits the semantic palette from the tool's output vocabulary and a terminal renders errors red, so that principle holds only if the accent is not red — and steel is the consequence rather than the choice. **The question was never which hue; it was whether the accent can be red at all, and the hue follows from answering it.**
-
-**The question, as it was put.** Is the site's accent **steel `#35618f`** or **rust `#A03E1E`**?
-
-**Why it is decidable rather than a preference.** The editorial direction has an obvious accent — **rubrication**, the red ink a scribe used to mark the parts of a manuscript that told you how to read it. That is a good description of what Intent does to a codebase. But `--error` is already red, inherited from the tool (§1). Measured in CIELAB, ΔE76:
+**The reason is the constraint, not the taste.** §1's founding principle inherits the semantic palette from the tool's output vocabulary, and a terminal renders errors red, so that principle holds only if the accent is not red. Steel is the consequence rather than the choice. The red candidate was rust, for rubrication, the red ink a scribe used to mark how to read a manuscript. Measured in CIELAB, ΔE76:
 
 | Candidate       | Hue    | ΔE vs `error:` | ΔE vs `warning:` |
 | --------------- | ------ | -------------- | ---------------- |
 | rust `#A03E1E`  | 45.1°  | **13.8**       | 30.8             |
 | steel `#35618f` | 269.6° | 77.1           | 81.2             |
 
-Rust sits 14 degrees of hue from the `error:` red at ΔE 13.8 — the bottom of the distinguishable band, and that band is calibrated on large swatches. **A link inline in prose and an `error:` line in a terminal block are both small text, where discrimination is worse still.** Rust against `warning:` is fine; it is the error token specifically that it lands on.
+Rust sits 14 degrees of hue from the `error:` red at ΔE 13.8 — the bottom of the distinguishable band, and that band is calibrated on large swatches. **A link inline in prose and an `error:` line in a terminal block are both small text, where discrimination is worse still.** Rust against `warning:` is fine; it is the error token specifically that it lands on. **If the accent were rust, either `error:` would move off red, which kills the inheritance principle, or the two would collide on the page.**
 
-**The constraint it must respect.** §1 is the founding principle: the semantic palette is inherited from the tool's output vocabulary and is not ours to choose. A terminal renders errors red.
+**Measure hue with a hue metric.** WCAG contrast is a lightness metric and is structurally blind to hue: it scores rust against `error:` at 1.09 and steel against `error:` at 1.11, which would condemn both accents equally.
 
-**What breaks if it goes the other way.** If the accent is rust, then **either `error:` moves off red — which kills the inheritance principle and with it the whole coherence argument — or the two collide on the page.** Both cannot hold. So the real question is not which accent; it is **whether the accent can be red at all**, and answering that settles the hue as a consequence.
-
-**A note on the instrument, because it nearly went the other way.** WCAG contrast ratio was tried first and returned rust-vs-error at 1.09 and steel-vs-error at 1.11 — near-identical, which would have condemned both accents equally. That reading is false on its face: a dark blue and a dark red do not look alike. **WCAG contrast is a lightness metric and is structurally blind to hue, which is the only axis this question is about.** It was caught because both candidates happened to sit in the same comparison table — **the control was a by-product of the format, not a precaution anybody took.** That is the more useful form of the lesson: measure the case you are not arguing for as a habit, because you will not notice you needed it until it contradicts you.
-
-**The accent did not move, so `--note` is not forced either way.** Decision F stays open on hv's ruling, to be decided on a real page. What this ruling changed for it is that F can no longer dissolve on its own: its escape hatch was the accent leaving blue, and the accent did not. See §11 F.
+**The accent did not move, so `--note` is not forced either way.** Decision F stays open on hv's ruling, to be decided on a real page. Its escape hatch was the accent leaving blue, and the accent did not. See §11 F.
 
 ## 4. Typography
 
@@ -388,7 +376,7 @@ The site inherits Intent's house style, which is enforced in this repository. Th
 
 ### A. The accent, and whether it can be red at all — RULED 2026-09-15
 
-**Settled: the accent is steel `#35618f`, and the accent cannot be red** (hv, ruling 22; hv ruled this one directly rather than routing it as the preamble above otherwise asks). Specified in full at §3, which carries the ruling, the ΔE measurement it rests on and the instrument lesson that nearly reversed it. The constraint was §1's inheritance principle: rust sits at ΔE 13.8 from the `error:` red, so either `error:` leaves red — which kills the inheritance principle — or the two collide, and steel is what holds §1. **The token values in §3 are the decision, not a placeholder.**
+**Settled: the accent is steel `#35618f`, and the accent cannot be red** (hv, ruling 22; hv ruled this one directly rather than routing it as the preamble above otherwise asks). §3 carries the ruling and the ΔE measurement it rests on. **The token values in §3 are the decision, not a placeholder.**
 
 ### B. Search
 
@@ -406,13 +394,9 @@ The site inherits Intent's house style, which is enforced in this repository. Th
 
 **What breaks either way.** The wordmark alone may simply be right permanently — a tool whose voice is "no banners, no unicode decoration" is not obviously improved by a glyph. Wherever the mark appears it has to earn its place against §8's forbidden-affordance list, which rules out most of what a mark is usually for.
 
-### D. Versioned docs, and the canonicals
+### D. Versioned docs
 
-**Decision.** Does the v3 documentation get a version switcher, and what happens to the `docs/v2/` canonicals?
-
-**Constraint, and this one is not purely a design question.** v2 is frozen under `docs/v2/` with its canonical URLs **deliberately still pointing at the old `docs/blog/` locations** — hv ruled that on 2026-08-29 to preserve a year of inbound links and their search ranking. The archive is intentionally not authoritative for its own content, and `docs/v2/README.md` records why so nobody "repairs" it.
-
-**What breaks if it goes the other way.** A switcher that rewrites those canonicals to match their new paths discards every inbound link and whatever ranking those posts have. **That is not recoverable once reindexed.** A design agent should be told this rather than left to discover it, because the tidy answer is the destructive one.
+**Withdrawn.** The tree carries one documentation set, at [`docs/`](../), so a version switcher has no second version to offer and no archive whose canonical URLs it could rewrite.
 
 ### E. Syntax highlighting theme
 
@@ -448,8 +432,4 @@ The site inherits Intent's house style, which is enforced in this repository. Th
 
 ## 12. What this document is not
 
-**It is not ratified, and the decisions in §11 other than A are open.** A theme has been built against it: `../Sites/intent/theme/layout.liquid` carries §3's tokens in both modes and §4's font stacks (the webfont files are not in the theme yet, so the site renders in the stacks' fallbacks), and `intent.laksa.io` serves it. Every claim is a design intention rather than a measurement — with the exceptions of §7's reconciliation, which names the verbs that check the copy, and §1's prefix list, which names words the tool really emits -- though **the selection among them is a choice, stated as one in §1, and the counts an earlier draft carried are withdrawn as unreproducible against a moving corpus.**
-
----
-
-_Consolidated by vc for ST0068 from cc's and vc's independent drafts. The copy in §7 is a draft to design against and is reconciled against the shipped command surface before launch._
+**It is not ratified, and the decisions in §11 other than A and D are open.** A theme has been built against it: `../Sites/intent/theme/layout.liquid` carries §3's tokens in both modes and §4's font stacks (the webfont files are not in the theme yet, so the site renders in the stacks' fallbacks), and `intent.laksa.io` serves it. Every claim is a design intention rather than a measurement — with the exceptions of §7's reconciliation, which names the verbs that check the copy, and §1's prefix list, which names words the tool really emits. **The selection among those words is a choice, stated as one in §1.**
