@@ -1,0 +1,15 @@
+{
+  "id": "01M8E4XPXSWW7TDWK77MCVCCWK",
+  "ts": "2026-11-27T09:20:59.844Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST30240599f047bdba/4c4e659b"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Add the bin/devbin howto forllms line to the AGENTS.md template, after devbin 0.1.36 is released"
+  }
+}

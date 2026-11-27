@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@4.0",
+  "id": "ST30240599f047bdba",
+  "origin": "01M8E4X80RY8J3GW94CNJY9E81",
+  "title": "The AGENTS.md template points each agent at bin/devbin howto forllms in a project that vendors devbin",
+  "slug": "the-agents-md-template-points-each-agent-at-bin",
+  "status": "not-started",
+  "created": "2026-11-27",
+  "objective": "In a project that vendors devbin, the AGENTS.md that Intent renders tells every agent to run `bin/devbin howto forllms` to learn how to use devbin. The change is one line in `lib/templates/llm/_AGENTS.md`, rendered only where the project vendors devbin.",
+  "context": "devbin 0.1.36 adds `bin/devbin howto <topic>`, with topics written for LLMs, and a reserved topic `forllms` that tells an LLM how to use it (hv's design, agreed at 09:19Z on 2026-11-27 by devbin-vc's date -u; devbin's vc decision 342). devbin-vc relayed this follow-up at Intent's close-out of 2026-11-27.\n\nNot Started. It waits until devbin 0.1.36 is released and swept into Intent's tree.",
+  "body": "",
+  "preamble": ""
+}

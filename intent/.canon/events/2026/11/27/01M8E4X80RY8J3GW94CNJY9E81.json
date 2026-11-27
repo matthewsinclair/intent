@@ -1,0 +1,14 @@
+{
+  "id": "01M8E4X80RY8J3GW94CNJY9E81",
+  "ts": "2026-11-27T09:20:44.578Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST30240599f047bdba"
+  },
+  "payload": {
+    "title": "The AGENTS.md template points each agent at bin/devbin howto forllms in a project that vendors devbin"
+  }
+}
