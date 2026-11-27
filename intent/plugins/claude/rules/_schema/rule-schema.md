@@ -337,17 +337,9 @@ Anti-bloat invariant: every field should have a named consumer; one with none is
 
 Fields with zero ✓s are candidates for removal.
 
-## Adding a new rule (quick reference)
+## Adding a new rule
 
-1. Identify the rule pack. Use `language` + `category` to find the directory. See `intent/llm/DECISION_TREE.md` (Step 3) for placement.
-2. Assign an ID. Use the next free `IN-<LANG>-<CAT>-<NNN>`. Never reuse a numeric suffix, including for deleted rules.
-3. Copy any existing rule directory as a template. `rules/elixir/test/strong-assertions/` is the canonical exemplar (runnable examples + full schema); a simpler starting point is any agnostic rule under `rules/agnostic/`.
-4. Fill frontmatter per this schema.
-5. Write the Markdown sections.
-6. Author runnable examples (Elixir) or textual examples (Rust/Swift/Lua). For an Elixir rule with runnable examples, add its slug to `runnable_code_rules` or `runnable_test_rules` in `tests/unit/rule_pack_elixir_runnable.bats`; that list is hand-kept.
-7. Run `intent claude rules validate <id>`.
-8. Ensure skills that cite the rule have the new ID in their `rules:` list; critic subagents pick it up from `intent claude rules list` with no wiring.
-9. If the rule borrows from upstream, add `upstream_id:` and update `_attribution/elixir-test-critic.md` per `attribution-policy.md`.
+The steps are in the authoring guide, `intent/docs/rules.md` ("Authoring a new rule").
 
 ## Schema evolution
 
