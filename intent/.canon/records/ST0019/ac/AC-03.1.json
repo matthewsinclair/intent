@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.1",
+  "text": "The treeindex integration shipped: the CLAUDE.md convention and the release docs (v2.3.4).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "commit d6a746b0e, ST0019 WP03: Treeindex integration -- CLAUDE.md convention, release docs"
+  }
+}

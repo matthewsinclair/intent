@@ -1,7 +1,7 @@
 {
   "id": "08",
   "title": "Version Bump, CHANGELOG, Treeindex, and Release",
-  "status": "not-started",
+  "status": "done",
   "objective": "",
   "body": "## Scope\n\nVersion bump to 2.5.0, changelog entry, treeindex regeneration, tag, and release.\n\n## Files to Edit\n\n- VERSION - 2.4.0 -> 2.5.0\n- .intent/config.json - Update version and intent_version\n- CHANGELOG.md - Add v2.5.0 entry\n- intent/wip.md - Update with ST0023 completion\n- intent/restart.md - Update restart context\n\n## Post-Edit Actions\n\n1. Regenerate treeindex\n2. Run full test suite\n3. Final grep sweep for stragglers\n4. Commit, tag, push, release\n\n## Acceptance Criteria\n\n- VERSION reads 2.5.0\n- CHANGELOG complete\n- All treeindex regenerated\n- 14 test files, all passing\n- Tag pushed, GitHub release created",
   "preamble": ""

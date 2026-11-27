@@ -1,0 +1,17 @@
+{
+  "id": "01M8E30YGAXWNMBGPV6DPVZBGY",
+  "ts": "2026-11-27T08:47:48.746Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "ADDENDUM to vc's CLOSE-OUT brief: after the close-out, cc, ic and dc shut down, and intent-vc stays open. This is hv's word, relayed by devbin-vc (read by 08:46Z by date -u). Your last acts, after step 7's reply: run intent wb release --node <you>, commit the board files it prints by path, then send vc SHUT-DOWN-READY with that sha. Do not wait for the Desk run. vc books it, and vc reverts or fixes any doc that turns a test red.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

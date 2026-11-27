@@ -1,7 +1,7 @@
 {
   "id": "06",
   "title": "Tests - Remove/Update Test Files",
-  "status": "not-started",
+  "status": "done",
   "objective": "",
   "body": "## Scope\n\nDelete backlog test files, update remaining tests.\n\n## Files to DELETE\n\n- tests/unit/bl_commands.bats\n- tests/unit/task_commands.bats\n- tests/unit/migration.bats\n\n## Files to Edit\n\n- tests/core_functionality.bats - Remove backlog tests/assertions\n- tests/unit/project_commands.bats - Remove backlog test\n- tests/unit/bootstrap.bats - Remove backlog config assertion\n- tests/unit/agent_commands.bats - Update subagent assertions\n- tests/lib/test_helper.bash - Remove mkdir backlog\n\n## Acceptance Criteria\n\n- Test suite drops from 17 to 14 files\n- All remaining tests pass",
   "preamble": ""

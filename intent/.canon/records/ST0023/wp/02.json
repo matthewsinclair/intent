@@ -1,7 +1,7 @@
 {
   "id": "02",
   "title": "LLM Templates - Remove Backlog from Generated Content",
-  "status": "not-started",
+  "status": "done",
   "objective": "",
   "body": "## Scope\n\nTemplates that `intent init` copies into new projects.\n\n## Files to Edit\n\n- lib/templates/llm/\\_CLAUDE.md\n- lib/templates/llm/\\_llm_preamble.md\n- lib/help/agents.help.md\n\n## Acceptance Criteria\n\n- New `intent init` projects will not mention Backlog",
   "preamble": ""

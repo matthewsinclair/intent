@@ -1,0 +1,14 @@
+{
+  "id": "01M8E33Q0NPXF5M5DT9D9D2FXA",
+  "ts": "2026-11-27T08:49:19.385Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0023/AC-01.1"
+  },
+  "payload": {
+    "evidence": "commit dd253dbe2, v2.5.0: Remove Backlog.md integration, consolidate shared helpers"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "id": "01",
   "title": "Documentation - Remove Backlog References",
-  "status": "not-started",
+  "status": "done",
   "objective": "",
   "body": "## Scope\n\nAll user-facing, engineering, and LLM documentation. No code, no tests.\n\n## Files to Edit\n\n- README.md\n- CLAUDE.md\n- DEPRECATIONS.md\n- intent/usr/user_guide.md\n- intent/usr/reference_guide.md\n- intent/usr/deployment_guide.md\n- intent/llm/AGENTS.md\n- .github/workflows/README.md\n- tests/README.md\n\n## TPD Files (annotate)\n\n- intent/eng/tpd/2_requirements.md, 3_architecture.md, 4_detailed_design.md\n- intent/eng/tpd/6_deployment_and_operations.md, 7_technical_challenges_and_mitigations.md, 8_appendices.md\n\n## Blog Posts (editor's note)\n\n- docs/blog/0001-introduction-to-intent.md\n- docs/blog/0002-the-steel-thread-methodology.md\n- docs/blog/0004-llm-collaboration-with-intent.md\n- docs/blog/0005-getting-started-with-intent.md\n\n## Acceptance Criteria\n\n- No doc references Backlog as a current feature\n- CHANGELOG.md historical entries untouched\n- TPD has removal annotations; blogs have editor's notes",
   "preamble": ""

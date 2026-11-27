@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.1",
+  "text": "Intent v2.9.0 is released.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tag v2.9.0 at 0de89cdd0"
+  }
+}

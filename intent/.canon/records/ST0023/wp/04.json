@@ -1,7 +1,7 @@
 {
   "id": "04",
   "title": "CLI Core - Remove Backlog Commands and Config",
-  "status": "not-started",
+  "status": "done",
   "objective": "",
   "body": "## Scope\n\nDelete backlog-specific scripts, clean remaining scripts.\n\n## Files to DELETE\n\n- bin/intent_backlog (~448 lines)\n- bin/intent_bl (~9 lines)\n- bin/intent_migrate (~217 lines)\n- bin/intent_status (~24 lines)\n- bin/intent_task (~143 lines)\n\n## Files to Edit\n\n- bin/intent - Remove bl) case block\n- bin/intent_config - Remove backlog config vars\n- bin/intent_helpers - Remove backlog from helpers\n- bin/intent_init - Remove backlog init\n- bin/intent_upgrade - Remove backlog migration\n- bin/intent_bootstrap - Remove backlog from defaults\n- bin/intent_info - Remove backlog display\n- bin/intent_doctor - Remove backlog check\n\n## Acceptance Criteria\n\n- Backlog commands return \"Unknown command\"\n- `intent init` creates projects without backlog/\n- All remaining bin/ scripts load without errors",
   "preamble": ""

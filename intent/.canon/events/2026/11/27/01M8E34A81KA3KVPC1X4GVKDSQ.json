@@ -1,0 +1,14 @@
+{
+  "id": "01M8E34A81KA3KVPC1X4GVKDSQ",
+  "ts": "2026-11-27T08:49:39.077Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.put",
+  "subject": {
+    "type": "ac",
+    "id": "ST0023/AC-04.1"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

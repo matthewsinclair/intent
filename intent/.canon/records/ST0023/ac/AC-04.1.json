@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.1",
+  "text": "CLI core: the Backlog commands and config are removed (shipped in v2.5.0).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "commit dd253dbe2, v2.5.0: Remove Backlog.md integration, consolidate shared helpers"
+  }
+}

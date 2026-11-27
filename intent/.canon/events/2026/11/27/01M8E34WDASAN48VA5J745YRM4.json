@@ -1,0 +1,14 @@
+{
+  "id": "01M8E34WDASAN48VA5J745YRM4",
+  "ts": "2026-11-27T08:49:57.678Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0034/AC-11.1"
+  },
+  "payload": {
+    "evidence": "tag v2.9.0 at 0de89cdd0"
+  }
+}

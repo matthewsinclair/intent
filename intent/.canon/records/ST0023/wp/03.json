@@ -1,7 +1,7 @@
 {
   "id": "03",
   "title": "Subagents - Remove Backlog from Agent Definitions",
-  "status": "not-started",
+  "status": "done",
   "objective": "",
   "body": "## Scope\n\nSubagent source definitions and installed copies.\n\n## Files to Edit\n\n- intent/plugins/claude/subagents/intent/agent.md\n- intent/plugins/claude/subagents/intent/metadata.json\n- .claude/agents/intent.md\n- intent/plugins/claude/subagents/socrates/README.md\n- intent/plugins/claude/subagents/worker-bee/agent.md\n\n## Acceptance Criteria\n\n- No subagent mentions backlog\n- metadata.json tags cleaned",
   "preamble": ""

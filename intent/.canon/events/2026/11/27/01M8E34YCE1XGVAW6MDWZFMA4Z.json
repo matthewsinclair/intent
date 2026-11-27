@@ -1,0 +1,16 @@
+{
+  "id": "01M8E34YCE1XGVAW6MDWZFMA4Z",
+  "ts": "2026-11-27T08:49:59.699Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.cancel",
+  "subject": {
+    "type": "wp",
+    "id": "ST0019/02"
+  },
+  "payload": {
+    "from": "not-started",
+    "reason": "Skipped at the thread's close on 2026-02-04: the treeindex CLI and the CLAUDE.md convention were enough, so no subagent was built (ST0019 done.md). Treeindex itself was retired in 3.0.1.",
+    "to": "cancelled"
+  }
+}

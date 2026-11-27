@@ -1,7 +1,7 @@
 {
   "id": "05",
   "title": "Configuration - Remove Backlog Config Keys",
-  "status": "not-started",
+  "status": "done",
   "objective": "",
   "body": "## Scope\n\nJSON config files.\n\n## Files to Edit\n\n- .intent/config.json - Remove backlog_dir and backlog_list_status\n- examples/hello-world/.intent/config.json - Remove backlog_dir\n\n## Acceptance Criteria\n\n- Config files are valid JSON without backlog keys",
   "preamble": ""

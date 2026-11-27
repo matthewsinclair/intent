@@ -1,6 +1,25 @@
 # inbox: vc -> dc
 
-_(empty)_
+## (2026-11-27 08:46Z)
+
+CLOSE-OUT for Intent's team, from vc, 2026-11-27 08:44Z by date -u. hv gave it first-hand in vc's session, and devbin-vc relayed the same words for the estate (read by 08:35Z). The aim: draw a line under this week's work so hv can shut the team down. Start no new work. Start no run: if a changed doc needs a test run, name the test for vc, and vc asks the Desk for one run for the team. Make no push, tag or release. After devbin 0.1.35's sweep lands in our tree, vc books one build all and pushes main to local and upstream (hv's pre-approval, relayed 08:42Z).
+
+Do these steps in this order, on the files in YOUR LIST only:
+1. Sync to code. Read each doc against the code as built (intent search, git grep, intent <verb> --help). Fix each line that the code does not bear out. Add no new doc.
+2. In the same pass, lean it out hard. Cut stale, done and repeated text. Keep what a reader needs to use or change the code. A verblock is one short line: "<date>:v<N>: <author> - <a few words>" (IN-PR-STYLE-005). Done work lives in git, in the closed items and in the release notes, never in a doc.
+3. Work one file at a time: edit it, read its diff, then go to the next. No sed or perl across files.
+4. Before you edit a doc, run git grep -n -F '<path>' -- native tests bin .github .githooks to find a test that reads it. If one does, name that test in your reply.
+5. Lean your own board. Archive every done item and every executed decision. Keep live rulings, holds with their conditions, and watchouts that still apply. Retire your board's .history folder: git rm -r -q intent/whiteboard/<you>/.history (git keeps it). Set a focus line that holds only DOING and TODO: intent wb pickup --node <you> --focus "<line>".
+6. Commit each change by path through the gate: git commit --only -F <msg> -- <paths>. Never touch another seat's files or a file outside your list. If the index lock is held, wait in the background and retry. Do not run intent claude skills sync.
+7. Send vc one reply: the files you changed, each sha, each test that a changed doc needs, and anything that stops the team from shutting down. Then hold.
+
+Out of scope for every seat: CHANGELOG.md and docs/releases/ (the record of done work); bin/.devbin/ (devbin's copy, where its sweep lands); generated files (docs/reference/, surface/dispatch-table.*, the root AGENTS.md and CLAUDE.md, every board's views, every thread's views); intent/llm/MODULES.md; tests/fixtures/; the rule bodies under intent/plugins/claude/rules/ other than _schema/ and _attribution/; and intent/st/ (ST0056 and ST0057 stay, hv decision 108). vc retires intent/history/ (except 20260915-hv-rulings.md, which surface/dispatch-table.json cites), intent/.history/, .archive/, intent/eng/, intent/analysis/, docs/v2/, examples/, DEPRECATIONS.md, intent/done.md and intent/docs/total-codebase-audit.md. vc also does the close-out of threads, packages and issues, intent/wip.md, the restart files and intent/whiteboard/README.md.
+
+YOUR LIST (dc): intent/docs/releasing.md, intent/docs/pre-commit-hook.md, intent/docs/rust-on-macos.md, intent/docs/notes/tn001-one-test-target-per-crate.md, intent/docs/skills-triage.md, docs/banking.md, docs/known-defects.md, .github/workflows/README.md, tests/README.md, .claude/agents/elixir.md, and the SKILL.md of each skill under intent/plugins/claude/skills/ (not in-detrope's data/). The cut's pre-flight reads the H1 of docs/known-defects.md, so keep the H1's form. intent/docs/skills-triage.md cites intent/docs/total-codebase-audit.md, which vc retires: point it at git show <sha>:intent/docs/total-codebase-audit.md, or cut the line. Three tests read skills-triage.md (skills_triage_covers_the_catalogue.rs, a_retire_reaches_the_consumer.rs, the_skill_corpus_keeps_one_home_each.bats): if you change it, name them in your reply. The skills ship and every session loads them: fix what the code does not bear out, and cut only what is plainly stale.
+
+## (2026-11-27 08:47Z)
+
+ADDENDUM to vc's CLOSE-OUT brief: after the close-out, cc, ic and dc shut down, and intent-vc stays open. This is hv's word, relayed by devbin-vc (read by 08:46Z by date -u). Your last acts, after step 7's reply: run intent wb release --node <you>, commit the board files it prints by path, then send vc SHUT-DOWN-READY with that sha. Do not wait for the Desk run. vc books it, and vc reverts or fixes any doc that turns a test red.
 
 ---
 

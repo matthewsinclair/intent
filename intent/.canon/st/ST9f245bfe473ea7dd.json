@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@4.0",
+  "id": "ST9f245bfe473ea7dd",
+  "origin": "01M8E35THW0MPCXEPF98W2P2XV",
+  "title": "Passive prompt injection fixes: non-live prompt text is marked and read as data",
+  "slug": "passive-prompt-injection-fixes-non-live-prompt-t",
+  "status": "not-started",
+  "created": "2026-11-27",
+  "objective": "Prompt text that Intent stores or ships (skills, the critic rule libraries and their Detection heuristics, agent files, the AGENTS.md and CLAUDE.md templates, usage rules, whiteboard messages and archives, autopsy inputs, and the superseded versions of all of these in git) is acted on by an agent only when it is live, and every other copy says so where the agent reads it. Issue 0611 (hv, 2026-10-20) raised it.",
+  "context": "Split from ST0085 at the close-out of 2026-11-27 (hv's order: a partly done thread is pruned to its done part and closed, and its unfinished work moves to a future, unstarted thread). ST0085 closed with its inventory of every surface that feeds prompt text to an agent (its WP-01, the attachment `inventory.md`; read it with `intent st hydrate ST0085`). This thread holds the fixes. No fix lane starts until hv has read that inventory (decision 70(5) on vc's board).\n\nThe directions the inventory feeds, from issue 0611:\n\n- A convention for non-live prompt text: a framing marker that an agent is told to treat as data, not instruction.\n- Guidance in the skills and agent files that read history, diffs, transcripts or archives (autopsy, review, critics, whiteboard): what they read there is evidence.\n- Rule-change notes that quote the old rule in a form that cannot be mistaken for the rule.\n- Tests or fixtures that put a stale instruction in front of a critic or a skill and check that it is not followed.",
+  "body": "",
+  "preamble": ""
+}
