@@ -5865,16 +5865,24 @@ machine_named_state() {
 # without the login PATH -- cron, a hook a GUI app launched -- has no
 # ~/.local/bin on it, and it still finds the install the switch chose. The
 # chain is walked by follow_links, the one walk, and the tree is the directory
-# above the bin/devbin it ends at.
+# above the bin/ it ends in.
 #
 # A KEG IS NAMED BY ITS OPT LINK (issue 0287), through install_named_root, as
 # every other reader names one. The walk ends in Cellar/devbin/<version>, which
 # the next `brew upgrade devbin` removes, so doctor's switch row named a path a
 # user copied from it and found gone.
 #
+# A LINK'S TREE IS READ FROM THE FILE ITS CHAIN ENDS AT, NEVER FROM THAT FILE'S
+# NAME (issue Icb1329b). The tree is the one whose bin/ holds that file, as a
+# tool's own code finds its root from its resolved path, and the link serves it
+# when the tree's own bin/<link> leads to the same file. A tool whose names are
+# links to one dispatcher in its bin/ is so read at its tree. Each name's chain
+# ends at the dispatcher, and read by the name at the end, every name but the
+# dispatcher's own was no tree's.
+#
 # `bad` for a link that leads to no file, one that cannot be followed exactly, a
 # file standing where the link belongs (no choice `devbin use` made), and a link
-# to a file that is no tree's bin/devbin.
+# to a file that no tree's bin/devbin leads to.
 #
 # A LINK TO NO FILE IS REMOVED BY HAND (issue 0250), and no link then means
 # brew: `use brew` leaves a link into no devbin tree, so it is not offered.
@@ -5888,7 +5896,7 @@ machine_named_state() {
 machine_link_state() { tool_link_state "$DEVBIN_SELF" "$DEVBIN_SELF" "devbin use" _machine_link_clause; }
 _machine_link_clause() { devbin_checkout_clause "${PROJECT_ROOT:-}"; }
 tool_link_state() {
-  local p f d
+  local p f r d
   if ! p="$(tool_link_path "$2")" || { [ ! -e "$p" ] && [ ! -L "$p" ]; }; then
     printf 'none\n'
     return 0
@@ -5901,14 +5909,16 @@ tool_link_state() {
     printf 'bad the link %s leads to no file it can follow -- remove it, so no link means brew%s\n' "$p" "$([ -z "${4:-}" ] || "$4")"
     return 0
   fi
-  case "$f" in
-    ?*/bin/"$2") ;;
-    *)
-      printf 'bad the link %s leads to %s, which is no %s tree'"'"'s bin/%s\n' "$p" "$f" "$1" "$2"
-      return 0
-      ;;
+  r="${f%/*}"
+  case "$r" in
+    ?*/bin) r="${r%/bin}" ;;
+    *) r="" ;;
   esac
-  if ! physical_dir "${f%/bin/"$2"}" d; then
+  if [ -z "$r" ] || ! [ "$r/bin/$2" -ef "$f" ]; then
+    printf 'bad the link %s leads to %s, which is no %s tree'"'"'s bin/%s\n' "$p" "$f" "$1" "$2"
+    return 0
+  fi
+  if ! physical_dir "$r" d; then
     printf 'bad cannot resolve the tree the link %s leads to\n' "$p"
     return 0
   fi

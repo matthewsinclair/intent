@@ -30,7 +30,8 @@
 # config, a plain word (is_host_alias, lib/helpers). What lives on it is this
 # file's recipe, never config: the bare repo work/<project>-leg.git under its
 # home, the gates' own cache work/<project>-leg.cache beside it, held to the
-# bound each start is handed (gate_cache_bound), and each run's worktree
+# bound each start is handed, and emptied on a disk with less than that free
+# (gate_cache_bound), and each run's worktree
 # work/<project>-leg-<sha12>, with its log, its
 # gates' TMPDIR and, once its gates have ended, their exit status. The
 # runner installs and adjusts nothing there: the host carries what the
@@ -70,15 +71,20 @@
 # passed, so a green seal beside another status is gates killed while their
 # seal was written. A run that ended with no pair, with its seal still in
 # flight, or with a seal its status contradicts, is unknown, naming its exit
-# status and the last line of its log. A run killed before it writes its
-# status reads running at every poll, so the loop's deadline ends it as a
-# timeout, and it is left on the host, to be looked at there. A run that ended
-# is cleared from the host, its worktree, log, status and ref, once its log is
-# copied back beside the pairs, and only then: a log that cannot be copied
-# keeps the run there for the next read. Each start clears the project's
-# ended runs at other commits the same way first, so a run no read comes back
-# for, a cut's that stopped red or one whose log could not be copied, is not
-# left there (issue 0367). The bare repo is kept for the next run. A run
+# status and the last line of its log. A RUN WHOSE RUNNER IS GONE with no
+# status, killed with its host, by the out-of-memory killer or by a full disk,
+# can write none: it is gone (_release_leg_run_state, issue I0a62f4a), an
+# ended run with no status. A read finds it unknown, naming it, and a start
+# finds it at any commit, its own included, so a retry at that commit starts
+# afresh; either clears it as an ended run, its log first given a last line
+# that says so. A run that ended is cleared from the host, its worktree, log,
+# status and ref, once its log is copied back beside the pairs, and only
+# then: a log that cannot be copied keeps the run there for the next read.
+# Each start clears the project's ended runs at other commits the same way
+# first, so a run no read comes back for, a cut's that stopped red or one
+# whose log could not be copied, is not left there (issue 0367). It then
+# deletes each leg ref no run's worktree holds, which a start that stopped
+# after its send-pack leaves. The bare repo is kept for the next run. A run
 # cleared with no pair kept reads unknown here from then on, from its log, so
 # a failure named once is never read later as no run at all.
 #
@@ -113,10 +119,13 @@ RELEASE_LEG_SSH_OPTS=(-o BatchMode=yes -o "ConnectTimeout=$RELEASE_LEG_CONNECT_T
   -o "ServerAliveInterval=$RELEASE_LEG_ALIVE_INTERVAL" -o "ServerAliveCountMax=$RELEASE_LEG_ALIVE_COUNT")
 
 # The functions every remote half may call, sent over beside it by
-# release_leg_remote, so a rule a host and this machine both apply is stated
-# once, here: gate_cache_bound, which gates_cache_dir (lib/cmd/release) applies
-# to this machine's cache and _release_leg_remote_start to a host's.
-RELEASE_LEG_REMOTE_SHARED=(gate_cache_bound)
+# release_leg_remote, so a rule is stated once, here: gate_cache_bound, which
+# gates_cache_dir (lib/cmd/release) applies to this machine's cache and
+# _release_leg_remote_start to a host's; _release_leg_run_state, the one test
+# of whether a run is going, which the start's bound, its sweep of ended runs
+# and the probe each read; and _release_leg_gone_note, the line a gone run's
+# log is given before it goes back.
+RELEASE_LEG_REMOTE_SHARED=(gate_cache_bound _release_leg_run_state _release_leg_gone_note)
 
 # release_leg_dir <root> <host> -- where <host>'s pairs come back to: one
 # directory per host under the release's run logs, so every pair in it names
@@ -183,15 +192,26 @@ _release_leg_remote_init() {
 # gate_cache_bound <dir> <bound> -- the gates' cache at <dir> held to <bound>,
 # a whole number of KiB (issue 0361): a cache over it is emptied, made
 # writable first, since a build can leave read-only directories in it, so the
-# run it is about to serve builds cold; one at or under it is kept. Measured
-# by `du -sk`, which every host's du takes. One line, `kept<TAB><detail>`,
-# `emptied<TAB><detail>` or `refused<TAB><why>`, a cache that could not be
-# measured or emptied, which is left as it stands, since the gates run with
-# their cache whatever its size. THE ONE RULE for a gate cache's size: this
-# machine's (gates_cache_dir, lib/cmd/release) and each host's
-# (_release_leg_remote_start) are held to it alike.
+# run it is about to serve builds cold. One at or under it is kept while its
+# disk has at least <bound> KiB free, and emptied the same way while it has
+# less (issue I14a851d): the bound acts only as a run starts, and the run can
+# grow the cache by a whole build, so a disk with less free than the bound
+# can be filled by the run the cache is kept for. Measured by `du -sk` and
+# `df -Pk`, which every host's du and df take: the disk's free space is df's
+# Available column for the cache's own directory, the field before its
+# Capacity's percentage, so a filesystem whose name holds a space is read
+# alike. Each line names the free space it read. Where it cannot be read, the
+# size alone decides and the line says why: a cache over its bound is
+# emptied, and one within it is `refused`, left as it stands, so this
+# machine's run, which says nothing of a kept cache, warns of it. One line,
+# `kept<TAB><detail>`, `emptied<TAB><detail>` or `refused<TAB><why>`, a cache
+# that could not be measured or emptied, which is left as it stands, since the
+# gates run with their cache whatever its size. THE ONE RULE for a gate
+# cache's size: this machine's (gates_cache_dir, lib/cmd/release) and each
+# host's (_release_leg_remote_start) are held to it alike.
 gate_cache_bound() {
-  local d="$1" bound="$2" kib err
+  local d="$1" bound="$2" kib err out free="" disk why i
+  local -a _gcb_w
   if [ ! -d "$d" ]; then
     printf 'kept\t%s is not there yet, and the run makes it\n' "$d"
     return 0
@@ -201,15 +221,92 @@ gate_cache_bound() {
     return 0
   fi
   kib="${kib%%[[:space:]]*}"
-  if [ "$kib" -le "$bound" ]; then
-    printf 'kept\t%s holds %s KiB, within its bound of %s KiB\n' "$d" "$kib" "$bound"
+  if out="$(df -Pk "$d" 2>&1)"; then
+    read -r -a _gcb_w <<<"${out#*$'\n'}"
+    for ((i = 2; i < ${#_gcb_w[@]}; i++)); do
+      if [[ "${_gcb_w[i]}" =~ ^[0-9]+%$ ]]; then
+        free="${_gcb_w[i - 1]}"
+        break
+      fi
+    done
+    [[ "$free" =~ ^[0-9]+$ ]] || out="df -Pk named no free space: ${out#*$'\n'}"
+  fi
+  if [[ "$free" =~ ^[0-9]+$ ]]; then
+    disk="with $free KiB free on its disk"
+  else
+    free=""
+    disk="and the free space on its disk could not be read (${out%%$'\n'*})"
+  fi
+  if [ "$kib" -gt "$bound" ]; then
+    why="over its bound of $bound KiB, $disk"
+  elif [ -z "$free" ]; then
+    printf 'refused\t%s holds %s KiB, within its bound of %s KiB, %s, so it is left as it stands\n' "$d" "$kib" "$bound" "$disk"
     return 0
+  elif [ "$free" -ge "$bound" ]; then
+    printf 'kept\t%s holds %s KiB, within its bound of %s KiB, %s\n' "$d" "$kib" "$bound" "$disk"
+    return 0
+  else
+    why="within its bound of $bound KiB, $disk, under the bound"
   fi
   if ! err="$({ chmod -R u+w "$d" && rm -rf "$d" && mkdir -p "$d"; } 2>&1)"; then
-    printf 'refused\t%s holds %s KiB, over its bound of %s KiB, and could not be emptied: %s\n' "$d" "$kib" "$bound" "${err%%$'\n'*}"
+    printf 'refused\t%s holds %s KiB, %s, and could not be emptied: %s\n' "$d" "$kib" "$why" "${err%%$'\n'*}"
     return 0
   fi
-  printf 'emptied\t%s held %s KiB, over its bound of %s KiB, so it is emptied and this run builds cold\n' "$d" "$kib" "$bound"
+  printf 'emptied\t%s held %s KiB, %s, so it is emptied and this run builds cold\n' "$d" "$kib" "$why"
+}
+
+# _release_leg_run_state <wt> -- where the run at <wt> on this host stands
+# (issue I0a62f4a), one word: `ended` once its exit status is beside it;
+# `going` while it has none and its runner is alive, the shell that writes the
+# status, which every start has launched as `bash -c <script> release-leg
+# <wt>`, so its arguments end ` release-leg <wt>`; `gone` once that runner is
+# gone and the status is still not there. Read in that order, since the
+# runner writes the status before it exits, so a run that has just ended is
+# never read as gone. The runner is found by its command line, never by a
+# file, since a full disk that stops a status can stop any other write: the
+# process list is read whole (`ps -A -ww -o args=`, which macOS's ps and
+# procps both take), each line its trailing blanks set aside. A list that
+# cannot be read reads as going. A run between its worktree add and its
+# runner's launch has no runner yet, so another start would read it as gone:
+# safe only while two starts of one project on one host never overlap, which
+# the cut, starting its legs one at a time, and the booking of every run keep.
+_release_leg_run_state() {
+  local wt="$1" procs line
+  if [ -e "$wt.rc" ]; then
+    printf 'ended\n'
+    return 0
+  fi
+  if ! procs="$(ps -A -ww -o args= 2>/dev/null)"; then
+    printf 'going\n'
+    return 0
+  fi
+  while IFS= read -r line; do
+    line="${line%"${line##*[![:space:]]}"}"
+    if [[ "$line" == *" release-leg $wt" ]]; then
+      printf 'going\n'
+      return 0
+    fi
+  done <<<"$procs"
+  if [ -e "$wt.rc" ]; then
+    printf 'ended\n'
+  else
+    printf 'gone\n'
+  fi
+}
+
+# _release_leg_gone_note <wt> -- one line added to the log of the gone run at
+# <wt>, as its last line: its runner was gone with no exit status, and when,
+# by this host's clock (issue I0a62f4a). The log is the run's one record, and
+# goes back with it. Added once: a log whose last line says so already is left
+# as it is, and one that cannot take the line goes back as it stands.
+_release_leg_gone_note() {
+  local log="$1.log" last=""
+  [ ! -f "$log" ] || last="$(tail -n 1 "$log")"
+  case "$last" in
+    "--- no exit status, and its runner is gone"*) return 0 ;;
+  esac
+  printf '\n--- no exit status, and its runner is gone: read at %s by this host'"'"'s clock ---\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$log" 2>/dev/null || :
 }
 
 # _release_leg_remote_start <project> <sha> [<bound>] -- a worktree of the
@@ -220,15 +317,20 @@ gate_cache_bound() {
 # an earlier run at <sha> left beside a worktree since removed is removed
 # first, since it would read as this run's end; and a worktree made here that
 # the gates could not be started in is removed again, since it would read as a
-# run going.
+# run.
+#
+# THE CACHE'S BOUND AND THE TMPDIR COME BEFORE THE WORKTREE ADD (issue
+# I0a62f4a), so only the log's header lies between the add and the runner's
+# launch, the span in which another start would read the run as gone
+# (_release_leg_run_state).
 #
 # THE GATES' TMPDIR IS THE RUN'S OWN, <worktree>.tmp, on the host's disk beside
 # the worktree (issue 0334): a host's /tmp can be a small tmpfs, and a large
-# build filled one. The same for every project's leg. It is made afresh as the
-# last step before the gates start, so a start refused before it leaves none.
-# What an earlier run at <sha> left there goes first, made writable, since a
-# build, or a bats run killed mid-file, can leave read-only directories in it.
-# It is cleared with the worktree.
+# build filled one. The same for every project's leg. It is made afresh before
+# the worktree add, and removed again by a start refused from then on, so a
+# refused start leaves none. What an earlier run at <sha> left there goes
+# first, made writable, since a build, or a bats run killed mid-file, can
+# leave read-only directories in it. It is cleared with the worktree.
 #
 # THE GATES' CACHE IS THE PROJECT'S, work/<project>-leg.cache beside the bare
 # repo (issue 0335), handed to the gates as DEVBIN_GATE_CACHE, whatever the
@@ -237,9 +339,11 @@ gate_cache_bound() {
 # TMPDIR, and what goes in it is the project's. HELD TO <bound> KiB (issue
 # 0361), where a bound is given, by gate_cache_bound, before the gates start,
 # its line in the leg's log: a cache a build fills grows without end, and one
-# filled a host's disk. Never while another run of the project is going on the
-# host, a worktree there with no exit status beside it, whose gates may be
-# reading the cache: the log names that run and the cache is left as it is.
+# filled a host's disk. So is a cache on a disk with less than <bound> KiB
+# free, which the run could fill (issue I14a851d), the free size in the same
+# line. Never while another run of the project is going on the host
+# (_release_leg_run_state), whose gates may be reading the cache: the log
+# names that run and the cache is left as it is.
 #
 # A RED RUN'S TMPDIR FILES GO INTO ITS LOG (issue 0361): the TMPDIR is removed
 # with the run, and a gate that keeps its failing step's output in a file
@@ -266,15 +370,11 @@ _release_leg_remote_start() {
     printf 'refused\tthe status an earlier run left beside %s could not be removed: %s\n' "$wt" "${err%%$'\n'*}"
     return 0
   fi
-  if ! git -C "$repo" worktree add -q --detach "$wt" "$sha" >"$log" 2>&1; then
-    printf 'refused\tgit could not make a worktree at %s: %s\n' "${sha:0:12}" "$(tail -n 1 "$log")"
-    return 0
-  fi
   cline="kept"$'\t'"no bound was given, so $gcache is kept as it stands"
   if [ -n "$bound" ]; then
     for other in "$HOME/work/$project-leg-"*; do
       case "$other" in "$wt" | *.tmp) continue ;; esac
-      if [ -d "$other" ] && [ ! -e "$other.rc" ]; then
+      if [ -d "$other" ] && [ "$(_release_leg_run_state "$other")" = going ]; then
         cline="kept"$'\t'"a run of $project is going in $other, which may be reading $gcache, so it is left as it stands"
         bound=""
         break
@@ -282,7 +382,17 @@ _release_leg_remote_start() {
     done
   fi
   [ -z "$bound" ] || cline="$(gate_cache_bound "$gcache" "$bound")"
-  if ! cd "$wt"; then
+  if ! err="$(mkdir -p "$gcache" 2>&1)"; then
+    printf 'refused\tthe gates'"'"' cache %s could not be made, so nothing was started: %s\n' "$gcache" "${err%%$'\n'*}"
+    return 0
+  fi
+  if ! err="$({ [ ! -e "$tmp" ] || chmod -R u+w "$tmp"; } 2>&1 && rm -rf "$tmp" 2>&1 && mkdir -p "$tmp" 2>&1)"; then
+    printf 'refused\tthe TMPDIR %s could not be made afresh for the run, so nothing was started: %s\n' "$tmp" "${err%%$'\n'*}"
+    return 0
+  fi
+  if ! git -C "$repo" worktree add -q --detach "$wt" "$sha" >"$log" 2>&1; then
+    why="git could not make a worktree at ${sha:0:12}: $(tail -n 1 "$log")"
+  elif ! cd "$wt"; then
     why="the worktree $wt could not be entered"
   elif ! {
     printf 'leg: %s at %s, started %s\n' "$project" "$sha" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -295,13 +405,14 @@ _release_leg_remote_start() {
     done
   } >>"$log"; then
     why="the log $log could not be written"
-  elif ! err="$(mkdir -p "$gcache" 2>&1)"; then
-    why="the gates' cache $gcache could not be made: ${err%%$'\n'*}"
-  elif ! err="$({ [ ! -e "$tmp" ] || chmod -R u+w "$tmp"; } 2>&1 && rm -rf "$tmp" 2>&1 && mkdir -p "$tmp" 2>&1)"; then
-    why="the TMPDIR $tmp could not be made afresh for the run: ${err%%$'\n'*}"
   fi
   if [ -n "$why" ]; then
-    if err="$(git -C "$repo" worktree remove --force "$wt" 2>&1 >/dev/null)"; then
+    # What this start made goes again, the TMPDIR made writable first, and the
+    # worktree where git made one, so a refused start leaves no run.
+    err="$({ chmod -R u+w "$tmp" && rm -rf "$tmp"; } 2>&1)" || why="$why, and the TMPDIR $tmp could not be removed: ${err%%$'\n'*}"
+    if [ ! -e "$wt" ]; then
+      printf 'refused\t%s, so nothing was started\n' "$why"
+    elif err="$(git -C "$repo" worktree remove --force "$wt" 2>&1 >/dev/null)"; then
       printf 'refused\t%s, so the worktree is removed and nothing was started\n' "$why"
     else
       printf 'refused\t%s, and git could not remove the worktree it made: %s\n' "$why" "${err%%$'\n'*}"
@@ -343,18 +454,30 @@ printf "%s\n" "$s" >"$1.rc.part" && mv -f "$1.rc.part" "$1.rc"'
 
 # _release_leg_remote_probe <project> <sha> -- where the run at <sha> stands,
 # one line: `unstarted` when no run was started; `running` while its gates have
-# not ended; once they have, `sealed<TAB><status>` when a GATES pair is there to
-# copy, or `exited<TAB><status><TAB><its log's last line>` when none is.
+# not ended and their runner is alive; `gone<TAB><its log's last line>` once
+# that runner is gone with no status (_release_leg_run_state, issue I0a62f4a),
+# its log first given a line that says so, after the line named, which is the
+# gates' own last word; once the gates have ended, `sealed<TAB><status>` when a
+# GATES pair is there to copy, or `exited<TAB><status><TAB><its log's last
+# line>` when none is.
 _release_leg_remote_probe() {
   local wt="$HOME/work/$1-leg-${2:0:12}" rc last="no log"
   if [ ! -d "$wt" ]; then
     printf 'unstarted\n'
     return 0
   fi
-  if [ ! -f "$wt.rc" ]; then
-    printf 'running\n'
-    return 0
-  fi
+  case "$(_release_leg_run_state "$wt")" in
+    going)
+      printf 'running\n'
+      return 0
+      ;;
+    gone)
+      [ ! -f "$wt.log" ] || last="$(awk '!/^--- no exit status, and its runner is gone/ && NF { l = $0 } END { print l }' "$wt.log")"
+      _release_leg_gone_note "$wt"
+      printf 'gone\t%s\n' "${last:-no log}"
+      return 0
+      ;;
+  esac
   rc="$(cat "$wt.rc")"
   set -- "$wt"/tmp/release/*.GATES.out
   if [ -e "$1" ]; then
@@ -365,28 +488,67 @@ _release_leg_remote_probe() {
   printf 'exited\t%s\t%s\n' "$rc" "$last"
 }
 
-# _release_leg_remote_ended <project> <sha> -- the whole commit of each run of
-# <project> here that has ended, its exit status beside it, at any commit but
-# <sha>, one per line: the runs a start clears before its own (issue 0367).
-# The runs are the bare repo's own worktrees, read from git, so a directory
-# that only looks like one is never named. A run with no status, still going
-# or killed before it wrote one, is not named, nor is the run at <sha>, the
-# start's own.
+# _release_leg_remote_ended <project> <sha> -- each run of <project> here that
+# a start clears before its own, one line each: `ended<TAB><commit>` for a run
+# at any commit but <sha> with its exit status beside it (issue 0367), and
+# `gone<TAB><commit>` for a run at any commit, <sha>'s included, whose runner
+# is gone with no status (_release_leg_run_state, issue I0a62f4a), whose log
+# is first given a line that says so: a gone run holds no seal for a read to
+# collect, so a retry at its commit starts afresh. The runs are the bare
+# repo's own worktrees, read from git, so a directory that only looks like one
+# is never named; a worktree git lists with its directory gone names no run,
+# and is pruned first, so its ref goes with the refs no run holds
+# (_release_leg_remote_refs). A run going is not named, nor is an ended run
+# at <sha>, the start's own, which its read collects.
 _release_leg_remote_ended() {
   local repo="$HOME/work/$1-leg.git" list line name=""
   [ -d "$repo" ] || return 0
+  git -C "$repo" worktree prune
   list="$(git -C "$repo" worktree list --porcelain)"
   while IFS= read -r line; do
     case "$line" in
       "worktree "*) name="${line##*/}" ;;
       "HEAD "*)
         case "$name" in
-          "$1-leg-${2:0:12}") ;;
-          "$1-leg-"*) [ ! -e "$HOME/work/$name.rc" ] || printf '%s\n' "${line#HEAD }" ;;
+          "$1-leg-"*)
+            case "$(_release_leg_run_state "$HOME/work/$name")" in
+              ended) [ "$name" = "$1-leg-${2:0:12}" ] || printf 'ended\t%s\n' "${line#HEAD }" ;;
+              gone)
+                _release_leg_gone_note "$HOME/work/$name"
+                printf 'gone\t%s\n' "${line#HEAD }"
+                ;;
+            esac
+            ;;
         esac
         ;;
     esac
   done <<<"$list"
+}
+
+# _release_leg_remote_refs <project> <sha> -- each leg ref in the bare repo,
+# refs/devbin/legs/<commit>, deleted where no run's worktree holds it, but
+# <sha>'s, the start's own, which its send-pack sends next (issue I0a62f4a). A
+# leg ref is the host's copy of R for one run: it lives as long as the run's
+# worktree, so one with none is a run half cleared, as a start that stopped
+# after its send-pack leaves, and every clear starts from a run's worktree, so
+# none reads it. Only refs/devbin/legs/ is read: the tags sent beside R stay.
+# One line for each ref deleted, `deleted<TAB><commit>`, or not,
+# `refused<TAB><commit><TAB><why>`.
+_release_leg_remote_refs() {
+  local repo="$HOME/work/$1-leg.git" refs ref c err
+  [ -d "$repo" ] || return 0
+  refs="$(git -C "$repo" for-each-ref --format='%(refname)' refs/devbin/legs/)"
+  while IFS= read -r ref; do
+    [ -n "$ref" ] || continue
+    c="${ref#refs/devbin/legs/}"
+    [ "$c" != "$2" ] || continue
+    [ ! -d "$HOME/work/$1-leg-${c:0:12}" ] || continue
+    if err="$(git -C "$repo" update-ref -d "$ref" 2>&1 >/dev/null)"; then
+      printf 'deleted\t%s\n' "$c"
+    else
+      printf 'refused\t%s\t%s\n' "$c" "${err%%$'\n'*}"
+    fi
+  done <<<"$refs"
 }
 
 # _release_leg_remote_clear <project> <sha> -- the ended run's worktree, log,
@@ -511,6 +673,16 @@ _release_leg_finish() {
   fi
 }
 
+# _release_leg_finish_gone <host> <project> <sha> <dir> <err> -- a gone run,
+# whose runner is gone with no exit status (_release_leg_run_state, issue
+# I0a62f4a), finished as an ended run is (_release_leg_finish), with one warn
+# line naming it: no status will come, and a run left there would read as
+# one at every later start. Its log already ends with the line that says so.
+_release_leg_finish_gone() {
+  warn "release: the run of $2 at ${3:0:12} on $1 has no exit status, and its runner is gone, so it is cleared as an ended run is, its log copied back to $4 first"
+  _release_leg_finish "$@"
+}
+
 # _release_leg_clear_ended <root> <host> <project> <sha> <err> -- each run of
 # <project> on <host> that has ended at a commit other than <sha> finished as
 # a read finishes one (_release_leg_finish): its log copied back into
@@ -518,28 +690,62 @@ _release_leg_finish() {
 # from the host. A cut that stops red, a run at its deadline and a log that
 # could not be copied back each leave an ended run that no read of its commit
 # may come back for, so the next start on the host clears it (issue 0367). A
-# run with no status, going or killed, and the run at <sha> are left as they
-# stand. A failure is warned of, naming it, and the start goes on: a run left
-# on a host never holds a cut up.
+# gone run at any commit, <sha>'s included, is finished the same way, warned
+# of (_release_leg_finish_gone, issue I0a62f4a): left there, it would read as
+# a run at every later start, and at <sha> the start would find its own run
+# started before and wait on it to the deadline. A run going, and an ended
+# run at <sha>, which its read collects, are left as they stand. Then each leg
+# ref of <project> no run's worktree holds is deleted on the host
+# (_release_leg_clear_refs). A failure is warned of, naming it, and the start
+# goes on: a run left on a host never holds a cut up.
 _release_leg_clear_ended() {
-  local root="$1" host="$2" project="$3" sha="$4" err="$5" out rc=0 ended dir
+  local root="$1" host="$2" project="$3" sha="$4" err="$5" out rc=0 line word ended dir
   out="$(release_leg_remote "$host" _release_leg_remote_ended "$project" "$sha" 2>"$err")" || rc=$?
   if [ "$rc" -ne 0 ]; then
     warn "release: the ended runs of $project on $host could not be listed, so none was cleared: $(head -n 1 "$err")"
-    return 0
-  fi
-  [ -n "$out" ] || return 0
-  dir="$(release_leg_dir "$root" "$host")"
-  if ! mkdir -p "$dir" 2>"$err"; then
-    warn "release: $dir could not be made, so no ended run of $project on $host was cleared: $(head -n 1 "$err")"
-    return 0
-  fi
-  while IFS= read -r ended; do
-    if is_commit_sha "$ended" full; then
-      _release_leg_finish "$host" "$project" "$ended" "$dir" "$err"
+  elif [ -n "$out" ]; then
+    dir="$(release_leg_dir "$root" "$host")"
+    if ! mkdir -p "$dir" 2>"$err"; then
+      warn "release: $dir could not be made, so no ended run of $project on $host was cleared: $(head -n 1 "$err")"
     else
-      warn "release: $host named '$ended' as an ended run of $project, which is no whole commit, so it was left there"
+      while IFS= read -r line; do
+        word="${line%%$'\t'*}" ended="${line#*$'\t'}"
+        case "$word" in
+          ended | gone) is_commit_sha "$ended" full || word="" ;;
+          *) word="" ;;
+        esac
+        case "$word" in
+          ended) _release_leg_finish "$host" "$project" "$ended" "$dir" "$err" ;;
+          gone) _release_leg_finish_gone "$host" "$project" "$ended" "$dir" "$err" ;;
+          *) warn "release: $host named '$line' as an ended run of $project, which is no answer it gives, so it was left there" ;;
+        esac
+      done <<<"$out"
     fi
+  fi
+  _release_leg_clear_refs "$host" "$project" "$sha" "$err"
+}
+
+# _release_leg_clear_refs <host> <project> <sha> <err> -- each leg ref of
+# <project> on <host> that no run's worktree holds deleted there, but <sha>'s
+# (_release_leg_remote_refs, issue I0a62f4a). A ref that could not be deleted,
+# a list that could not be read and an answer the host does not give are
+# warned of, naming it, and the start goes on.
+_release_leg_clear_refs() {
+  local host="$1" project="$2" sha="$3" err="$4" out rc=0 line c
+  out="$(release_leg_remote "$host" _release_leg_remote_refs "$project" "$sha" 2>"$err")" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    warn "release: the leg refs of $project on $host could not be read, so none was deleted: $(head -n 1 "$err")"
+    return 0
+  fi
+  while IFS= read -r line; do
+    case "$line" in
+      '' | deleted$'\t'*) ;;
+      refused$'\t'*)
+        c="${line#refused$'\t'}"
+        warn "release: refs/devbin/legs/${c%%$'\t'*} on $host holds no run of $project, and could not be deleted: ${c#*$'\t'}"
+        ;;
+      *) warn "release: $host answered the sweep of $project's leg refs with \"$line\", which is no answer it gives" ;;
+    esac
   done <<<"$out"
 }
 
@@ -553,7 +759,8 @@ _release_leg_clear_ended() {
 # the size in KiB the host's gate cache is held to before the gates start
 # (gate_cache_bound), the loop's reading of release.gate_cache.max. Before
 # its own run, the start clears the project's ended runs at other commits from
-# the host (_release_leg_clear_ended). `pending`
+# the host, and its gone runs at any commit, then deletes each of its leg refs
+# no run's worktree holds (_release_leg_clear_ended). `pending`
 # once they are started, with where they log; `unknown`, naming it, when any
 # of the three could not be done.
 release_leg_start() {
@@ -621,7 +828,10 @@ release_leg_start() {
 }
 
 # release_leg_read <root> <host> <project> <sha> -- the leg's word on R. A run
-# still going is pending. Once its gates have ended, their GATES pair is
+# still going is pending. A run whose runner is gone with no exit status is
+# unknown, naming it and the last line its gates wrote, and is finished as an
+# ended run is, warned of (_release_leg_finish_gone, issue I0a62f4a), since no
+# status will come. Once its gates have ended, their GATES pair is
 # copied back with its times and read by seal_verdict for the platform the
 # newest pair names, and kept in release_leg_dir, this machine's record, only
 # when its verdict agrees with the gates' exit status: green with 0, failed
@@ -677,7 +887,7 @@ release_leg_read() {
       printf 'pending\tthe gates at %s are running on %s\n' "${sha:0:12}" "$host"
       return 0
       ;;
-    sealed | exited) ;;
+    sealed | exited | gone) ;;
     *)
       rm -rf "$scratch"
       printf 'unknown\t%s answered the read with "%s", which is no answer it gives\n' "$host" "${out//$'\n'/ }"
@@ -689,6 +899,10 @@ release_leg_read() {
     last="${status#*$'\t'}"
     status="${status%%$'\t'*}"
   fi
+  if [ "$word" = gone ]; then
+    last="$status"
+    status=""
+  fi
   if ! mkdir -p "$dir"; then
     rm -rf "$scratch"
     printf 'unknown\t%s could not be made to copy the leg on %s into\n' "$dir" "$host"
@@ -698,6 +912,12 @@ release_leg_read() {
   # ignore themselves (issue 0157) whether or not a cut's own log made that so
   # first: asked of <root>, the project the loop names, never an ambient one.
   PROJECT_ROOT="$root" gate_out_ignore "$root/$(gate_out_dir release)"
+  if [ "$word" = gone ]; then
+    _release_leg_finish_gone "$host" "$project" "$sha" "$dir" "$scratch/err"
+    rm -rf "$scratch"
+    printf 'unknown\tthe gates at %s on %s have no exit status, and their runner is gone: %s\n' "${sha:0:12}" "$host" "$last"
+    return 0
+  fi
   if [ "$word" = exited ]; then
     _release_leg_finish "$host" "$project" "$sha" "$dir" "$scratch/err"
     rm -rf "$scratch"

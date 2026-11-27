@@ -421,7 +421,7 @@ option_unavailable_reason() {
 # relative to the project root, which is where every remedy is typed from.
 #
 # DEVBIN_DIR IS ABSOLUTE (bin/devbin sets it so), and the reasons below printed
-# `${DEVBIN_DIR:-bin/.devbin}/config.yaml`: a /private/var/... path in a fixture
+# `${DEVBIN_DIR:-bin/.devbin}/config.yaml`: a temporary directory in a fixture
 # and a home path in a vendored project, whose fallback -- the one relative
 # spelling -- never ran (issue 0128). Since 0113 the same text follows every
 # shipped page, where `bin/.devbin/config.yaml` says the same in a fraction of

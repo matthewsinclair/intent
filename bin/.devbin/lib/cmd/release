@@ -646,9 +646,11 @@ release_one_repository() {
 #
 # THIS MACHINE'S IS HELD TO release.gate_cache.max (issue 0361), as each leg's
 # host holds its own (lib/release.legs), by the one rule, gate_cache_bound,
-# before the gates are handed it: emptied when over it, said on stderr, so the
-# run builds cold; kept, and said nothing of, when within it; a cache that
-# could not be measured or emptied is warned of and handed on as it stands.
+# before the gates are handed it: emptied when over it, or when its disk has
+# less than it free (issue I14a851d), said on stderr, so the run builds cold;
+# kept, and said nothing of, otherwise. A cache that could not be measured or
+# emptied, or one within it whose disk's free space could not be read, is
+# warned of and handed on as it stands.
 # One DEVBIN_GATE_CACHE names is the caller's, never held here: a leg's host
 # held it before its gates started. Unlike a host, this machine does not ask
 # whether another run is reading the cache: two runs of one project's gates
