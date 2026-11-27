@@ -1,17 +1,17 @@
 # Pre-commit critic hook
 
-Intent's canonical pre-commit gate runs the repository guards, then `intent critic <lang> --staged --severity-min <sev> --format text` for each language the project declares, then `intent doctor`. Findings at or above the configured severity threshold block the commit, and so does a critic that refuses because a rule the project armed cannot be enforced, and so does a `doctor` that exits 1. The hook is the primary cadence for rule enforcement (design decision D8 in ST0035's `design.md`; `intent st edit ST0035 design --path` writes the thread's files if they are not on disk and prints the path): local, deterministic, offline, zero-latency feedback.
+Intent's canonical pre-commit gate runs the repository guards, then `intent critic <lang> --staged --severity-min <sev> --format text` for each language the project declares, then `intent doctor`. Findings at or above the configured severity threshold block the commit, and so does a critic that refuses because a rule the project armed cannot be enforced, and so does a `doctor` that exits 1. The hook is the first place a rule is enforced: on this machine, before the commit exists.
 
 ## Installation
 
-`intent claude upgrade --apply` installs the gate as a carrier and a chain block in the repository's hooks directory. That is the directory `git rev-parse --git-path hooks` names: `.git/hooks/` by default, or the directory `core.hooksPath` points at (Intent's own repository uses a tracked `.githooks/`). It makes both executable (`--skip-settings` leaves `.claude/settings.json` alone while still installing the gate). The installer writes no ignore rule, so a project with a tracked hooks directory must list the `*.intent` carriers in its own `.gitignore`, as Intent's does. Where this page says `.git/hooks/`, read that directory.
+`intent claude upgrade --apply` installs the gate as a carrier and a chain block in the repository's hooks directory. That is the directory `git rev-parse --git-path hooks` names: `.git/hooks/` by default, or the directory `core.hooksPath` points at (Intent's own repository uses a tracked `.githooks/`). It makes both executable (`--skip-settings` leaves `.claude/settings.json` and `.mcp.json` alone, and still installs the gate). The installer writes no ignore rule, so a project with a tracked hooks directory must list the `*.intent` carriers in its own `.gitignore`, as Intent's does. Where this page says `.git/hooks/`, read that directory.
 
 - **`pre-commit.intent`, the carrier.** A copy of `lib/templates/hooks/pre-commit-shim.sh` from the Intent install. It reads the install root from `~/.local/share/intent/home` and execs that install's `lib/templates/hooks/pre-commit.sh`. The gate body is never copied into a project, so a gate fix reaches every project when the install is updated.
 - **`pre-commit`, the chain block.** A block between `# intent-chain-block:start` and `# intent-chain-block:end` that runs `pre-commit.intent` when it is executable, and otherwise refuses the commit and names the path. In a linked worktree, where the gitignored carrier never is, it looks at the worktree's own hooks path first and then at the same path under the main checkout, and runs that carrier from the worktree, so the gate judges the worktree's own index; a refusal there names both paths. A missing hook is created as a shebang plus the block. An existing hook keeps every line it has: the block is inserted after the hook's leading run of shebang, blank and `set` lines. The first comment or command ends that run, so a `set` line below a header comment stays below the block. A block already there is brought to the current form in place, with every line outside it kept. A hook whose block cannot be rewritten safely is left as it is and reported as `held:` with the reason. That covers two chain blocks, the retired `# >>> intent-chain-block >>>` marker, or an opener with no `# intent-chain-block:end`. Repair it by hand, then run the command again.
 
 The same run installs the post-pull carriers `post-merge.intent`, `post-checkout.intent` and `post-rewrite.intent`, each reached from a chain block in its own hook. Each is a copy of `lib/templates/hooks/post-pull.sh`, which runs `intent sync --apply` to bring this clone's store up to what a pull, checkout or rewrite put on disk, and always exits 0. When a post-pull carrier is absent or not executable in a checkout that holds an Intent store (`intent/.cache/intent.db`), its block says so on stderr and exits 0: git has already changed the tree, and a failing `post-checkout` would make `git checkout` and `git worktree add` report failure. A checkout with no store, such as a fresh worktree, stays silent: there is nothing to bring up to date, and the first `intent` command there builds the store. They are not part of the commit gate; `docs/concepts/working-in-a-team.md` describes them.
 
-`$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`) is written by `intent bootstrap`. A carrier installed by a build before 3.0.2 reads `~/.intent/home` instead, which 3.0.2 moves; `intent claude upgrade --apply` in that project reinstalls the carrier. When it is absent, empty, or names a directory without `lib/templates/`, the carrier refuses every commit and names what it found, and `intent claude upgrade --apply` warns about it at install time. When it names an install with no pre-commit gate (no `lib/templates/hooks/pre-commit.sh`), the carrier also refuses every commit and names what it found. Check what the carrier resolves without running the gate:
+`$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`) is written by `intent bootstrap`. When it is absent, empty, or names a directory without `lib/templates/`, the carrier refuses every commit and names what it found, and `intent claude upgrade --apply` warns about it at install time. When it names an install with no pre-commit gate (no `lib/templates/hooks/pre-commit.sh`), the carrier also refuses every commit and names what it found. Check what the carrier resolves without running the gate:
 
 ```bash
 .git/hooks/pre-commit.intent --where
@@ -156,10 +156,10 @@ A project's own guards are declared in `intent/.config/config.json`, and the run
 ```
 
 - **The declaration is a project's; the body is canon's.** Unlike a `guards` entry, whose `run[0]` must be a tracked file inside the project, this guard's body is read live from the install like every other shipped guard. A project opts in by naming formats, and a project that names none gets no line from the guard: it exits `3` and is counted under `skipped (not applicable)` in the `guards:` summary.
-- **The vocabulary is closed**: `markdown` (prettier), `elixir` (mix format), `rust` (rustfmt). A name outside it refuses the commit rather than being ignored, because a typo means the check its author intended is not running. A fourth format is a change to the guard in canon, never an estate-supplied command — a command a project supplies could be a formatter in write mode behind a door whose name promises a check.
+- **The vocabulary is closed**: `markdown` (prettier), `elixir` (mix format), `rust` (rustfmt). A name outside it refuses the commit rather than being ignored, because a typo means the check its author intended is not running. A fourth format is a change to the guard in canon, never a command that a project supplies: such a command could be a formatter in write mode behind a door whose name promises a check.
 - **It judges and never writes.** No `git add`, no `--write`, and every probe it creates is removed on the passing, refusing and interrupted paths. The refusal names the files and prints that formatter's own command as the remedy, for a human to run.
 - **It reads the staged blob, not the working tree.** A hunk-scoped commit deliberately stages bytes the worktree does not hold; a check that read the worktree would refuse a tree that is not being committed, or pass a staged blob nobody checked.
-- **A missing formatter is UNENFORCED, not unformatted.** A declared formatter whose tool is not on PATH is named in the verdict and blocks nothing, and the same distinction is kept for a file its formatter could not check -- a Rust or Elixir file that does not parse, or a Markdown file prettier errors on -- which is named as not checked, blocks nothing, and is not counted among the files the `ok --` line checked: "I could not check" is never reported as "this is wrong".
+- **A missing formatter is UNENFORCED, not unformatted.** A declared formatter whose tool is not on PATH is named in the verdict and blocks nothing. A file that its formatter could not check (a Rust or Elixir file that does not parse, or a Markdown file that prettier errors on) is named as not checked. It blocks nothing, and the `ok --` line does not count it. "I could not check" is never reported as "this is wrong".
 - **Staged deletions and binary blobs are skipped**, and the Rust edition is resolved from the `rustfmt.toml` or `Cargo.toml` above each file rather than assumed. When nothing declares one, the verdict says rustfmt's default was used, so nobody is left to assume it matched the crate.
 
 ## Language detection
@@ -170,11 +170,11 @@ The hook asks the binary for the explicit `languages` array in `intent/.config/c
 intent lang declared
 ```
 
-An empty or absent array means no language critics run, and the gate prints a `0 of 0 declared language(s)` line that says so. When `intent lang declared` exits `4` because the config cannot be read, no language critic runs and the same line says the languages are unknown; any other refusal refuses the commit. This replaced filesystem-marker detection (`mix.exs` ⇒ elixir, and so on) in v2.11.0 / ST0037, on the grounds that file presence is not evidence of language-in-use. Declare with `intent lang init <lang>`; remove with `intent lang remove <lang>`.
+An empty or absent array means no language critics run, and the gate prints a `0 of 0 declared language(s)` line that says so. When `intent lang declared` exits `4` because the config cannot be read, no language critic runs and the same line says the languages are unknown; any other refusal refuses the commit. Declare with `intent lang init <lang>`; remove with `intent lang remove <lang>`.
 
 `intent critic` owns the code-versus-prose classification from its single registry, so a prose discipline (`author`, `content`) returns a clean no-op here rather than needing the hook to know anything about languages.
 
-`shell` is **not** appended automatically — under the marker probe it was, and under explicit configuration it is a declaration like any other. A polyglot project that wants staged bash and zsh checked must list `shell` in `languages`. Each language's critic runs independently; a critic exit of `1` or `3` from any language blocks the commit.
+`shell` is **not** added automatically. A project that wants staged bash and zsh checked lists `shell` in `languages`. Each language's critic runs independently; a critic exit of `1` or `3` from any language blocks the commit.
 
 ## Estate health: `intent doctor`
 
@@ -188,7 +188,7 @@ There is no flag that skips this arm; `git commit --no-verify` bypasses it along
 
 ## CI integration
 
-The same command works in CI — no separate tooling. Example GitHub Actions step:
+The same command works in CI, with no other tooling. An example GitHub Actions step:
 
 ```yaml
 - name: intent critic gate
@@ -228,7 +228,7 @@ The hook itself exits only `0` or `1`.
 
 - **Commit is slow**: `intent critic --staged` only reads staged files. If a single commit touches many files, individual findings may stack up. Use `intent critic <lang> --staged --severity-min critical` temporarily while iterating.
 
-- **Hook not running**: check `ls -la "$(git rev-parse --git-path hooks)"/pre-commit*` — both must exist and be executable. Git skips a missing hook silently and a non-executable one with only a `hint:` line, and the chain block refuses the commit when `pre-commit.intent` is absent (`GATE ABSENT`) or not executable (`GATE NOT EXECUTABLE`), and names the path.
+- **Hook not running**: check `ls -la "$(git rev-parse --git-path hooks)"/pre-commit*`: both files must exist and be executable. Git skips a missing hook silently and a non-executable one with only a `hint:` line, and the chain block refuses the commit when `pre-commit.intent` is absent (`GATE ABSENT`) or not executable (`GATE NOT EXECUTABLE`), and names the path.
 
 - **"cannot locate the Intent install" from `pre-commit (intent shim)`**: `~/.local/share/intent/home` is absent or empty. Run `intent bootstrap`, then re-commit. `.git/hooks/pre-commit.intent --where` shows what the carrier resolves, and `intent bootstrap --check` answers the same from any directory.
 
@@ -238,10 +238,10 @@ The hook itself exits only `0` or `1`.
 
 ## See also
 
-- `intent/docs/critics.md` — critic contract, `.intent_critic.yml` schema, headless runner surface.
-- `intent/docs/working-with-llms.md` — full canon: hooks, skills, critics, extensions.
-- `lib/templates/hooks/pre-commit.sh` — the gate.
-- `lib/templates/hooks/pre-commit-shim.sh` — the carrier installed as `.git/hooks/pre-commit.intent`.
-- `lib/templates/hooks/pre-commit-guards.sh` — the guard runner and roster.
-- `lib/templates/hooks/staged-format-guard.sh` — the staged-blob format check, declared per project by `formatters`.
-- `lib/templates/_intent_critic.yml` — install default for per-project config.
+- `intent/docs/critics.md`: the critic contract, the `.intent_critic.yml` schema and the headless runner.
+- `intent/docs/working-with-llms.md`: hooks, skills, critics and extensions.
+- `lib/templates/hooks/pre-commit.sh`: the gate.
+- `lib/templates/hooks/pre-commit-shim.sh`: the carrier installed as `.git/hooks/pre-commit.intent`.
+- `lib/templates/hooks/pre-commit-guards.sh`: the guard runner and roster.
+- `lib/templates/hooks/staged-format-guard.sh`: the staged-blob format check, declared per project by `formatters`.
+- `lib/templates/_intent_critic.yml`: the install default for per-project config.
