@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@4.0",
+  "id": "ST7fb2f128aebd4eec",
+  "origin": "01M8E5D7Y35YWZVJXG296239YT",
+  "title": "intent organize --help still names .intentfiles, which the 3.5.0 canon format folded into each record",
+  "slug": "intent-organize-help-still-names-intentfiles-whi",
+  "status": "not-started",
+  "created": "2026-11-27",
+  "objective": "`intent organize --help` describes what the command does as built. Today its summary says it reconciles the tree with `.intentfiles`, and its `--default` and `--force` flags say they write `.intentfiles`, but the 3.5.0 canon format folded that file into each record's realised flag.",
+  "context": "cc found it at the close-out of 2026-11-27, outside its doc list: the help text comes from the dispatch table (`surface/`), which is compiled in, so the fix is a code change that rides a release. The package also finds out what `--default` and `--force` do now: if they no longer have a subject, they go (fail forward, no shims).\n\nNot Started. Filed at the close-out as a future, unstarted thread.",
+  "body": "",
+  "preamble": ""
+}
