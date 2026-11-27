@@ -11,6 +11,6 @@ intent_version: 3.5.6
 
 ## TODO
 
-- Push main to local and upstream once devbin 0.1.35's sweep lands and build all is green on a Desk ask.
+- Push main to local and upstream: build all and the doc tests are green at 8ecde6389, and the push waits on hv.
 - Parked for hv: every Not Started thread (`intent st list --status tbc`).
 - Laksa and Conflab take the Intent 3.5.6 upgrade in their own sessions (hv decision 114).
