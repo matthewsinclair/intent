@@ -1,21 +1,21 @@
 # Decision Tree - Where Does This Code Belong?
 
 > Use this tree when you're about to write new code for Intent.
-> Always cross-reference MODULES.md -- if a module already owns that concern, put the code there.
+> Always cross-reference MODULES.md: if a module already owns that concern, put the code there.
 > This is Intent's own chart, for its Rust workspace: `intent init` writes no decision tree, and a project that keeps one keeps it for its own stack.
 
 ## Intent Decision Tree
 
 ### Step 1: What kind of code is it?
 
-**Is it behaviour -- a computation, a check, a read or write of project state?**
+**Is it behaviour: a computation, a check, a read or write of project state?**
 
-- The owning module under `native/rust/crates/intentsvcs/src/` -- the only crate that touches the store or the file canon
+- The owning module under `native/rust/crates/intentsvcs/src/`, the only crate that touches the store or the file canon
 - NOT in `intent-cli`, which parses, calls the facade and renders
 
 **Is it a new top-level command or flag (like `intent foo`)?**
 
-- Add the row to `surface/dispatch-table.json` -- the command surface's single source; its `help` text is the help
+- Add the row to `surface/dispatch-table.json`, the command surface's single source. Its `help` text is the help
 - Regenerate the view `surface/dispatch-table.md` with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh`; never hand-edit it
 - Add the arm in `native/rust/crates/intent-cli/src/render.rs`; a family with no arm refuses at exit 2 as not implemented
 - Put the behaviour in `intentsvcs`
@@ -26,8 +26,8 @@
 
 **Is it install/sync/uninstall logic for skills, subagents or project canon?**
 
-- `intentsvcs::payload` (`payload.rs`) -- skills and subagents, one implementation behind both kinds
-- `intentsvcs::canon` (`canon.rs`) -- a project's canon files
+- `intentsvcs::payload` (`payload.rs`): skills and subagents, one implementation behind both kinds
+- `intentsvcs::canon` (`canon.rs`): a project's canon files
 - DO NOT duplicate install/sync/uninstall logic
 
 **Is it a new skill or subagent definition?**
@@ -71,7 +71,7 @@
 
 **Is it a prose rule (authoring or web content)?**
 
-- `intent/plugins/claude/rules/{prose,author,content}/<category>/<slug>/RULE.md` -- `prose` is the shared base (`style`); `author` and `content` add `style` and `craft`
+- `intent/plugins/claude/rules/{prose,author,content}/<category>/<slug>/RULE.md`. `prose` is the shared base (`style`); `author` and `content` add `style` and `craft`
 - Textual examples only; enforced by the `critic-prose` subagent, not by `intent critic`
 
 **Does the rule only apply to a specific team or project?**
@@ -90,14 +90,14 @@ Always run `intent claude rules validate <id>` before committing a new rule.
 
 **Is it specific to a user, team, or domain workflow?**
 
-- Not in this build: `~/.local/share/intent/ext/` is read by nothing, and `intent claude skills install` resolves canon only
+- Not in this build: `intent claude skills install` resolves canon only
 
 ### Step 5: Is this a rule, a skill, or a subagent?
 
 **An atomic, cite-able standard with Detection and good/bad examples?**
 
 - Rule. `intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md`
-- Owned by the rule file. Skills cite it; Critics enforce it.
+- Owned by the rule file. Skills cite it; critics enforce it.
 
 **A procedural guide loaded on demand (eg "session kick-off", "test writing")?**
 
@@ -106,7 +106,7 @@ Always run `intent claude rules validate <id>` before committing a new rule.
 
 **A focused worker with its own context window and tool loadout (eg "critic", "test-spec generator")?**
 
-- Subagent. `intent/plugins/claude/subagents/<name>/agent.md` (canon; `~/.local/share/intent/ext/` is read by nothing in this build).
+- Subagent. `intent/plugins/claude/subagents/<name>/agent.md`
 
 If the same prose lives in two of these layers, the duplicate is the bug. The rule file always wins.
 
