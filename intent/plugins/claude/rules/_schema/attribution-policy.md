@@ -1,13 +1,13 @@
 # Attribution Policy
 
-Intent's rule library is compatible with — and in places derived from — `iautom8things/elixir-test-critic` (MIT, copyright 2026 Manuel Zubieta). This document defines the attribution discipline: when to declare upstream provenance, when to vendor license text, and how the `upstream_id:` frontmatter field interacts with MIT compliance.
+Intent's rule library is compatible with, and in places derived from, `iautom8things/elixir-test-critic` (MIT, copyright 2026 Manuel Zubieta). This document defines the attribution discipline: when to declare upstream provenance, when to vendor license text, and how the `upstream_id:` frontmatter field interacts with MIT compliance.
 
 ## The upstream reference
 
 - **Repository**: https://github.com/iautom8things/elixir-test-critic
 - **License**: MIT
 - **Copyright**: 2026 Manuel Zubieta
-- **Pinned commit**: `1d9aa40700dab7370b4abd338ce11b922e914b14` (HEAD on main at 2026-04-22, time of WP01)
+- **Pinned commit**: `1d9aa40700dab7370b4abd338ce11b922e914b14` (main at 2026-04-22)
 - **Intent's canonical attribution file**: `intent/plugins/claude/rules/_attribution/elixir-test-critic.md`
 
 The pinned commit is load-bearing. Every rule in Intent with `upstream_id:` references an upstream rule at that exact commit. Upstream changes after the pin do not affect Intent rules; re-pinning requires a new ST.
@@ -45,7 +45,7 @@ Example: Intent's `IN-EX-TEST-002` (no-process-sleep) lifts the principle from u
 
 ### Tier 3: Substantial portion (full MIT notice required)
 
-Any case where Intent reproduces or adapts upstream content at paragraph scale or larger — verbatim prose, literal example code, or a complete rule definition.
+Any case where Intent reproduces or adapts upstream content at paragraph scale or larger: verbatim prose, literal example code, or a complete rule definition.
 
 - Frontmatter: `upstream_id: <upstream-slug>`.
 - Attribution file: rule appears in the "Substantially derived rules" section.
@@ -73,13 +73,7 @@ upstream_id: start-supervised      # upstream rules/core/start-supervised
 upstream_id: async-by-default      # upstream rules/core/async-by-default
 ```
 
-Verify the slug exists at the pinned commit before committing:
-
-```bash
-curl -fsSL "https://raw.githubusercontent.com/iautom8things/elixir-test-critic/1d9aa40700dab7370b4abd338ce11b922e914b14/rules/core/<slug>/RULE.md" >/dev/null
-```
-
-A 404 means the slug is wrong (typo, or upstream uses a different directory layout in that category).
+Verify the slug exists at the pinned commit before committing: the attribution file's "Commit hash verification" section gives the command. A 404 means the slug is wrong (typo, or upstream uses a different directory layout in that category).
 
 When **not** to set it:
 
@@ -88,69 +82,11 @@ When **not** to set it:
 - The rule is Intent-specific Elixir guidance with no upstream counterpart (eg Ash-specific rules that upstream doesn't cover).
 - Topical overlap without principle borrow.
 
-## Attribution file structure
+## The attribution file
 
-Single canonical file: `intent/plugins/claude/rules/_attribution/elixir-test-critic.md`. Structure:
+`intent/plugins/claude/rules/_attribution/elixir-test-critic.md` is the single canonical file. It carries the pinned source, the verbatim MIT license, the "Rules derived from upstream principles" and "Substantially derived rules" tables, the schema compatibility notes, the re-pinning steps, the commit hash verification commands, the "Dangling upstream references" table and the attribution notes log.
 
-```markdown
-# Attribution: elixir-test-critic
-
-## Source
-
-- Repository: https://github.com/iautom8things/elixir-test-critic
-- License: MIT
-- Copyright: 2026 Manuel Zubieta
-- Pinned commit: 1d9aa40700dab7370b4abd338ce11b922e914b14
-- Pin date: 2026-04-22
-
-## License (MIT)
-
-<verbatim MIT license text>
-
-## Rules derived from upstream principles
-
-| Intent rule      | Upstream slug      | Upstream path                         | What was borrowed                                                       |
-| ---------------- | ------------------ | ------------------------------------- | ----------------------------------------------------------------------- |
-| `IN-EX-TEST-002` | `no-process-sleep` | `rules/core/no-process-sleep/RULE.md` | Principle (never sleep for synchronisation) + Detection signals         |
-| `IN-EX-TEST-003` | `async-by-default` | `rules/core/async-by-default/RULE.md` | Principle (async by default, opt out deliberately) + Detection signal   |
-| `IN-EX-TEST-004` | `start-supervised` | `rules/core/start-supervised/RULE.md` | Principle (supervise processes for per-test cleanup) + Detection signal |
-
-## Substantially derived rules
-
-_No rows._
-
-## Schema compatibility
-
-Intent's rule schema (see `_schema/rule-schema.md`) adopts upstream's frontmatter shape plus Intent fields. Upstream rules do not drop into Intent's discovery unchanged: they carry no `language:` and their `ETC-` ids fail the id check.
-
-## Re-pinning
-
-Re-pinning to a new upstream commit requires a new ST. Process:
-
-1. Fetch new commit SHA.
-2. Diff upstream rules against pinned versions.
-3. Update each Intent rule with changed upstream slug → verify principle still matches.
-4. Update this file's pinned commit and date.
-5. Run full rule validation pass.
-```
-
-## Re-pinning discipline
-
-The pinned commit is frozen. Re-pinning is a future-ST concern because:
-
-- Changed upstream rule slugs break every `upstream_id:` that references them.
-- Changed upstream principles mean Intent rules that borrowed may need rewriting.
-- A new pin requires a full re-audit of every `upstream_id:` in the library.
-
-Re-pinning is not a bug fix. It's a scope-bearing change.
-
-## When upstream removes a rule
-
-If upstream removes a rule between pins, Intent rules with the now-dangling `upstream_id:` keep the field, and `_attribution/elixir-test-critic.md` lists the removal in its "Dangling upstream references" table. The Intent rule stands on its own; the attribution remains historical.
-
-## When upstream re-slugs a rule
-
-Upstream renaming a rule without changing its semantics: Intent keeps the old slug in `upstream_id:` until re-pin. Upstream's `aliases:` (if they use one) can be cross-referenced at pin time.
+The pinned commit is frozen. Re-pinning is a scope-bearing change, never a bug fix, and is made in a dedicated ST by the attribution file's "Re-pinning" steps. A new pin requires a re-audit of every `upstream_id:` in the library.
 
 ## What to do on a new rule
 
@@ -170,7 +106,7 @@ If a rule with `upstream_id:` is deleted:
 
 1. Delete the rule directory.
 2. Remove the row from the attribution file's "Rules derived" table.
-3. The attribution file's "Source" section (pinned commit, MIT license) remains — the file is canonical for the project, not per-rule.
+3. The attribution file's "Source" section (pinned commit, MIT license) remains: the file is canonical for the project, not per-rule.
 
 ## FAQ
 
@@ -189,15 +125,3 @@ No. Upstream is Elixir-specific. Agnostic rules are Intent's own work, concretis
 **Q: Can I use upstream's test-helper code verbatim?**
 
 That's a Tier 3 question. If you're copying more than a few lines, include the MIT notice inline and flag the rule in the "Substantially derived" table. In practice, Intent's runnable examples are simple enough that copying from upstream rarely arises.
-
-## Commit hash verification
-
-When re-pinning or auditing, verify the pinned commit:
-
-```bash
-curl -s https://api.github.com/repos/iautom8things/elixir-test-critic/commits/1d9aa40700dab7370b4abd338ce11b922e914b14 \
-  | jq -r '.sha'
-# Expected: 1d9aa40700dab7370b4abd338ce11b922e914b14
-```
-
-If the commit returns 404, it has been force-pushed away. That is a signal for a full re-audit, not a silent re-pin.
