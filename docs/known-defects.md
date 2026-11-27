@@ -29,7 +29,7 @@
   {"hits":["src/probe5.rs"],"complete":true,"reconciled":true}
 ```
 
-The same search with the daemon stopped reconciles first and finds the file. How long the watcher takes depends on the machine's load, and this page does not put a number on it. CI saw the same race: the Ubuntu leg of the push run for 3.1.0's tag failed on it once, and its re-run was green.
+The same search with the daemon stopped reconciles first and finds the file. How long the watcher takes depends on the machine's load, and this page does not put a number on it.
 
 **To search a tree you have just changed, stop the daemon first** (`intent daemon stop`), or search again once the watcher has caught up. An answer that reads `"reconciled": false` did not look at the tree before it answered.
 
@@ -62,7 +62,7 @@ None of the body is shown. `intent wp --help` describes the verb as `Show work p
 
 **A wrong file is caught and no file is not.** On a row citing a file that does not exist, `intent at red` and `intent at green` each refuse at exit 1 (``AT-01.2 cites `tests/missing.rs`, which does not exist, so `green` would make it a live absent_at finding``); on a row citing nothing, `intent at green` answers `ok: AT-01.1 -> green`. So a thread whose test rows lack readable citations can pass its own close gate over evidence nothing read. Read the `not examined` clause of `at lint` before trusting a gate PASS, and give every test row a file with `intent at edit <ST> <AT> --file <path>`.
 
-**The close gate reads your working tree, so a thread can pass on evidence nobody else has** (`intent#0265`). A test-backed criterion covered by an AT citing `tests/probe.rs`, with that file present on disk and **not committed** (`git status` lists it untracked), returns `gate: <thread> PASS -- 1/1 satisfied` at exit 0 -- and `intent st done` then closes the thread on it. A clone of the same repository does not contain the cited file at all.
+**The close gate reads your working tree, so a thread can pass on evidence nobody else has** (`intent#0265`). A test-backed criterion covered by an AT citing `tests/probe.rs`, with that file present on disk and **not committed** (`git status` lists it untracked), returns `gate: <thread> PASS -- 1/1 satisfied` at exit 0, and `intent st done` then closes the thread on it. A clone of the same repository does not contain the cited file at all.
 
 Two controls make it sharp. Remove the file from the worktree and the gate flips to `gate: <thread> BLOCKED -- 1 acceptance test contract finding(s) over 1 row(s): AT-01.1 cites a file that does not exist: tests/probe.rs`, so the gate is genuinely reading the tree and the PASS was not indifference. And **the verdict names no tree**, so two people running the identical command in the same repository can get different answers with nothing in either output to explain the difference. Commit the cited files before reading a gate result as a claim about the project; on a shared checkout a PASS is a statement about one person's disk.
 
@@ -80,7 +80,7 @@ Listed in `--help` and refusing when called, exit codes as shown.
 
 ## What this page does not cover
 
-**This is the driven set, not the whole register.** Every entry was driven in a fresh scratch project under an isolated `HOME`. Conditions that setup cannot create are not covered: several sessions sharing one checkout, and surfaces not driven for this page -- `intent fc`, `intent mcp`, `intent graphql`, `intent explore`, `intent browse` and the menubar app. Defects that need those conditions are not described here, because an undriven defect is a guess.
+**This is the driven set, not the whole register.** Every entry was driven in a fresh scratch project under an isolated `HOME`. Conditions that setup cannot create are not covered: several sessions sharing one checkout, and these surfaces, which were not driven for this page: `intent fc`, `intent mcp`, `intent graphql`, `intent explore`, `intent browse` and the menubar app. Defects that need those conditions are not described here, because an undriven defect is a guess.
 
 **A damaged search index is repaired by the refresh that finds it** (`intent#0442`). A search that has changed files to refresh rebuilds the damaged index in the same write and says so in a `note:` line. A search with nothing to refresh leaves the damage where it is, and `intent doctor` reports it with `intent index rebuild` as the repair.
 
@@ -90,4 +90,4 @@ If you hit something not listed, that is the gap rather than a surprise. The reg
 
 `intent --version` names the build you are on, as `intent <version> (<tree>, <sha>) <kind>`. The tree is where the binary is installed: `brew` for a Homebrew install, `dev` for a build in a git checkout, `opt` for a tree `intent install` published, and `unknown` when it is none of these. The sha is the commit the binary was built at, followed by `+dirty` in a dev tree when the build, or a file it reads from the tree, differs from that commit. The last word says which kind of build that is: `release` for a published release, which carries its tag's commit, and `dev` for a build of the tree between releases, which is the kind this page was driven on.
 
-**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in (`intent issues show <id> --json` has `body`, `created`, `id`, `origin`, `realised`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build), so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.5.6, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
+**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in (`intent issues show <id> --json | jq -r 'keys|join(",")'` lists its fields, and none of them names a build), so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.5.6, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
