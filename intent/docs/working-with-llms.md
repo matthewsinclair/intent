@@ -4,7 +4,7 @@ This document is Intent's canonical explanation of its LLM-facing configuration 
 
 If `usage-rules.md` is the DO / NEVER contract and `AGENTS.md` is the auto-generated project index, this doc is the living reference that explains the system — how the pieces fit together, what decisions shaped them, and how to configure or extend them.
 
-The doc is deliberately opinionated: the canon is already decided, and the decisions are recorded below as `D1` to `D11`. D1 to D10 cross-reference ST0035's record, which is canon at `intent/.canon/st/ST0035.json` and carries the thread's `design.md` as an attachment (`intent st hydrate ST0035` writes it to disk); D4 reverses the D4 recorded there, and D11 comes from ST0044 (`intent/.canon/st/ST0044.json`).
+The doc is deliberately opinionated: the canon is already decided, and the decisions are recorded below as `D1` to `D11`.
 
 ## Read this first: where the record lives
 
@@ -14,15 +14,15 @@ Two facts sit underneath everything below, and both change what you should **do*
 
 The markdown under `intent/st/` is not the record. There are three layers:
 
-| Path                                                                 | What it is                                                                                                          | Safe to hand-edit?                                                 |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `intent/.cache/intent.db`                                            | the store: the source of truth, per-machine, never committed                                                        | no: use the CLI                                                    |
-| `intent/.canon/st/<ST>.json`                                         | the committed extract of the store, the thread's own fields; what your collaborators actually receive               | prefer the CLI; a hand edit is read in by `intent sync --to-store` |
-| `intent/.canon/records/<ST>/`                                        | in an upgraded project, the thread's work packages, criteria, tests and attachment records, one committed file each | prefer the CLI; a hand edit is read in by `intent sync --to-store` |
-| `intent/st/<ST>/info.md`                                             | a generated view                                                                                                    | no: `intent set` writes its Objective and Context                  |
-| `intent/st/<ST>/acceptance.md`                                       | a generated view                                                                                                    | **no**                                                             |
-| `intent/st/<ST>/WP/<pkg>/info.md`                                    | a generated view                                                                                                    | **no**                                                             |
-| `design.md`, `impl.md`, `tasks.md`, or any other file under a thread | an attachment                                                                                                       | yes                                                                |
+| Path                                                                 | What it is                                                                                            | Safe to hand-edit?                                                  |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `intent/.cache/intent.db`                                            | the store: the source of truth, per-machine, never committed                                          | no: use the CLI                                                     |
+| `intent/.canon/st/<ST>.json`                                         | the committed extract of the store, the thread's own fields; what your collaborators actually receive | prefer the CLI; a hand edit is read in by `intent sync --to-store`  |
+| `intent/.canon/records/<ST>/`                                        | the thread's work packages, criteria, tests and attachment records, one committed file each           | prefer the CLI; a hand edit is read in by `intent sync --to-store`  |
+| `intent/st/<ST>/info.md`                                             | a generated view                                                                                      | only its Objective and Context, carried by `intent sync --to-store` |
+| `intent/st/<ST>/acceptance.md`                                       | a generated view                                                                                      | **no**                                                              |
+| `intent/st/<ST>/WP/<pkg>/info.md`                                    | a generated view                                                                                      | **no**                                                              |
+| `design.md`, `impl.md`, `tasks.md`, or any other file under a thread | an attachment                                                                                         | yes                                                                 |
 
 `intent sync --to-disk` writes the store out to the committed extract and re-renders the views; `intent sync --to-store` reads the committed extract back into the store, so the extract is a projection in both directions rather than a second home for the data. Bare `intent sync` names no direction: it prints this clone's plan for bringing its store up to the committed extract, and `intent sync --apply` runs it, asking before any step that is not quiet (`--yes` answers the reversible ones, `--plan <digest>` refuses if the tree moved since the plan was shown); naming thread ids scopes which threads take their value from the source, and no ids means the whole estate. `--to-store` is also the direction in which files on disk win: it carries a thread's attachments back into the record, and a running `intentd` ingests a disk edit to an attachment on its own. It carries a hand edit to `info.md`'s `## Objective` and `## Context` the same way: realise the cover with `intent st edit <ID>`, edit it, then run `intent sync --to-store <ID>`. Until the edit is carried, an Intent command that would render the cover over it refuses and names that step, and a running `intentd` carries it on its own. A hand edit to any other part of the cover is not carried: the next write renders over it and says so. `intent set <ID> objective|context --from <file>` writes the two sections directly.
 
@@ -34,13 +34,13 @@ The markdown under `intent/st/` is not the record. There are three layers:
 
 Write through the CLI instead: `intent set <ID> objective|context|title <value>` (with `--from <file>` for prose that spans lines), `intent ac new` / `ac edit`, `intent at new` / `at edit`, `intent wp new`, and `intent st attach <ID> design.md --from <file>` to join an attachment to a thread. `intent st new` creates none of `design.md`, `impl.md` or `tasks.md`; they join a thread only as attachments. Those verbs write the record, and the views follow.
 
-Views are realised lazily. Whether a thread is on disk is a field of its own record: `st start`, `st resume` and `st reopen` set it, `st done`, `intent fc <ST>`, `st cancel`, `st hold` and `st triage` clear it, `intent st hydrate` / `st dehydrate` change it directly, and `intent organize --apply` reconciles the tree with it. A thread that is not on disk is still whole in the store.
+Views are realised lazily. Whether a thread is on disk is a field of its own record: `st start`, `st resume` and `st reopen` set it, `st done`, `intent fc <ST>`, `st cancel`, `st hold` and `st triage` clear it (`st done --keep` and `st cancel --keep` leave it set), `intent st hydrate` / `st dehydrate` change it directly, and `intent organize --apply` reconciles the tree with it. A thread that is not on disk is still whole in the store.
 
 ### 2. The command reference is generated
 
 `intent llm guide` prints the command reference for the build you are running. It is generated from the dispatch table compiled into the binary, so it lists what that build ships, no more and nothing missing. `docs/reference/cut-surface.md` in the repository is the same register at a named revision. **Where this document names a command and the generated reference disagrees, the reference wins**, because it is measured from the dispatch table and this document is prose.
 
-This document and its siblings under `intent/docs/` live in Intent's repository, https://github.com/matthewsinclair/intent. A packaged install carries `lib/templates/`, the whole of `intent/plugins/claude/` (rules, skills, scripts and subagents), `intent/plugins/agents/plugin.json`, and one file from `intent/docs/`: `critics.md`, the critic contract `intent claude rules contract` reads.
+This document and its siblings under `intent/docs/` live in Intent's repository, https://github.com/matthewsinclair/intent. A packaged install carries `lib/templates/`, the whole of `intent/plugins/claude/`, `intent/plugins/agents/plugin.json`, and one file from `intent/docs/`: `critics.md`, the critic contract `intent claude rules contract` reads.
 
 ## Table of contents
 
@@ -134,9 +134,9 @@ A project declares where its two agent contracts live with the `contracts` key i
 - `root`, the default, and what an absent key means: `AGENTS.md` and `CLAUDE.md` at the project root, where the agents.md spec's readers (Codex, Cursor, Copilot, Aider) open them.
 - `dotclaude`: both in `.claude/`, which Claude Code reads natively. It is for a tree whose root is read by people rather than tools, such as a book or a shared estate whose only agent is Claude Code.
 
-`intent init --contracts dotclaude` sets it at birth, and `intent agents layout <root|dotclaude>` moves an existing project's contracts and writes the key; a destination that holds a different file is refused before anything moves. `intent agents sync`, `intent agents validate`, `intent claude upgrade --apply`, `intent doctor`, the sync scope and the daemon's watch all read the key, and nothing recreates a root copy under `dotclaude`. `usage-rules.md` stays at the root in `root` and is not seeded in `dotclaude`, where an authored one is left where it is; `.mcp.json`, `.intent_critic.yml` and `.claude/settings.json` do not move.
+`intent init --contracts dotclaude` sets it at birth, and `intent agents layout <root|dotclaude>` moves an existing project's contracts and writes the key; a destination that holds a different file is refused before anything moves. `intent agents sync`, `intent agents validate`, `intent claude upgrade --apply`, `intent doctor`, the sync scope and the daemon's watch all read the key, and nothing recreates a root copy under `dotclaude`. `usage-rules.md` stays at the root in `root` and is not seeded in `dotclaude`: `intent agents layout dotclaude` removes one that still matches its seed and leaves an authored one where it is; `.mcp.json`, `.intent_critic.yml` and `.claude/settings.json` do not move.
 
-`intent doctor` counts a contract Intent generated that sits in both layouts, naming both paths and the command that removes the stray copy. `intent deinit` removes what Intent wrote, in either layout, from a project being closed: it lists every file it would remove or edit and writes nothing until `--apply`, keeps anything it cannot prove Intent wrote, and with `--all` also removes `intent/` with the store.
+`intent doctor` counts a contract Intent generated that sits in both layouts, naming both paths and the command that removes the stray copy. `intent deinit` removes what Intent wrote, in either layout, from a project being closed: it lists every file it would remove or edit and writes nothing until `--apply`, keeps anything it cannot prove Intent wrote, and with `--all` also removes `intent/` with the store, and the project's row in the project registry.
 
 Each file answers a different question:
 
@@ -153,7 +153,7 @@ Each file answers a different question:
 
 If you're unsure where a piece of information belongs, follow the decision flow:
 
-- "How to do thing X in this project"? → the project's own docs. `AGENTS.md` is regenerated whole from Intent's template and the declared languages, so nothing written into it survives `intent agents sync`.
+- "How to do thing X in this project"? → the project's own docs, never `AGENTS.md`, which is regenerated whole (D1).
 - "What Claude must do that's different from other tools"? → `CLAUDE.md`, between its `<!-- user:start -->` and `<!-- user:end -->` markers.
 - A terse must / never rule? → `usage-rules.md`.
 - How the project is shaped and why? → `intent/llm/ARCHITECTURE.md`.
@@ -161,43 +161,41 @@ If you're unsure where a piece of information belongs, follow the decision flow:
 - The decision flow for where new code should go? → `DECISION_TREE.md`, where the project keeps one.
 - Narrative, rationale, or FAQ content? → `intent/docs/<topic>.md` (here or a topic-specific doc).
 
-The numbered decisions below define Intent's current LLM canon in living-doc form — what the state is now, with enough context to understand it. D1 to D10 restate the decisions recorded in ST0035, except D4, which reverses ST0035's recorded D4 (that `intent/llm/` keeps `MODULES.md` and `DECISION_TREE.md` only): `intent init` seeds `RULES.md` and `ARCHITECTURE.md` there and creates neither of the other two. D11 comes from ST0044.
+The numbered decisions below define Intent's current LLM canon: what the state is now, with enough context to understand it.
 
 ## D1. AGENTS.md is the primary LLM config file
 
-Every Intent project carries an `AGENTS.md`, written as a real file (not a symlink), in the directory its `contracts` key names: the project root by default, or `.claude/` under `contracts: dotclaude`. `intent init` generates it, and `intent agents sync` and `intent claude upgrade --apply` regenerate it from `lib/templates/llm/_AGENTS.md` and the project's config.
+Every Intent project carries an `AGENTS.md`, written as a real file (not a symlink), in the directory its `contracts` key names: the project root by default, or `.claude/` under `contracts: dotclaude`. `intent init` generates it, and `intent agents sync` and `intent claude upgrade --apply` regenerate it from `lib/templates/llm/_AGENTS.md` and the project's config. `intent lang init`, `intent lang remove` and `intent config set` render it again after they write the config.
 
 Why: AGENTS.md is the cross-tool convention for agent instructions (spec: https://agents.md), governed by the Linux Foundation's Agentic AI Foundation. Aligning with the community is free; deviating costs compatibility with tooling downstream users already rely on. Claude Code is the exception that matters here: it reads `AGENTS.md` only where there is no `CLAUDE.md`, so in a project that has both it reads `CLAUDE.md` alone, which is why D2 exists and why `CLAUDE.md` imports `AGENTS.md`.
 
 Why a real file, not a symlink: symlinks work for tools that follow them, but some CI pipelines, web-rendered docs, and `find | cat` patterns treat them opaquely. A real file removes a class of bug and matches community norm. `intent agents validate` warns on a symlink and names `intent agents sync` as the fix.
 
-Regenerate with `intent agents sync`; never edit manually. The file is regenerated whole, with no block kept across a sync, so a manual edit is overwritten on the next one. `intent agents generate` prints what a sync would write, so `intent agents generate | diff - AGENTS.md` shows staleness without writing anything; `intent agents validate` checks that the file is a regular file carrying the recommended sections. The templated `.claude/settings.json` denies `Edit(/AGENTS.md)` and `Edit(/.claude/AGENTS.md)`, so Claude Code refuses an edit to the generated file in either layout. `intent upgrade` does not touch `AGENTS.md`, and neither does `intent lang init`: after declaring a language, run `intent agents sync`.
+Regenerate with `intent agents sync`; never edit manually. The file is regenerated whole, with no block kept across a sync, so a manual edit is overwritten on the next one. `intent agents generate` prints what a sync would write, so `intent agents generate | diff - AGENTS.md` shows staleness without writing anything; `intent agents validate` checks that the file is a regular file carrying the recommended sections. The templated `.claude/settings.json` denies `Edit(/AGENTS.md)` and `Edit(/.claude/AGENTS.md)`, so Claude Code refuses an edit to the generated file in either layout. `intent upgrade` does not touch `AGENTS.md`.
 
-**Every language-specific block is gated on the declared `languages` array, not on filesystem probes** (issue 0009). Prerequisites, Setup, the test and build commands, and Code Style carry their language-specific lines in per-language blocks — the bats lines ride with `shell` — and nothing looks for a `mix.exs` or a `Cargo.toml`. ST0037 made declaration authoritative because filesystem presence is unreliable evidence: a stray `mix.exs` told every reader the project needs an Elixir toolchain, and a polyglot repo whose markers sit in subdirectories was told it needs nothing. Since AGENTS.md is, by its own preamble, the contract agentic tools read and trust without cross-checking, a wrong answer there is stated authoritatively. An undeclared project gets no prerequisite lines and a hint to declare with `intent lang init <lang>`.
+**Every language-specific block is gated on the declared `languages` array, not on filesystem probes.** Prerequisites and Code Style carry their language-specific lines in per-language blocks, and nothing looks for a `mix.exs` or a `Cargo.toml`. Build and Test Commands names `bin/devbin` where the project has one, then the build and test commands the project declares, or says that it declares none. Declaration is authoritative because filesystem presence is unreliable evidence: a stray `mix.exs` would tell every reader the project needs an Elixir toolchain, and a polyglot repo whose markers sit in subdirectories would be told it needs nothing. Since AGENTS.md is, by its own preamble, the contract agentic tools read and trust without cross-checking, a wrong answer there is stated authoritatively. An undeclared project gets no prerequisite lines and a hint to declare with `intent lang init <lang>`.
 
 ## D2. CLAUDE.md is a Claude-specific overlay
 
-`CLAUDE.md`, beside `AGENTS.md` in either layout, opens with an `@AGENTS.md` line, which makes Claude Code load `AGENTS.md` with it, and adds Claude-specific directives — the `/in-session` requirement, the memory directory, the session-hook wiring, a file map, and critic dispatch. It is generated from `lib/templates/llm/_CLAUDE.md` by `intent init` and `intent claude upgrade --apply`. The project's own directives go between `<!-- user:start -->` and `<!-- user:end -->`, and regeneration carries that block across. A `CLAUDE.md` without the generated footer is treated as hand-authored and held back unless `--force` is given.
+`CLAUDE.md`, beside `AGENTS.md` in either layout, opens with an `@AGENTS.md` line, which makes Claude Code load `AGENTS.md` with it, and adds Claude-specific directives: the `/in-session` requirement, the index-first rule for finding code, the memory directory and the session-hook wiring. It is generated from `lib/templates/llm/_CLAUDE.md` by `intent init` and `intent claude upgrade --apply`. The project's own directives go between `<!-- user:start -->` and `<!-- user:end -->`, and regeneration carries that block across. A `CLAUDE.md` without the generated footer is treated as hand-authored and held back unless `--force` is given.
 
 It does not repeat `AGENTS.md`'s index of the cross-language principles (Highlander, PFIC, Thin Coordinator and No Silent Errors): the import loads that index, and `CLAUDE.md`'s "Rules of the road" names the four and points at it. The rule bodies themselves stay in the rule library, served by `intent claude rules show <id>`, and the agnostic pack holds more rules than the index names: `intent claude rules list --lang agnostic` lists them.
 
 Why: Anthropic positions `CLAUDE.md` as complementary, not competing. Treating the two as parallel sources of truth guarantees divergence over time; treating `CLAUDE.md` as an overlay removes that risk.
 
-Rule of thumb: `AGENTS.md` carries what Intent says to every tool, and it is not yours to edit. A project directive specific to Claude Code (slash commands, hook stanzas, memory files) goes in `CLAUDE.md`'s project block; a terse project rule goes in `usage-rules.md`.
+Rule of thumb: `AGENTS.md` carries what Intent says to every tool, and it is not yours to edit. A project directive specific to Claude Code (slash commands, memory files) goes in `CLAUDE.md`'s project block; a terse project rule goes in `usage-rules.md`.
 
 ## D3. usage-rules.md stays and is honoured
 
 Root `usage-rules.md` is kept. `intent claude upgrade --apply` seeds it from `lib/templates/llm/_usage-rules.md` when it is absent and never writes it again — `--force` does not reach it — so from its first write it is the project's own. `intent init` does not create it.
 
-Why: the Elixir ecosystem has a mature per-package `usage-rules.md` convention. Each package ships a `usage-rules.md` at the dep root; `mix usage_rules.sync` can aggregate them into a target file when configured (see the interop section below). Intent's own Elixir projects already benefit from this pattern. Removing `usage-rules.md` would break alignment with Elixir's most mature LLM-guidance convention for no gain. No equivalent convention exists yet for Python, Node, Ruby, Rust — but Intent's approach is forward-compatible.
-
-Split with `AGENTS.md`: `usage-rules.md` = terse DO / NEVER contract. `AGENTS.md` = broad navigation and state. They co-exist cleanly.
+Why: the Elixir ecosystem has a mature per-package `usage-rules.md` convention. Each package ships a `usage-rules.md` at the dep root; `mix usage_rules.sync` can aggregate them into a target file when configured (see the interop section below). Intent's own Elixir projects already benefit from this pattern. Removing `usage-rules.md` would break alignment with Elixir's most mature LLM-guidance convention for no gain.
 
 ## D4. intent/llm/ is the internal guidance layer
 
 `intent/llm/` holds the project's own guidance for whoever works inside it. `intent init` seeds `RULES.md` (project-specific mandatory rules) and `ARCHITECTURE.md` (how the project is shaped, and why) there. Both ship empty on purpose, for the project to fill.
 
-`MODULES.md` (the Highlander module registry) and `DECISION_TREE.md` (an Elixir/Phoenix code-placement flowchart) are optional: `intent init` creates neither, and a project that wants one creates it and keeps it. Where a registry exists, `intent modules find <term>` searches it and `intent modules check` compares it against the filesystem.
+`MODULES.md` (the Highlander module registry) and `DECISION_TREE.md` (a code-placement flowchart for the project's own stack) are optional: `intent init` creates neither, and a project that wants one creates it and keeps it. Where a registry exists, `intent modules find <term>` searches it and `intent modules check` compares it against the filesystem.
 
 Why: `intent/llm/` serves the people and agents working inside the project (internal). Root files serve downstream users and LLM tooling (external). Keeping them in separate directories clarifies responsibility.
 
@@ -211,16 +209,14 @@ Why: `usage-rules.md` is too terse for "why" content. `AGENTS.md` is auto-genera
 
 Intent's canon carries both the `socrates` subagent and the `diogenes` subagent, under `intent/plugins/claude/subagents/`, installed with `intent claude subagents install socrates diogenes`. They are disjoint — different domains, different personas, different artefacts. Neither is being renamed, consolidated, or split further.
 
-A packaged install ships `intent/plugins/claude` whole, subagents included, and the release refuses to build a support archive that omits a directory the binary resolves by name (3.0.2); the 3.0.1 package shipped without the subagents tree, so on it `intent claude subagents list` reported none. An install that resolves to a checkout of the repository reads them from there.
-
-See the dedicated FAQ section below for the forensic history and the clearest short answer to the common "weren't they the same agent?" question.
+The FAQ section below gives the short answer to the common "weren't they the same agent?" question.
 
 ## D7. Session hooks inject reminders
 
-`intent claude upgrade --apply` writes `.claude/settings.json` with its `SessionStart`, `UserPromptSubmit` and `Stop` hooks when the file is absent or already Intent's (one carrying `intent claude hook`), holds an existing file that is not Intent's unless `--force`, merges into one that is (Intent's hook entries and deny rules are brought to the template's and every other key the project added is kept, and a file that does not parse is held), and seeds `.mcp.json` when it is absent, which declares `intent mcp` to Claude Code; `intent init` and `intent upgrade` write neither, and `intent claude upgrade --apply --skip-settings` declines both (the run reports them as `skipped` and applies the rest of canon). Each hook runs `intent claude hook <name>`:
+`intent claude upgrade --apply` writes `.claude/settings.json` with its `SessionStart`, `UserPromptSubmit` and `Stop` hooks when the file is absent or already Intent's (one carrying `intent claude hook`), holds an existing file that is not Intent's unless `--force`, merges into one that is (Intent's hook entries and deny rules are brought to the template's and every other key the project added is kept, and a file that does not parse is held), and seeds `.mcp.json` when it is absent, which declares `intent mcp` to Claude Code; `intent init` and `intent upgrade` write neither, and `intent claude upgrade --apply --skip-settings` declines both (the run reports them as `skipped` and applies the rest of canon). When the settings file it leaves wires the prompt gate, the same run installs the `in-session` skill if its releaser is absent; `--skip-settings` skips that too. Each hook runs `intent claude hook <name>`:
 
-- `SessionStart` (matcher `startup|resume|clear|compact`) runs `session-context`, which prints the name of the project's directory (the last component of `$CLAUDE_PROJECT_DIR`, or of the working directory when that is unset), not a configured project name, then the git branch and short SHA, the first `**ST…` line of `intent/wip.md` when there is one, and a prompt to run `/in-session`.
-- `UserPromptSubmit` (strict gate) runs `require-in-session`, which blocks a prompt until `/in-session` has run in the session. This enforces loading coding-standards skills before any code discussion starts. A prompt that starts with `/` passes through, which is how `/in-session` itself gets in. The gate reads the prompt with `jq` where `jq` is on PATH, and from the raw payload where it is not, so it works either way; without `jq` its block message says so. On a prompt that passes, it also prints what `intent estate slots pending` prints, which Claude Code adds to the prompt: the slot asks waiting for the session that holds control of the host's slots (ST0086), and nothing in any other session. That verb reads one small record for a session that is not the controller, takes no lock, asks no daemon and always exits 0, so it can neither block a prompt nor put text into one it does not concern.
+- `SessionStart` (matcher `startup|resume|clear|compact`) runs `session-context`, which prints the name of the project's directory (the last component of `$CLAUDE_PROJECT_DIR`, or of the working directory when that is unset), not a configured project name, then the git branch and short SHA, the first line of `intent/wip.md` that opens in bold (or else the first item under its `## DOING` heading), cut to 160 characters, and a prompt to run `/in-session`. Where the `in-session` skill is not installed, that last line says the gate is off and names `intent claude skills install in-session`.
+- `UserPromptSubmit` (strict gate) runs `require-in-session`, which blocks a prompt until `/in-session` has run in the session. This enforces loading coding-standards skills before any code discussion starts. A prompt that starts with `/` passes through, which is how `/in-session` itself gets in. The gate reads the prompt with `jq` where `jq` is on PATH, and from the raw payload where it is not, so it works either way; without `jq` its block message says so. On a prompt that passes, it also prints what `intent estate slots pending` prints, which Claude Code adds to the prompt: the slot asks waiting for the session that holds control of the host's slots, and nothing in any other session. That verb reads one small record for a session that is not the controller, takes no lock, asks no daemon and always exits 0, so it can neither block a prompt nor put text into one it does not concern.
 - `Stop` runs `session-finish`. Claude Code runs a Stop hook at the end of every turn, not at the end of a session. When the tree is dirty, the hook names the uncommitted paths, the first few and a count of the rest, and gives no instruction: `/in-finish` commits, and it is a session-end step. It says nothing when the tree is clean or when git cannot say. The line is printed as a JSON `systemMessage`, which Claude Code shows in the transcript; a Stop hook's plain stdout may reach nobody. It always exits 0, because Claude Code reads a Stop hook's exit 2 as "refuse to stop".
 
 Why strict on `UserPromptSubmit`: soft reminders had low observed compliance in multi-turn sessions. A hard gate catches the case where the user forgets to load the session. There is no soft variant: a project that does not want the gate removes the `UserPromptSubmit` stanza from its `.claude/settings.json` and passes `--skip-settings` on later applies, because `intent claude upgrade --apply` otherwise brings Intent's entries in the file back to the template's, the `UserPromptSubmit` stanza among them. **`intent doctor` then reports the edited file as `root-file-behind`**, an advisory it prints and does not count, and the remedy that advisory names, `intent claude upgrade --apply`, is the rewrite that puts the gate back; a project that has opted out leaves the advisory standing.
@@ -235,11 +231,11 @@ Why no `PostToolUse` hook by default: it would fire on every `Write|Edit` during
 
 The primary critic cadence is the git `pre-commit` hook, and `intent claude upgrade --apply` installs it in two parts in the hooks directory git names (`git rev-parse --git-path hooks`, so `core.hooksPath` is honoured):
 
-- `pre-commit` gains a marked chain block (`# intent-chain-block:start` … `:end`) that runs `pre-commit.intent`. An existing hook keeps every other line; the block is inserted after its shebang and `set` preamble, and a single, closed block already there is brought to the current form in place. A hook whose block cannot be rewritten — one carrying the retired `# >>> intent-chain-block >>>` marker, two blocks, or a block with no `:end` — is left exactly as it is and reported as `held:` with the reason (issue 0538), so the block in it may be an old one. Without a runnable `pre-commit.intent` the current block refuses the commit and names the path.
-- `pre-commit.intent` is a shim. It reads the install root from `~/.local/share/intent/home` and execs that install's gate, `lib/templates/hooks/pre-commit.sh`. When the pointer is absent or names something that is not an install, it refuses the commit rather than skipping.
+- `pre-commit` gains a marked chain block (`# intent-chain-block:start` … `:end`) that runs `pre-commit.intent`. An existing hook keeps every other line; the block is inserted after its shebang and `set` preamble, and a single, closed block already there is brought to the current form in place. A hook whose block cannot be rewritten — one carrying the retired `# >>> intent-chain-block >>>` marker, two blocks, or a block with no `:end` — is left exactly as it is and reported as `held:` with the reason, so the block in it may be an old one. Without a runnable `pre-commit.intent` the current block refuses the commit and names the path.
+- `pre-commit.intent` is a shim. It reads the install root from the install pointer, `$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`), and execs that install's gate, `lib/templates/hooks/pre-commit.sh`. When the pointer is absent or names something that is not an install, it refuses the commit rather than skipping.
 - The same run installs `post-merge`, `post-checkout` and `post-rewrite` blocks, each with a carrier from `lib/templates/hooks/post-pull.sh`, which runs `intent sync --apply` after a pull, a checkout or a rewrite.
 
-The gate runs a roster of repository guards, each only when its subject exists: whiteboard timestamps and whiteboard header escaping (`intent/whiteboard/`), an ignore rule reaching `intent/.canon/`, lines removed from an append-only path, a staged verblock that carries a second version stamp or runs past 100 characters (`verblock-guard.sh`, `IN-PR-STYLE-005`), and staged bytes the project's declared `formatters` (in `intent/.config/config.json`) would change (`staged-format-guard.sh`, which refuses and never writes). Then it runs `intent critic <lang> --staged --severity-min <sev>` once per declared language. The gate reads the declared languages with `intent lang declared`, so it needs no `jq`. When none are declared, or the config cannot be read (`lang declared` exits 4), no language critic runs and every commit says so (`NO code critic ran in this commit`, with a `why:` line) without being blocked by it; any other refusal from `lang declared` refuses the commit. It blocks the commit on any guard refusal, on findings at or above the threshold (critic exit 1), and on a refusal (critic exit 3: a rule the project arms needs a tool that is absent on this machine), and on `intent doctor` exiting 1; a doctor exit other than 0 or 1 is the gate's own breakage and fails open. The threshold is `severity_min` from `.intent_critic.yml`.
+The gate runs a roster of repository guards, each only when its subject exists: whiteboard timestamps and whiteboard header escaping (`intent/whiteboard/`), an ignore rule reaching `intent/.canon/`, lines removed from an append-only path, a staged verblock that carries a second version stamp or runs past 100 characters (`verblock-guard.sh`, `IN-PR-STYLE-005`), and staged bytes the project's declared `formatters` (in `intent/.config/config.json`) would change (`staged-format-guard.sh`, which refuses and never writes). Then it runs `intent critic <lang> --staged --severity-min <sev>` once per declared language that has a rule pack and a headless critic (`intent critic --languages` lists those); it names any other declared language as on demand, not checked by this gate, and blocks nothing for it. The gate reads the declared languages with `intent lang declared`, so it needs no `jq`. When none are declared, or the config cannot be read (`lang declared` exits 4), no language critic runs and every commit says so (`NO code critic ran in this commit`, with a `why:` line) without being blocked by it; any other refusal from `lang declared` refuses the commit. It blocks the commit on any guard refusal, on findings at or above the threshold (critic exit 1), and on a refusal (critic exit 3: a rule the project arms needs a tool that is absent on this machine), and on `intent doctor` exiting 1; a doctor exit other than 0 or 1 is the gate's own breakage and fails open. The threshold is `severity_min` from `.intent_critic.yml`.
 
 A project's own guards are declared in `intent/.config/config.json` as a `guards` array (each an argv `run` and an optional `when` path), and the gate runs them after Intent's roster. The declaration is tracked, so a fresh clone runs the same guards as the checkout it came from; a guard wired by hand into `.git/hooks/pre-commit` is lost on every clone, and `intent doctor` reports one as an advisory. The shape and the refusals are in `intent/docs/pre-commit-hook.md` under Project guards.
 
@@ -254,13 +250,13 @@ Secondary cadences:
 
 ## D9. Fail-forward — no backwards-compat shims
 
-Deprecated artefacts are deleted, not shimmed, and migrations actively prune. The v3 rewrite is the largest instance: v2's Bash CLI (`bin/intent` and the `bin/intent_*` scripts) is gone from the tree rather than kept beside the binary, and v2 flags that v3 does not carry — `intent agents sync --check`, `intent at lint --fix` — are refused by the parser rather than accepted and ignored.
+Deprecated artefacts are deleted, not shimmed, and migrations actively prune. A flag Intent no longer carries is refused by the parser rather than accepted and ignored.
 
 Why: Intent's stated posture is fail-forward. Backwards-compat shims accumulate, decay, and hide bugs. Users who need legacy behaviour pin to an older Intent version.
 
 ## D10. Phase 0 review gate before implementation
 
-ST0035 (and any non-trivial steel thread) uses a "document first, code next" discipline. Phase 0 populates the thread and its work packages — objective, context, acceptance criteria, and any `design.md` attachment — without changing production files. Phase 0 output is committed and reviewed. Implementation begins only after approval.
+Any non-trivial steel thread uses a "document first, code next" discipline. Phase 0 populates the thread and its work packages — objective, context, acceptance criteria, and any `design.md` attachment — without changing production files. Phase 0 output is committed and reviewed. Implementation begins only after approval.
 
 Why: this locks scope and acceptance criteria before any implementation decision can drift. It gives the reviewer a single review surface (the thread's `info.md` and `acceptance.md`, its per-WP `info.md` files, and its attachments) rather than a stream of commits that keep moving the target.
 
@@ -268,18 +264,18 @@ This is a _process_ decision, not a _content_ decision — it applies to how Int
 
 ## D11. Acceptance: AC/AT and the five-step
 
-ST0044 makes "done" an externally verified event, not a self-reported claim. Every steel thread carries an acceptance contract in its record: its Acceptance Criteria (AC) and Acceptance Tests (AT). The contract is model state in the store; `intent/st/<ID>/acceptance.md` is the generated view of it, and `info.md` and each per-WP `info.md` point at that view and never restate ACs.
+D11 makes "done" an externally verified event, not a self-reported claim. Every steel thread carries an acceptance contract in its record: its Acceptance Criteria (AC) and Acceptance Tests (AT). The contract is model state in the store; `intent/st/<ID>/acceptance.md` is the generated view of it, and `info.md` and each per-WP `info.md` point at that view and never restate ACs.
 
 Two axes:
 
 - **AC -- the coverage axis.** The ratified completeness boundary: what must be true for the thread (or a WP) to be done. `intent ac new <ID> <AC> --text "..." --kind test|non-test` mints one (`non-test` is the default). A test-backed AC is satisfied (computed) when every AT covering it is green. A non-test AC (doc / eyeball / gate) is satisfied by hand with `intent ac satisfy <ID> <AC> --evidence <ref>`, which records the evidence beside it; `acceptance.md` renders that as `-- evidence: <ref> -- satisfied: yes|no` on the AC line.
 - **AT -- the proof axis.** A small red-to-green test that proves an AC, minted with `intent at new <ID> <AT> --covers <AC>... --file <path>` (or `--kind non-test --prose "..."`). Status is `to-write`, `red`, `green` or `n/a`. `intent at red` and `intent at green` refuse a verdict while the cited file does not exist. No status verb returns a row to `to-write`, but when a row's status does not hold for its new kind, `intent at edit --kind` restarts it at that kind's entry state (`to-write` for a test, `n/a` for a non-test), its verdict goes with it, and the verb prints a note naming the row, the old status and the new one.
 
-**The CLI enforces the order of the verdicts, not the witness.** `intent at green` is declared only from `red`, so a row still at `to-write` is refused; `intent at na` refuses a test-backed row; and `intent at red|green` refuse a non-test one (issue 0337). The CLI records the verdict it is given and never runs the test, so red-first in substance is held by the five-step below — the verifier witnessing RED — and not by the state machine.
+**The CLI enforces the order of the verdicts, not the witness.** `intent at green` is declared only from `red`, so a row still at `to-write` is refused; `intent at na` refuses a test-backed row; and `intent at red|green` refuse a non-test one. The CLI records the verdict it is given and never runs the test, so red-first in substance is held by the five-step below — the verifier witnessing RED — and not by the state machine.
 
-**An AC is not just satisfied or unsatisfied** (issue 0013; the full machine is in `docs/concepts/criteria-and-tests.md`). A requirement can leave this thread's scope while remaining real: **descoped** (it moved to a named thread -- `intent ac descope <ID> <AC> --to <ID>`) or **withdrawn** (it was dropped outright, with its reason on the record -- `intent ac withdraw <ID> <AC> --reason "..."`). Both are non-blocking, and both are reported separately rather than folded into the satisfied count (`2/2 satisfied, 1 descoped -- PASS`), so a thread that descoped half its contract looks like one. They exist to replace the two dishonest alternatives an author otherwise has: satisfying an AC whose work was not done, or deleting the line and losing the audit trail. `intent ac rescope` / `intent ac reinstate` undo them; `intent ac satisfy` refuses an AC in either state and names the undo. **Fiat** is a state beyond satisfied and unsatisfied as well: a criterion closed on a human's authority with `intent fc` (below) stays in scope and counts toward a pass, is reported separately too (`N fiat-closed` in the tally), and is reversed by `intent ac reinstate`.
+**An AC is not just satisfied or unsatisfied** (the full machine is in `docs/concepts/criteria-and-tests.md`). A requirement can leave this thread's scope while remaining real: **descoped** (it moved to a named thread -- `intent ac descope <ID> <AC> --to <ID>`) or **withdrawn** (it was dropped outright, with its reason on the record -- `intent ac withdraw <ID> <AC> --reason "..."`). Both are non-blocking, and both are reported separately rather than folded into the satisfied count (`2/2 satisfied, 1 descoped -- PASS`), so a thread that descoped half its contract looks like one. They exist to replace the two dishonest alternatives an author otherwise has: satisfying an AC whose work was not done, or deleting the line and losing the audit trail. `intent ac rescope` / `intent ac reinstate` undo them; `intent ac satisfy` refuses an AC in either state and names the undo. **Fiat** is a state beyond satisfied and unsatisfied as well: a criterion closed on a human's authority with `intent fc` (below) stays in scope and counts toward a pass, is reported separately too (`N fiat-closed` in the tally), and is reversed by `intent ac reinstate`.
 
-**An AT row is model fields, not text** (issue 0017's grammar, carried into the model). `acceptance.md` renders each row in one of two shapes:
+**An AT row is model fields, not text.** `acceptance.md` renders each row in one of two shapes:
 
 ```
 - AT-<gg>.<n> `<repo-relative-path>` -- covers <AC-id>[, <AC-id>...] -- status: to-write|red|green[ -- <free note>]
@@ -288,7 +284,7 @@ Two axes:
 
 `<gg>` is the row's group: `00` for the thread as a whole, or the id of the work package it belongs to, two digits for a package made before the project took git-style ids (`AT-03.2`) and the package's hex for one made since (`AT-c2e41a0b.1`). A criterion is grouped the same way, `AC-03.2` or `AC-c2e41a0b.1`. A git-style group may be typed as the package's four shown hex, `AC-c2e4.1`, and is stored whole.
 
-The reference is the test **file**, repo-relative, or `<file>:<line>` naming the line of the row's own arm, which the contract check then reads alone (issue 0670). `intent at edit <ID> <AT-id> --file <path>` re-cites it, and `--covers`, `--prose`, `--kind` and `--note` change the other fields; a field you do not name is not changed. A `(non-test)` AT records a doc or eyeball check and never satisfies a test-backed AC -- the satisfaction of a non-test AC lives on the AC itself.
+The reference is the test **file**, repo-relative, or `<file>:<line>` naming the line of the row's own arm, which the contract check then reads alone. `intent at edit <ID> <AT-id> --file <path>` re-cites it, and `--covers`, `--prose`, `--kind` and `--note` change the other fields; a field you do not name is not changed. A `(non-test)` AT records a doc or eyeball check and never satisfies a test-backed AC -- the satisfaction of a non-test AC lives on the AC itself.
 
 **The row links by id, not by name.** A cited test name is unverifiable -- paraphrase defeats every string match -- while an id is checkable from both ends: the row names the file, the file names the row, and `rg AT-03.2` finds both. So you name the test by putting the AT's own id inside it (`@test "AT-03.2 / AC-03.2: ..."`).
 
@@ -303,19 +299,19 @@ The **five-step** runs per WP, with one independent verifier and one builder:
 Two gates bracket it:
 
 - **Open-gate** -- ACs are ratified before code. This extends D10: Phase 0 locks scope and acceptance first.
-- **Close-gate** -- `intent st done` / `intent wp done` refuse to close while any in-scope AC is unsatisfied, and `intent st done` also refuses while any of the thread's work packages is still open (`cannot close while work packages are still open: …`), naming `intent wp done` and `intent wp cancel` as the ways to settle each. The verdict is computed (`intent ac gate`, or `intent wp gate <ST>/<pkg>` for one work package), never read from a hand-ticked box. It is **fail-by-default** (ST0048): a thread with an empty contract (zero ACs) is refused, and so is a scope whose every AC is descoped or withdrawn -- an absent contract is a failure that must surface, not a quiet pass. A thread authored with `acceptance: exempt` on the record is announced by the gate as `EXEMPT`, and an exemption is never inferred from emptiness; the field is fixed when the thread is authored, so no verb writes it afterwards (issue 0400). The refusal names the routes that exist instead: add a criterion with `intent ac new` or bring one back with `intent ac rescope` or `intent ac reinstate`, then satisfy it (by named evidence with `intent ac satisfy`, or for a test-backed criterion by taking a covering test to red, then green), because a criterion is not satisfied by being added or brought back (issue 0526); or cancel the unit with `intent st cancel` or `intent wp cancel`. At WP scope, a cancelled WP is an announced exemption. WP scope is WP-lenient: a WP with no own ACs rolls up to the ST boundary as long as the thread carries a contract -- but the rollup is granted only to a WP that exists, and the gate announces it (issue 0004). Every verdict is reported, pass included: a WP scope that resolves to no real WP is refused rather than passing in silence, because a gate that cannot say what it evaluated cannot be trusted when it says nothing is wrong.
+- **Close-gate** -- `intent st done` / `intent wp done` refuse to close while any in-scope AC is unsatisfied, and `intent st done` also refuses while any of the thread's work packages is still open (`cannot close while work packages are still open: …`), naming `intent wp done` and `intent wp cancel` as the ways to settle each. The verdict is computed (`intent ac gate`, or `intent wp gate <ST>/<pkg>` for one work package), never read from a hand-ticked box. It is **fail-by-default**: a thread with an empty contract (zero ACs) is refused, and so is a scope whose every AC is descoped or withdrawn -- an absent contract is a failure that must surface, not a quiet pass. A thread authored with `acceptance: exempt` on the record is announced by the gate as `EXEMPT`, and an exemption is never inferred from emptiness; the field is fixed when the thread is authored, so no verb writes it afterwards. The refusal names the routes that exist instead: add a criterion with `intent ac new` or bring one back with `intent ac rescope` or `intent ac reinstate`, then satisfy it (by named evidence with `intent ac satisfy`, or for a test-backed criterion by taking a covering test to red, then green), because a criterion is not satisfied by being added or brought back; or cancel the unit with `intent st cancel` or `intent wp cancel`. At WP scope, a cancelled WP is an announced exemption. WP scope is WP-lenient: a WP with no own ACs rolls up to the ST boundary as long as the thread carries a contract -- but the rollup is granted only to a WP that exists, and the gate announces it. Every verdict is reported, pass included: a WP scope that resolves to no real WP is refused rather than passing in silence, because a gate that cannot say what it evaluated cannot be trusted when it says nothing is wrong.
 
   The gate also runs the AT contract check, so coverage that cannot be resolved does not count as coverage: a `green` or `red` AT citing a file that does not exist, a cited file that never names the AT id, or names it only on lines that name no thread while another thread's green or red row of the same id cites the same file (neither checked on a completed thread), a covered id that is not a real AC, or a non-test AT covering a test-backed AC. Each finding is named with the row it came from. `intent at lint <ID>` reports the same findings on demand; fix each row it names with `intent at edit <ID> <AT-id>`.
 
-  `intent st done` / `intent wp done` close with a warning when the unit's objective is still unwritten (`warning: … closed with its objective still unwritten …`, remedy `intent set <unit> objective --from <file>`, issue 0337); the warning does not refuse, and the contract is still the gate.
+  `intent st done` / `intent wp done` close with a warning when the unit's objective is still unwritten (`warning: … closed with its objective still unwritten …`, remedy `intent set <unit> objective --from <file>`); the warning does not refuse, and the contract is still the gate.
 
-The verbs are `intent ac list|show|status|satisfy|unsatisfy|gate|descope|rescope|withdraw|reinstate|new|edit` and `intent at list|lint|red|green|na|new|edit` (with `done` / `notdone` aliases for `green` / `red`). `ac list`, `ac show`, `ac status`, `ac gate`, `at list` and `at lint` only read; the others write the thread's record, and `acceptance.md` follows.
+The verbs are `intent ac list|show|status|satisfy|unsatisfy|gate|descope|rescope|withdraw|reinstate|new|edit` and `intent at list|lint|red|green|na|new|edit`. `ac list`, `ac show`, `ac status`, `ac gate`, `at list` and `at lint` only read; the others write the thread's record, and `acceptance.md` follows.
 
 **`intent fc` is the human's verb, and an agent does not invoke it.** It fiat-closes a thread (`<ST>`), a work package (`<ST>/<pkg>`) or one row (`<ST> AC-…` or `<ST> AT-…`) on authority, against the evidence, and refuses without `--because`. The critical rule `IN-AG-FIAT-001` forbids an agent to run it, script it or ask a peer to run it; an agent that thinks a requirement is not worth finishing proposes the close to the human, with its reason (`intent claude rules show IN-AG-FIAT-001`).
 
-A builder meets this inside the normal lifecycle skills, which point here rather than restate it: `/in-plan` at the open-gate (ratify ACs before code), `/in-verify` at red-first and the RED witness, and `/in-finish` at the close-gate.
+A builder meets this inside the normal lifecycle skills: `/in-plan` at the open-gate (ratify ACs before code), `/in-verify` at red-first and the RED witness, and `/in-finish` at the close-gate.
 
-Why: a self-reported "done" drifts. Binding done to a ratified AC set, proven by red-first ATs and enforced by a computed close-gate, makes completion auditable -- and an independent verifier, not the builder, owns the boundary. Like D10 this is a _process_ decision: recommended for downstream projects, dogfooded by ST0044 on itself.
+Why: a self-reported "done" drifts. Binding done to a ratified AC set, proven by red-first ATs and enforced by a computed close-gate, makes completion auditable -- and an independent verifier, not the builder, owns the boundary. Like D10 this is a _process_ decision, recommended for downstream projects.
 
 ## Session hook architecture
 
@@ -369,7 +365,7 @@ Ship shape (strict-gate default):
 }
 ```
 
-This file is **byte-identical on every machine** — nothing in it is substituted at install time (issue 0016). The hooks are named through `intent claude hook <name>`, a thin runner in the installed tool that execs the shipped script with `bash`, passing stdin and the exit code through untouched. It accepts a closed list of names — `session-context`, `require-in-session`, `post-tool-advisory`, `post-tool-symbol-context`, `session-finish` — and resolves each script from the running binary's own install root (`lib/templates/.claude/scripts/<name>.sh`), never from `$INTENT_HOME`. Hook resolution is a runtime question; answering it at write time is what previously baked the installing machine's absolute Intent home into every project's tracked `settings.json`, breaking the hooks for every other contributor and publishing one user's home directory path in any public repository. The `matcher` field is a single string (a pipe-delimited alternation for `SessionStart`, empty to match all events for `UserPromptSubmit` / `Stop`) — not an array.
+This file is **byte-identical on every machine**: nothing in it is substituted at install time. The hooks are named through `intent claude hook <name>`, a thin runner in the installed tool that execs the shipped script with `bash`, passing stdin and the exit code through untouched. It accepts a closed list of names — `session-context`, `require-in-session`, `post-tool-advisory`, `post-tool-symbol-context`, `session-finish` — and resolves each script from the running binary's own install root (`lib/templates/.claude/scripts/<name>.sh`), never from `$INTENT_HOME`. The `matcher` field is a single string: a pipe-delimited alternation for `SessionStart`, and empty to match all events for `UserPromptSubmit` / `Stop`.
 
 How it works:
 
@@ -382,17 +378,17 @@ The strict `UserPromptSubmit` hook uses a sentinel file to track whether `/in-se
 1. User types a message. `UserPromptSubmit` hook fires.
 2. A prompt starting with `/` passes. The prompt is read with `jq` where it is on PATH and from the raw payload where it is not. Otherwise the script checks for `/tmp/intent/in-session-<session_id>.sentinel`, where `<session_id>` is `$CLAUDE_CODE_SESSION_ID` (or `unknown` when that is unset). When `/in-session`'s `release-gate.sh` is not installed, the hook writes the sentinel itself, says in a `systemMessage` that the gate is off on this machine and names `intent claude skills install in-session`, and exits 0. Otherwise a missing sentinel → exit 2, which blocks the prompt, with this on stderr: _"Intent project: /in-session must run before your first prompt. Run /in-session now -- it loads project coding standards and releases this gate."_ followed by the expected sentinel path.
 3. User (or Claude, reading the message) invokes `/in-session`. The skill's `release-gate.sh` creates the sentinel.
-4. Next prompt: sentinel present → the prompt reaches Claude normally and the hook exits 0. It may still print two notes: that the project's declared languages moved since `/in-session` ran, naming `/in-session` again, and any Desk asks waiting in `intent estate slots pending`.
+4. Next prompt: sentinel present → the prompt reaches Claude normally and the hook exits 0. It may still print two notes: that the project's declared languages moved since `/in-session` ran, naming `/in-session` again, and any slot asks waiting in `intent estate slots pending`.
 
-Why this design: Claude Code's hook API does not let a hook directly invoke a slash command. Sentinel-file tracking lets the hook fire every turn cheaply (one stat call) while only blocking until the session is bootstrapped.
+Why this design: Claude Code's hook API does not let a hook directly invoke a slash command. Sentinel-file tracking lets the hook fire every turn cheaply while only blocking until the session is bootstrapped.
 
-The hook scripts live in the install, not in the project, so they are not the place to soften the gate: an edit there changes every project on the machine and is replaced by the next install. To drop the gate for one project, remove the `UserPromptSubmit` stanza from its `.claude/settings.json` and pass `--skip-settings` on later `intent claude upgrade --apply` runs. There is no separate soft-mode script. `intent doctor` goes on reporting the edited file as a `root-file-behind` advisory, and its remedy, `intent claude upgrade --apply`, puts the stanza back.
+The hook scripts live in the install, not in the project, so they are not the place to soften the gate: an edit there changes every project on the machine and is replaced by the next install. D7 says how to drop the gate for one project.
 
 ## Critic cadence
 
 Critics enforce the rule library at two distinct points:
 
-1. **Pre-commit (mechanical, headless).** The git `pre-commit` hook runs `intent critic <lang> --staged` for each declared language. Severity threshold from `.intent_critic.yml`. Blocks the commit when any finding meets or exceeds the threshold.
+1. **Pre-commit (mechanical, headless).** The git `pre-commit` hook runs `intent critic <lang> --staged` for each declared language that has a headless critic. Severity threshold from `.intent_critic.yml`. Blocks the commit when any finding meets or exceeds the threshold.
 2. **On-demand (LLM-based, richer).** `Task(subagent_type="critic-<lang>", prompt="review <targets>")` invokes the corresponding LLM subagent. Same rules, deeper judgement, slower.
 
 The split exists because these are different use cases:
@@ -424,7 +420,7 @@ The example sets no `severity_min`, so it runs at the default, `warning`, and un
 | `show_all`               | Shorthand for `severity_min: style`                    | `false`   |
 | `post_tool_use_advisory` | Opt in to the `PostToolUse` critic advisory (see D7)   | `false`   |
 
-The readers differ by key. The pre-commit gate reads `severity_min`; `intent critic` reads `disabled`, and when run by hand takes its threshold from `--severity-min` (default `warning`) rather than from the file. `show_all: true` stands for `severity_min: style` in the gate and in the `critic-<lang>` subagents; an explicit `severity_min` wins over it, and `intent critic` run by hand still takes its threshold from `--severity-min`.
+The readers differ by key. The pre-commit gate reads `severity_min`; `intent critic` reads `disabled`, and when run by hand takes its threshold from `--severity-min` (default `warning`) rather than from the file. `show_all: true` stands for `severity_min: style` in the gate and in the `critic-<lang>` subagents, and an explicit `severity_min` wins over it.
 
 Default `severity_min` is `warning`: both CRITICAL and WARNING findings block a commit (the "warnings-are-errors" posture). Per-project tuning is expected; a per-rule `# reason:` comment on each `disabled` entry is required discipline so downstream reviewers know why the rule was silenced. An unknown rule ID in `disabled` is tolerated silently.
 
@@ -438,14 +434,14 @@ The session-bootstrap flow handled by the `/in-session` skill:
 
 1. Invoke `/in-essentials` (universal workflow rules and formatting standards), whatever the project's languages.
 2. Read the `languages` array in `intent/.config/config.json` through `intent lang declared`, one language per line. For each language listed, invoke its essentials skill if one exists. `elixir` has `/in-elixir-essentials` + `/in-elixir-testing`, `author` has `/in-author-essentials`, and `content` has `/in-content-essentials`; Rust, Swift, Lua, and shell carry their coding rules through the rule library the installed tool serves (`intent claude rules list --lang <lang>`) and the `critic-<lang>` subagent applied on demand.
-3. Elixir dep fan-out, when `mix.exs` is present:
+3. Elixir dep fan-out, when `elixir` is declared and `mix.exs` is present:
    - `:ash` or `:ash_postgres` in `mix.exs` → `/in-ash-ecto-essentials`.
    - `:phoenix_live_view` in `mix.exs` → `/in-phoenix-liveview`.
 4. Release the `UserPromptSubmit` gate by running the skill's `scripts/release-gate.sh`, which writes the session's sentinel.
 5. When `intent/whiteboard/` exists, invoke `/in-whiteboard pickup`, or run `intent wb pickup --node <node>` after a compact that carried `/in-whiteboard` whole.
 6. Report the loaded skill set in one line so the user can spot an unexpected match.
 
-Languages are declared with `intent lang init <lang>` and removed with `intent lang remove <lang>`. The set is explicit per-project configuration, not filesystem detection — file presence is unreliable evidence of intent. See ST0037 for the rationale.
+Languages are declared with `intent lang init <lang>` and removed with `intent lang remove <lang>`; D1 says why the set is declared rather than detected.
 
 Why auto-load: a new session starts with no skills loaded, and a `/compact` carries only the skills invoked before it, each up to a size limit, marking any it had to truncate. The `/in-session` skill is a thin coordinator that reads the project's declared languages and calls the right skills in one command. After a compact it invokes only the skills the compact did not carry whole, because a skill carried in full is still active and invoking it again loads it twice; where nothing says what the compact carried, it invokes them all. The gate release and the whiteboard pickup run either way.
 
@@ -457,19 +453,19 @@ To extend:
 
 ## Multi-session coordination
 
-Concurrent Claude Code sessions — and the human — on the same Intent project coordinate via `intent/whiteboard/` and the `/in-whiteboard` skill (Protocol 3.0; opt-in by directory presence). The whiteboard is the **live** cross-session channel; `intent/wip.md` remains the **post-session snapshot**. Different tense, different reader, different update cadence:
+Concurrent Claude Code sessions — and the human — on the same Intent project coordinate via `intent/whiteboard/` and the `/in-whiteboard` skill (opt-in by directory presence). The whiteboard is the **live** cross-session channel; `intent/wip.md` remains the **post-session snapshot**. Different tense, different reader, different update cadence:
 
-| Surface             | Tense | Reader             | Update cadence            |
-| ------------------- | ----- | ------------------ | ------------------------- |
-| `done.md` + history | past  | humans + future-me | post-session              |
-| `wip.md`            | now   | humans             | session-end snapshot      |
-| whiteboard          | live  | peer nodes + human | during work, per-decision |
+| Surface     | Tense | Reader             | Update cadence            |
+| ----------- | ----- | ------------------ | ------------------------- |
+| git history | past  | humans + future-me | post-session              |
+| `wip.md`    | now   | humans             | session-end snapshot      |
+| whiteboard  | live  | peer nodes + human | during work, per-decision |
 
 Mixing live coordination into `wip.md` is rejected by design — different surfaces, different writers, different readers.
 
-### Protocol 3.0: per-node directories, single-writer files
+### Per-node directories, single-writer files
 
-Protocol 3.0 (ST0045) supersedes the retired 2.0 flat-file model (one shared cross-handoff file, one file per stream, a shared platform file) with one directory per **node** and a strict single-writer rule on every file. A node is a participant — a Claude session or the human. The 2.0 model gave each shared file N writers: edit contention, cross-stream cleanse coordination, and unbounded context growth. 3.0 removes all three by giving every file exactly one writer.
+The whiteboard gives each **node** a directory of its own and a strict single-writer rule on every file. A node is a participant: a Claude session or the human. One writer per file means no edit contention and no shared file whose context grows without bound.
 
 ### Directory layout
 
@@ -485,13 +481,13 @@ intent/whiteboard/
       YYYYMMDD/             # the hand-authored era's archives; nothing writes here now
 ```
 
-Each node changes only its own `wip.md`, through `intent wb --node <node>`; each inbox is rendered from its named sender's `board.json` alone and read only by the owning node, which clears it by marking in its own `board.json`. There is no shared file, and a node commits what its own verbs wrote, as each prints it on its `wrote:` lines (issue 0612). The verbs act as whatever `--node` names, so the rule is the protocol's, held by convention rather than refused by the tool. A node's board and inboxes are read on every `pickup`, so they are kept lean: `intent wb archive <kind> <seq>` retires one of the node's own items and `intent wb clear <sender>` marks that sender's messages handled. Archived is a state the row carries, not a directory it moves to; the `.history/<YYYYMMDD>/` trees are the record of the hand-authored era and nothing writes there now.
+Each node changes only its own `wip.md`, through `intent wb --node <node>`; each inbox is rendered from its named sender's `board.json` alone and read only by the owning node, which clears it by marking in its own `board.json`. There is no shared file, and a node commits what its own verbs wrote, as each prints it on its `wrote:` lines. The verbs act as whatever `--node` names, so the rule is the protocol's, held by convention, with one exception the tool enforces: on a board that declares a team, a write as `hv` is refused unless it comes from the mediator's session or from a shell with no Claude Code session. A node's board and inboxes are read on every `pickup`, so they are kept lean: `intent wb archive <kind> <seq>` retires one of the node's own items and `intent wb clear <sender>` marks that sender's messages handled. Archived is a state the row carries, not a directory it moves to; the `.history/<YYYYMMDD>/` trees are the record of the hand-authored era and nothing writes there now.
 
-`intent wb register <moniker> --name <display> --role <role>` puts a node on the board, and its `wip.md` and every inbox in both directions render from that row; there is no directory to create. `intent wb status` lists the roster, and `intent claude start <node>` launches a session bound to a node; the skill owns the judgement operations. The file-era `intent claude ws` family that provisioned directories is retired (ST0069 AC-14.12).
+`intent wb register <moniker> --name <display> --role <role>` puts a node on the board, and its `wip.md` and every inbox in both directions render from that row; there is no directory to create. `intent wb status` lists the roster, and `intent claude start <node>` launches a session bound to a node; the skill owns the judgement operations.
 
 ### The board header block is NOT YAML
 
-The `--- ... ---` block at the top of a `wip.md` is **line-oriented `key: value` text**, not YAML frontmatter, and calling it frontmatter was the defect (issue 0012). It was documented as YAML and consumed as line-oriented text by every reader in the tool, and where the two disagreed the tooling rewarded the file that was wrong: the since-retired `ws list` stripped the surrounding quotes without unescaping, so a board with unescaped quotes inside a `focus:` scalar — invalid YAML — displayed correctly, while a board corrected to _valid_ YAML displayed `\"` mid-prose.
+The `--- ... ---` block at the top of a `wip.md` is **line-oriented `key: value` text**, not YAML frontmatter, and every reader in the tool reads it that way.
 
 The rule, stated once and enforced under itself:
 
@@ -499,13 +495,13 @@ The rule, stated once and enforced under itself:
 - Surrounding double quotes are a **display delimiter**, stripped by the reader. One pair, at the outside. Single quotes are not delimiters and are never stripped.
 - Quotes inside a value are **literal and never escaped**. Write `focus: "the reader's \"quoted\" phrase"` as `focus: "the reader's "quoted" phrase"`.
 
-The fork went this way because the block is hand-written by LLM nodes in prose-heavy fields, which is close to the worst case for a quoting-sensitive format. On a generated board the block renders from the node's row, so nothing hand-writes it and validity never arises. At commit time the pre-commit gate's header guard refuses escaped quotes in header lines the commit adds to a live board, and prints the repaired line; it says nothing about YAML validity, because validity is not the contract.
+On a generated board the block renders from the node's row, so nothing hand-writes it. At commit time the pre-commit gate's header guard refuses escaped quotes in header lines the commit adds to a live board, and prints the repaired line; it says nothing about YAML validity, because validity is not the contract.
 
 ### Node identity
 
 The words for a team and its seats (Claude Team, Claude Swarm, Team Profile, moniker, name, role, mediator, hat) are defined once, in `intent/plugins/claude/teams/TERMS.md`. This section describes how a node is used and defers to that document for what each word means.
 
-A node is a durable identity (eg `control`, `ia-ux`, `hv`) named by a short moniker that is its routing key, its handle and the name of its rendered directory. The roster — monikers, display names, roles — is per-project: declared in `intent/whiteboard/README.md`, put on the board with `intent wb register <moniker> --name <display> --role <role>`, and read back with `intent wb status`; the skill bakes in no roster. Every verb that acts as a node takes `--node <moniker>` (`wb status`, `wb show`, `wb register` and `wb migrate` take none), and identity is resolved before the first write: (1) the moniker the invocation carries, (2) cues — the session's own name, the working directory, the user's framing, which node's board names this session, (3) ask the user. Subsequent sessions of a node inherit identity from its existing directory. The human is a first-class node, conventionally `hv` (the hypervisor): human-driven, `session_id` optional or `none`, and may carry a `## Standing directives` section peers honour.
+A node is a durable identity (eg `cc`, `vc`, `hv`) named by a short moniker that is its routing key, its handle and the name of its rendered directory. The roster — monikers, display names, roles — is per-project: declared in `intent/whiteboard/README.md`, put on the board with `intent wb register <moniker> --name <display> --role <role>`, and read back with `intent wb status`; the skill bakes in no roster. Every verb that acts as a node takes `--node <moniker>` (`wb status`, `wb show`, `wb register` and `wb migrate` take none), and identity is resolved before the first write: (1) the moniker the invocation carries, (2) cues — the session's own name, the working directory, the user's framing, which node's board names this session, (3) ask the user. Subsequent sessions of a node inherit identity from its existing directory. The human is a first-class node, conventionally `hv` (the hypervisor): human-driven, `session_id` optional or `none`, and may carry a `## Standing directives` section peers honour.
 
 ### Claims are by ID, never by path
 
@@ -513,27 +509,23 @@ A node is a durable identity (eg `control`, `ia-ux`, `hv`) named by a short moni
 
 ### Shared platform layer
 
-Multi-app codebases usually have a shared platform layer that no ST claim cleanly covers (`apps/lamplight/**` in Lamplight; project-specific elsewhere). 3.0 coordinates it with `intent wb announce "<text>" --node <you>` — a one-line "I'm about to edit X for reason Y" broadcast appended to every peer's inbox before the edit — rather than a dedicated shared file. Broadcast-to-inboxes keeps the single-writer rule; reading inboxes on `pickup` surfaces recent platform-edit notices, so appending before editing is cheap insurance against simultaneous touches.
+Multi-app codebases usually have a shared platform layer that no ST claim cleanly covers. The whiteboard coordinates it with `intent wb announce "<text>" --node <you>`: a one-line "I'm about to edit X for reason Y" broadcast appended to every peer's inbox before the edit. Broadcast-to-inboxes keeps the single-writer rule; reading inboxes on `pickup` surfaces recent platform-edit notices, so appending before editing is cheap insurance against simultaneous touches.
 
 ### Chain integration
 
-`/in-whiteboard pickup` auto-fires from `/in-session` as step 5 (after gate release); `/in-whiteboard release` auto-fires from `/in-finish` as step 1 (before any wip.md/restart.md/done.md updates), and only when the session is actually ending — a fold before a `/compact` runs `/in-whiteboard touch` instead and leaves the node `active`. Both chains are **opt-in by presence**: if `intent/whiteboard/` does not exist in the project root, the chained step skips silently. Projects without the whiteboard see zero behaviour change.
+`/in-whiteboard pickup` auto-fires from `/in-session` as step 5 (after gate release); `/in-whiteboard release` auto-fires from `/in-finish` as step 1 (before any wip.md/restart.md updates), and only when the session is actually ending — a fold before a `/compact` runs `/in-whiteboard touch` instead and leaves the node `active`. Both chains are **opt-in by presence**: if `intent/whiteboard/` does not exist in the project root, the chained step skips silently. Projects without the whiteboard see zero behaviour change.
 
 ### Heartbeat semantics
 
-`/compact` does not end a session. The next `/in-session` (auto-firing in the new context) calls `pickup` which touches `heartbeat_at`. A node stays `status: active` across `/compact`. A heartbeat older than 7 days marks a claim reclaimable; reclaim requires explicit hypervisor acknowledgement — the protocol never silently overwrites another node's state. The `hv` node is exempt: the human is always authoritative, so a stale `hv` heartbeat reclaims nothing.
-
-### Reference
-
-The live reference implementation runs in the Lamplight project, at its own `intent/whiteboard/`, and Intent's own repository runs one at `intent/whiteboard/`. The original 2.0 design rationale and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in ST0040's record (`intent/.canon/st/ST0040.json`); the 3.0 per-node rewrite is ST0045 (`intent/.canon/st/ST0045.json`).
+`/compact` does not end a session. The next `/in-session`, which the SessionStart reminder and the prompt gate ask for, calls `pickup`, which touches `heartbeat_at`. A node stays `status: active` across `/compact`. A long-stale heartbeat marks a claim reclaimable only with the hypervisor's explicit acknowledgement: the protocol never silently overwrites another node's state. The `hv` node is exempt: the human is always authoritative, so a stale `hv` heartbeat reclaims nothing.
 
 ## Extensions at ~/.local/share/intent/ext/
 
-User extensions — subagents, skills, or rule packs contributed from `~/.local/share/intent/ext/<name>/` without forking Intent — are declared in v3 and not built.
+User extensions — subagents, skills, or rule packs contributed from `~/.local/share/intent/ext/<name>/` without forking Intent — are declared and not built.
 
 - `intent ext list`, `intent ext show <name>`, `intent ext validate [<name>]` and `intent ext new <name>` are on the command surface, and each one refuses with ``error: `ext` is a known command that is not implemented yet`` (exit 2), writing nothing.
 - No other command reaches `~/.local/share/intent/ext/` either. The extension base is held unset (`native/rust/crates/intentsvcs/src/userstate.rs`, `ext_base`), so `intent claude skills`, `intent claude subagents`, `intent claude rules` and `intent critic` see canon only, and `INTENT_EXT_DIR` / `INTENT_EXT_DISABLE` are not read. `intent claude rules validate` prints a note saying extension rule packs were not validated.
-- Anything left under `~/.local/share/intent/ext/` by v2 is inert under v3. To change a canon skill or rule today, change it in Intent's source.
+- To change a canon skill or rule, change it in Intent's source.
 
 `intent/docs/writing-extensions.md` describes the extension design.
 
@@ -547,7 +539,7 @@ Per-language setup is opt-in via the `intent lang` command:
 intent lang list                       # Languages a project may declare
 intent lang show <lang>                # What declaring <lang> does
 intent lang init <lang> [<lang> ...]   # Declare one or more languages (idempotent)
-intent lang remove <lang> [<lang> ...] # Undeclare one or more languages (alias: rm)
+intent lang remove <lang> [<lang> ...] # Undeclare one or more languages
 ```
 
 Or, at fresh project init time, via the `--lang` flag (comma- or space-separated). `init` declares the languages in the config's first write, so the `AGENTS.md` it renders already names them.
@@ -557,11 +549,11 @@ intent init "My Project" --lang elixir             # one language
 intent init "My Project" --lang elixir,rust,shell  # or several
 ```
 
-What `intent lang init <lang>` does: it adds the language to the `languages` array in `intent/.config/config.json`, and installs nothing into the project. The language's rules are served by the installed tool (`intent claude rules list --lang <lang>`, `intent claude rules show <id>`). The declaration is what `AGENTS.md`'s language blocks, `/in-session`'s skill fan-out and the pre-commit gate's per-language critics read. `AGENTS.md` is not regenerated by the declaration: run `intent agents sync` (or `intent claude upgrade --apply`) afterwards.
+What `intent lang init <lang>` does: it adds the language to the `languages` array in `intent/.config/config.json`, and installs nothing into the project. The language's rules are served by the installed tool (`intent claude rules list --lang <lang>`, `intent claude rules show <id>`). The declaration is what `AGENTS.md`'s language blocks, `/in-session`'s skill fan-out and the pre-commit gate's per-language critics read, and the verb renders `AGENTS.md` again where the project has one.
 
 `intent lang list` names the languages a project may declare; `author` and `content` among them are prose disciplines rather than code.
 
-Re-runs are safe: a language already declared reports `already declared (no change)`. Multi-language is the default case -- `intent lang init elixir rust shell` declares all three. An unknown language is reported as an error without stopping the others (fail-forward); a summary at the end reports the count declared and the errors, and the command exits 1 if any failed.
+Re-runs are safe: a language already declared reports `already declared (no change)`. Multi-language is the default case -- `intent lang init elixir rust shell` declares all three. An unknown language is reported as an error without stopping the others; a summary at the end reports the count declared and the errors, and the command exits 1 if any failed.
 
 Full reference: `intent lang --help`.
 
@@ -569,15 +561,15 @@ Full reference: `intent lang --help`.
 
 **Question.** Weren't Socrates and Diogenes the same agent once? Why are there two?
 
-**Answer.** They were never the same agent. Git log settles it:
+**Answer.** They were never the same agent.
 
-- **Socrates debuted 2025-08-05 (commit `7f4529e`)** as CTO Review Mode. Personas: Socrates (CTO) + Plato (Tech Lead). Domain: architectural and strategic decisions. It never had a testing role.
-- **Diogenes debuted 2026-02-20 (commit `37a0ed0`)** as a separate new agent. Personas: Aristotle (Empiricist) + Diogenes (Skeptic). Domain: test-specification dialog and test-quality validation. It was not carved out of Socrates — it is a new concern that needed new personas.
+- **Socrates** is CTO Review Mode. Personas: Socrates (CTO) + Plato (Tech Lead). Domain: architectural and strategic decisions. It never had a testing role.
+- **Diogenes** is a separate agent. Personas: Aristotle (Empiricist) + Diogenes (Skeptic). Domain: test-specification dialog and test-quality validation. It was not carved out of Socrates.
 
 Both use Socratic-dialog methodology. Both have Greek-philosopher names. That's the source of the confusion, and it's cosmetic. The agents solve disjoint problems:
 
 - Reach for `socrates` when you need to talk through an architectural or strategic decision.
-- Reach for `diogenes` when you need to generate or validate test specifications (currently Elixir-specialised; generalising to other test stacks is a future ST).
+- Reach for `diogenes` when you need to generate or validate test specifications (Elixir-specialised).
 
 They're not variants of the same agent. Renaming one (eg `socrates-test`) would falsely imply they share a domain, and they don't. Consolidating into "Socrates with modes" would force unrelated personas — Socrates + Plato vs Aristotle + Diogenes — into one agent and muddy both. The clean separation stays; documentation is the fix.
 
@@ -588,9 +580,9 @@ Elixir projects using Intent share a filename with the Ash ecosystem's `usage_ru
 - **Intent's `usage-rules.md`** (this project's, at the repo root) -- a hand-authored DO / NEVER contract for the project, seeded once from `lib/templates/llm/_usage-rules.md` and linked from the generated `AGENTS.md`. Intent never rewrites it; you own its content.
 - **The library's `usage-rules.md`** -- per-dependency rule files (`deps/<pkg>/usage-rules.md`, plus topical `deps/<pkg>/usage-rules/<topic>.md` folders) that ship inside your deps. The `usage_rules` tool aggregates these into a target file or repackages them as agent skills.
 
-### How usage_rules v1.x works
+### How usage_rules works
 
-As of v1.x the tool is config-driven, not argument-driven. All setup lives in your `mix.exs` `project/0` under a `:usage_rules` keyword list, and `mix usage_rules.sync` takes no task arguments (only Igniter globals such as `--yes`, `--dry-run`, `--check`). The config is the source of truth: content is regenerated between markers on each run, and packages dropped from the config are pruned.
+The tool is config-driven, not argument-driven. All setup lives in your `mix.exs` `project/0` under a `:usage_rules` keyword list, and `mix usage_rules.sync` takes no task arguments (only Igniter globals such as `--yes`, `--dry-run`, `--check`). The config is the source of truth: content is regenerated between markers on each run, and packages dropped from the config are pruned.
 
 ```elixir
 def project do
@@ -611,13 +603,13 @@ A dependency's rules can be delivered three ways:
 - **link** -- `{:dep, link: :at}` writes `@deps/dep/usage-rules.md`; `{:dep, link: :markdown}` writes a markdown link. The content stays in `deps/`.
 - **skills** -- `skills:` generates `SKILL.md` files (default `.claude/skills/`) carrying `managed-by: usage-rules` frontmatter. `deps:` builds a `use-<pkg>` skill per dependency; `build:` composes one skill (eg `ash-framework`, `phoenix-framework`) from several deps; `package_skills:` copies skills a package ships.
 
-The v0.x argument form (`mix usage_rules.sync AGENTS.md --all --link-to-folder deps`) and the `link_to_folder` / `link_style` / `inline` options are gone. There is no zero-config mode: Intent's root `usage-rules.md` is not auto-included unless you name it in the config.
+There is no zero-config mode: Intent's root `usage-rules.md` is not auto-included unless you name it in the config.
 
 ### Coexistence policy: Intent projects stay Intent-native
 
-The `usage_rules` skills mode writes into `.claude/skills/` -- the same directory, and the same domains, as Intent's own curated skills (`in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-elixir-essentials`). Two tools writing dependency-rule skills into one directory is a live collision.
+The `usage_rules` skills mode writes into the project's `.claude/skills/`, and Intent installs its own curated skills (`in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-elixir-essentials`) into `~/.claude/skills/`. Claude Code loads both, so the two tools can cover the same dependency domains.
 
-Intent's policy is that an Intent project stays Intent-native: Intent's curated skills plus `/in-elixir-essentials`' on-demand `deps/*/usage-rules{,/**}.md` reads are the source of truth for dependency rules. In an Intent project, leave the `usage_rules` `skills:` generation off, so the two tools are not writing the same `.claude/skills` domains. A project that specifically wants library-generated skills must scope them to non-overlapping names and owns that reconciliation.
+Intent's policy is that an Intent project stays Intent-native: Intent's curated skills plus `/in-elixir-essentials`' on-demand `deps/*/usage-rules{,/**}.md` reads are the source of truth for dependency rules. In an Intent project, leave the `usage_rules` `skills:` generation off, so the two tools do not cover the same domains. A project that specifically wants library-generated skills must scope them to non-overlapping names and owns that reconciliation.
 
 Aggregation into a file coexists fine and is additive: your project's root `usage-rules.md` describes project rules, the deps' files describe package rules, and they cover different domains. For `AGENTS.md` itself keep one generator as the source of truth -- Intent's `intent agents sync` for Intent projects -- and do not also point the `usage_rules` `file:` at `AGENTS.md`.
 
@@ -639,7 +631,7 @@ Checks:
 
 If the script runs but nothing is injected, remember the contract: stdout on exit 0 is the injection payload. Confirm the script writes to stdout (not stderr) and exits 0.
 
-**Do not edit a project's own `.claude/scripts/*.sh` and expect it to take effect.** `settings.json` names the installed tool, and v3 writes no per-project hook scripts, so copies left by an older Intent are inert. Override the `command` in `settings.json` if a project needs different behaviour, and pass `--skip-settings` on later applies so the override survives. While the file still names `intent claude hook`, `intent doctor` reports it as a `root-file-behind` advisory whose remedy, `intent claude upgrade --apply`, brings Intent's entries back to the template's, the overridden `command` among them.
+**Do not edit a project's own `.claude/scripts/*.sh` and expect it to take effect.** `settings.json` names the installed tool, and Intent writes no per-project hook scripts: `intent doctor` reports each copy left in a project as `hook-script-orphaned` and names the command that removes it. If a project needs different behaviour, give it a hook entry of its own in `settings.json`. A plain `intent claude upgrade --apply` keeps that entry and adds Intent's back beside it, so both run; `--skip-settings` stops the apply from touching the file.
 
 ### Strict UserPromptSubmit gate blocks every prompt, not just the first
 
@@ -655,15 +647,15 @@ Fixes:
 - Verify the sentinel directory is writable and that `$CLAUDE_CODE_SESSION_ID` resolves correctly inside the hook.
 - Release by hand: the gate's message names the expected sentinel path, and `touch` on that path releases it.
 - For non-interactive automation that spawns `claude -p` against the project (any custom wrapper): set `INTENT_SKIP_IN_SESSION_GATE=1` on the invocation. The gate short-circuits to exit 0 before any other check. Such sessions have no chat surface for `/in-session` to run in, so the bypass is the right tool.
-- If the strict gate is more friction than it's worth, drop the `UserPromptSubmit` stanza from the project's `.claude/settings.json` and pass `--skip-settings` on later `intent claude upgrade --apply` runs. There is no separate soft-mode script. `intent doctor` then reports the file as `root-file-behind`, uncounted, and following its remedy puts the gate back.
+- If the strict gate is more friction than it's worth, D7 says how to drop it for one project.
 
 ### Every commit refuses: the gate cannot locate the Intent install
 
 Symptom: `git commit` fails with `pre-commit (intent shim): cannot locate the Intent install.`, or with the recorded install root "is not an install"; `intent claude upgrade --apply` warns that the gate is installed and cannot run.
 
-Cause: the carrier `pre-commit.intent` resolves the install from `~/.local/share/intent/home` and refuses rather than skipping when that pointer is absent, empty, or names a directory with no `lib/templates/`.
+Cause: the carrier `pre-commit.intent` resolves the install from the install pointer, `$XDG_DATA_HOME/intent/home` (by default `~/.local/share/intent/home`), and refuses rather than skipping when that pointer is absent, empty, or names a directory with no `lib/templates/`.
 
-Fix: `intent bootstrap` records the pointer. A carrier installed before 3.0.2 reads the old `~/.intent/home`, which `intent bootstrap` does not write: run `intent claude upgrade --apply` in that project. `"$(git rev-parse --git-path hooks)/pre-commit.intent" --where` prints the pointer, the root it names, and the gate it would run, without committing. `intent bootstrap --check` reports where this machine's gate resolves and whether it can run, writes nothing, and exits 1 when it cannot; `intent info` prints the same answer on its `Gate root:` line.
+Fix: `intent bootstrap` records the pointer. `"$(git rev-parse --git-path hooks)/pre-commit.intent" --where` prints the pointer, the root it names, and the gate it would run, without committing. `intent bootstrap --check` reports where this machine's gate resolves and whether it can run, writes nothing, and exits 1 when it cannot; `intent info` prints the same answer on its `Gate root:` line.
 
 ### Pre-commit hook blocks on a rule you don't care about
 
@@ -710,7 +702,7 @@ This mirrors the upgrade-doesn't-clobber contract: sync leaves a locally changed
 
 ## Upgrade notes
 
-**This build does not support an Intent v2 project: Intent 3.5.1 is the last release that converts one.** This section carries only the LLM-canon-specific notes, which are the ones this document is responsible for.
+This section carries only the notes on the LLM canon.
 
 **`intent upgrade` converts the store and the thread tree and leaves the LLM canon alone.** It writes no `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json` or pre-commit hook. After it, run `intent claude upgrade` to see what differs from canon and `intent claude upgrade --apply` to converge: `AGENTS.md` and a generated `CLAUDE.md` are regenerated (the project block carried across), a hand-authored `CLAUDE.md` is held unless `--force`, `usage-rules.md` and `.intent_critic.yml` are kept as they are, `.claude/settings.json` is written to canon (held if it is not Intent's, unless `--force`) and `.mcp.json` seeded unless `--skip-settings`, `.prettierignore` gains the generated views, and the pre-commit chain block and carrier are installed with the `post-merge`, `post-checkout` and `post-rewrite` carriers.
 
@@ -721,12 +713,7 @@ This mirrors the upgrade-doesn't-clobber contract: sync leaves a locally changed
 - `intent llm guide` — the generated command reference for the build you are running.
 - `intent/docs/rules.md` — rule authoring guide.
 - `intent/docs/critics.md` — Critic subagent contract and report format.
-- `intent/docs/writing-extensions.md` — the design for extensions at `~/.local/share/intent/ext/`, which v3 does not build.
+- `intent/docs/writing-extensions.md` — the design for extensions at `~/.local/share/intent/ext/`, which this build does not build.
 - `intent/llm/MODULES.md` — Highlander module registry, where the project keeps one.
 - `intent/llm/DECISION_TREE.md` — code-placement flowchart, where the project keeps one.
-- `intent/.canon/st/ST0035.json` — the decision log behind D1 to D10, as canon, with its `design.md` attached; D4 above reverses its recorded D4. D11's record is `intent/.canon/st/ST0044.json`.
 - `docs/reference/cut-surface.md` — the generated command register, which names the revision it describes.
-
----
-
-_Document stamp: authored for ST0035/WP-03, 2026-04-24; re-read against the 3.2.1 cut's build in the 3.2.1 doc audit of 2026-09-24. Significant canon changes should update both this doc and the record of the thread that decided them._
