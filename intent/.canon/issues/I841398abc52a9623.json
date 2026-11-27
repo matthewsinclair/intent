@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I841398abc52a9623",
+  "origin": "01M8F668KQDHM38NE1SAK4CVHM",
+  "realised": true,
+  "slug": "the-pre-commit-doctor-gate-reads-the-working-tre",
+  "title": "The pre-commit doctor gate reads the working tree, so a commit with half of a rendered pair passes and breaks every new worktree",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-11-27",
+  "reporter": "Matthew Sinclair",
+  "body": "## What is broken\n\nThe pre-commit gate runs `intent doctor` on the working tree, and not on what the commit holds. A verb can write a pair of files: a board's `board.json` with its `wip.md`, or an attachment's file with its store record. When a commit takes one half of the pair, the working tree still agrees with itself, so the gate passes. The commit then holds a skew.\n\nDoctor also reports attachment drift as advisory only, as `intent sync --to-store` says in its own output. So an attachment's file that differs from its store record never refuses a commit.\n\n## What it costs\n\nThe skew shows in every tree that is checked out from that commit: a new worktree, or a branch that is rebased onto it. There the gate refuses each commit with \"residue: view-skew\", and a rebase stops on the file that the post-checkout hook renders again. The session that made the commit sees nothing, because its own checkout is whole.\n\nIn Cybri on 2026-11-27 this stopped two sessions, twice within one hour. The first fault was a `board.json` committed with no `wip.md`. The second was a thread's `design.md` committed with no `attachments/design.md.json`.\n\n## What fixes it\n\n1. Make the gate judge the commit: run doctor's skew checks against the staged tree.\n2. Or, as a smaller step: when a staged path is one half of a pair, and the other half is changed and not staged, name the other half and refuse the commit.\n3. Decide if attachment drift stays advisory. A file committed with a stale record is the same fault as a board committed with a stale view.\n\n## Where it came from\n\nThe validation seat of Cybri (the repository matthewsinclair/cybri) found it on 2026-11-27, with Intent 3.5.6, from two faults on Cybri's main branch. hv asked for this issue, for a fix at a later time.\n"
+}

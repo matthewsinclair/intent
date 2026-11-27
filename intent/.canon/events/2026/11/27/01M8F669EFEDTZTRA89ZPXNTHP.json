@@ -1,0 +1,15 @@
+{
+  "id": "01M8F669EFEDTZTRA89ZPXNTHP",
+  "ts": "2026-11-27T19:02:23.961Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I61ca70834895024b"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "doctor fails on Finder's .DS_Store files under intent/, and the gate then refuses every commit"
+  }
+}
