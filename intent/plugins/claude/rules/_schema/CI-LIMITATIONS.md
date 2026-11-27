@@ -8,7 +8,7 @@ Intent's rule library supports runnable good / bad examples for some languages a
 | ------------------------ | :---------------: | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | Elixir                   |        Yes        | `good_test.exs`, `bad_test.exs` (test rules); `good.exs`, `bad.exs` (code rules)                            | `tests/unit/rule_pack_elixir_runnable.bats` (CI) runs each under standalone `elixir`; `intent claude rules validate` checks frontmatter only |
 | Shell                    |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                                              | Syntax review only                                                                                                                           |
-| Agnostic                 |        N/A        | No examples; a pattern rule cites `concretised_by:` language-specific rules, a procedural rule carries none | —                                                                                                                                            |
+| Agnostic                 |        N/A        | No examples; a pattern rule cites `concretised_by:` language-specific rules, a procedural rule carries none | none                                                                                                                                         |
 | Rust                     |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                                              | Syntax review only                                                                                                                           |
 | Swift                    |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                                              | Syntax review only                                                                                                                           |
 | Lua                      |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                                              | Syntax review only                                                                                                                           |
@@ -37,7 +37,7 @@ For a Rust / Swift / Lua rule:
 - No separate `.rs` / `.swift` / `.lua` files alongside `RULE.md`.
 - The code inside the fence must be syntactically plausible. Reviewer eyeballs it; Intent does not compile it.
 
-Example — Rust rule:
+Example, a Rust rule:
 
 ````markdown
 ## Bad
@@ -71,17 +71,6 @@ Syntactic errors in examples are caught by human review or by Critic subagents n
 
 The Critic subagent reads RULE.md, extracts the Detection heuristic, and applies it to real source files in a real project. Detection does not depend on the examples being runnable; the examples are documentation, not fixtures.
 
-## Future work (explicitly deferred)
-
-Runnable examples for Rust / Swift / Lua would require:
-
-1. **Tooling dependencies**: Rust (`cargo test`), Swift (`swift test`), Lua (`busted` or `luaunit`) available in Intent's dev environment and CI.
-2. **Per-language runner glue**: a runner per language, as `tests/unit/rule_pack_elixir_runnable.bats` is for Elixir (`intent claude rules validate` runs no examples).
-3. **File conventions**: agreeing on `good.rs` / `bad.rs` structures that run in isolation (probably as `#[test]` modules or cargo-managed small crates).
-4. **CI environment**: GitHub Actions workflows per language, with cache / toolchain setup.
-
-This is a future-ST concern. The textual-only convention is stable; upgrading to runnable does not require re-authoring existing rule content — only adding sibling files and validator plumbing.
-
 ## Consequences for rule authors
 
 If you are authoring a Rust / Swift / Lua rule:
@@ -92,7 +81,7 @@ If you are authoring a Rust / Swift / Lua rule:
 
 If you are authoring an Elixir rule:
 
-- Your good / bad `.exs` files must exit 0 when run (upstream convention — see `rule-schema.md` "Exit code contract").
+- Your good / bad `.exs` files must exit 0 when run (the upstream convention: see `rule-schema.md` "Exit code contract").
 - Run them locally before committing: `elixir <rule-dir>/good_test.exs && elixir <rule-dir>/bad_test.exs` (`good.exs` / `bad.exs` for code rules). `mix test` cannot run them.
 - CI runs them: `tests/unit/rule_pack_elixir_runnable.bats` executes every listed rule's examples under standalone `elixir` and checks the `# EXPECTED: passes` first line. Add a new rule's slug to its `runnable_code_rules` / `runnable_test_rules` list, or its examples never run.
 
