@@ -35,7 +35,7 @@ Task(subagent_type="critic-<lang>", prompt="review <targets>")
 Task(subagent_type="critic-<lang>", prompt="test-check <targets>")
 ```
 
-Targets are one or more files, directories, or globs. `critic-shell` supports only `review` since shell-test rules are a later addition.
+Targets are one or more files, directories, or globs. `critic-shell` supports only `review`, because the shell pack has no test rules.
 
 ### Mode semantics
 
@@ -44,7 +44,7 @@ Targets are one or more files, directories, or globs. `critic-shell` supports on
 
 `critic-shell` and `critic-prose` narrow the agnostic set, and each says how in its own `agent.md`.
 
-Each rule's own `applies_to` glob provides further gating — the Phoenix rule gates on `lib/**/controllers/**/*.ex`, the LiveView rules on `lib/**/live/**/*.ex`, and the Rust test rules on `src/**/*.rs` and `tests/**/*.rs` (the two test-topology rules on `**/Cargo.toml`).
+Each rule's own `applies_to` glob provides further gating: the Phoenix rule gates on `lib/**/controllers/**/*.ex`, the LiveView rules on `lib/**/live/**/*.ex`, and the Rust test rules on `src/**/*.rs` and `tests/**/*.rs` (the two test-topology rules on `**/Cargo.toml`).
 
 ### Ambiguity handling
 
@@ -148,7 +148,7 @@ Behaviour under edge conditions:
 
 - **Absent file**: apply defaults silently. No warning, no indicator.
 - **Malformed YAML**: the critic subagents print one top-of-report warning line (`(warning: .intent_critic.yml is malformed; using defaults)`) and proceed with defaults. The headless runner and the pre-commit gate parse no YAML: the runner reads only the `disabled:` list (an inline `[A, B]` or a block of `- ID` lines) and the gate reads only a `severity_min:` line and a `show_all: true` line, so neither warns. Never hard-fail on parse errors.
-- **Unknown rule id in `disabled`**: tolerated silently — rule ids vanish from the pack as rules are renamed or retired, and a hard failure on stale config is disproportionate.
+- **Unknown rule id in `disabled`**: tolerated silently: rule ids vanish from the pack as rules are renamed or retired, and a hard failure on stale config is disproportionate.
 
 ## Headless runner (`intent critic`)
 
@@ -179,11 +179,11 @@ Exit codes:
 
 **Mechanical subset only**: only rules that publish a Greppable proxy block, or name an external tool with `critic_tool:` (shellcheck per-file; clippy is `workspace` context and not run per file), are runnable by the headless runner. Rules whose Detection is purely prose (eg "any function body longer than 50 lines") are not run, and every run accounts for them: the text output counts `declared` rules (the Detection says `No greppable proxy is authoritative`) and names `undeclared` ones (it says nothing); `--format json` lists every rule with its `arming`. The LLM subagent (`Task(subagent_type="critic-<lang>")`) remains the canonical path for those.
 
-**Strict-proxy contract** (since v2.11.3): the runner accepts only proxy lines of the form `grep [-r|-n|-E|-rn|-rE|-nE|-rnE|--include=GLOB ...] '<pattern>' [<path>...]` — single grep invocation, no pipes, no `xargs`, no `-L` / `-v` / `-B` / `-A` flags, no awk/sed. Multi-line proxy blocks are accepted as a union of simple lines. A rule whose every proxy line falls outside the contract is census `unrunnable`: it is listed on stdout as `critic: <lang> -- UNRUNNABLE proxy, present but outside the runner contract: <ids>` and in JSON `refused`, and does not change the exit code. Only the single-quoted pattern is used. The line's flags and path arguments are discarded, every pattern runs as an extended regex, and it is applied to each `--files`/`--staged` file that the rule's `applies_to` admits. Globs match suffix-anchored, so `lib/**/*.ex` matches `apps/x/lib/foo.ex`, and a rule with no `applies_to` applies to every file. Rules whose detection cannot be expressed as a simple grep (inverse semantics, filter pipelines, awk state machines, cross-file or callsite-scope reasoning) ship with no Greppable proxy block at all and apply only via `/in-review`.
+**Strict-proxy contract**: the runner accepts only proxy lines of the form `grep [-r|-n|-E|-rn|-rE|-nE|-rnE|--include=GLOB ...] '<pattern>' [<path>...]`: a single grep invocation, no pipes, no `xargs`, no `-L` / `-v` / `-B` / `-A` flags, no awk/sed. Multi-line proxy blocks are accepted as a union of simple lines. A rule whose every proxy line falls outside the contract is census `unrunnable`: it is listed on stdout as `critic: <lang> -- UNRUNNABLE proxy, present but outside the runner contract: <ids>` and in JSON `refused`, and does not change the exit code. Only the single-quoted pattern is used. The line's flags and path arguments are discarded, every pattern runs as an extended regex, and it is applied to each `--files`/`--staged` file that the rule's `applies_to` admits. Globs match suffix-anchored, so `lib/**/*.ex` matches `apps/x/lib/foo.ex`, and a rule with no `applies_to` applies to every file. Rules whose detection cannot be expressed as a simple grep (inverse semantics, filter pipelines, awk state machines, cross-file or callsite-scope reasoning) ship with no Greppable proxy block at all and apply only via `/in-review`.
 
-The runner reads the canon library shipped with the install (`intent/plugins/claude/rules/`), or the directory given with `--rules`, which replaces canon. User extension packs are not read in v3. Agnostic rules are intentionally skipped (they are concretised by language rules and would double-report). Per-project opt-out of specific rule IDs flows through `.intent_critic.yml disabled:` — see the schema section above.
+The runner reads the canon library shipped with the install (`intent/plugins/claude/rules/`), or the directory given with `--rules`, which replaces canon. User extension packs are not read in this build. Agnostic rules are intentionally skipped (they are concretised by language rules and would double-report). Per-project opt-out of specific rule IDs flows through `.intent_critic.yml disabled:`: see the schema section above.
 
-**Code locality** (clarified v2.11.4): the headless runner is `intent critic`, compiled into the v3 `intent` binary since the v2 shell runner was removed, and the canon rule library it reads is the one shipped with the install that the running `intent` binary resolves from its own location (`$INTENT_HOME` is not read), _not_ each project's plugin tree. A fix to the runner, or a strip / edit of a canon rule, applies to every Intent project the moment Intent itself updates; no per-project `intent claude upgrade` is required for the gate's behaviour to change. Per-project `intent claude upgrade --apply` refreshes the project's canon files (`.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`, and the seeded `usage-rules.md`, `.mcp.json` and `.intent_critic.yml`) and the git-hook carriers with their chain blocks (`pre-commit.intent`, and the `post-merge`, `post-checkout` and `post-rewrite` carriers), but it is not on the critical path for runner-or-rule fixes.
+**Code locality**: the headless runner is `intent critic`, compiled into the `intent` binary, and the canon rule library it reads is the one shipped with the install that the running `intent` binary resolves from its own location (`$INTENT_HOME` is not read), _not_ each project's plugin tree. A fix to the runner, or a strip / edit of a canon rule, applies to every Intent project the moment Intent itself updates; no per-project `intent claude upgrade` is required for the gate's behaviour to change. Per-project `intent claude upgrade --apply` refreshes the project's canon files (`.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`, and the seeded `usage-rules.md`, `.mcp.json` and `.intent_critic.yml`) and the git-hook carriers with their chain blocks (`pre-commit.intent`, and the `post-merge`, `post-checkout` and `post-rewrite` carriers), but it is not on the critical path for runner-or-rule fixes.
 
 ## Integration with `/in-review`
 
@@ -199,7 +199,7 @@ The two-stage review skill (`intent/plugins/claude/skills/in-review/SKILL.md`) d
 | `author`          | `critic-prose`  |
 | `content`         | `critic-prose`  |
 
-For each declared code language, `/in-review` issues one `review` call for the code targets and one `test-check` call for the test targets (`critic-shell` takes `review` only); for `author` or `content` it issues one `critic-prose` `review` call over the prose targets. It then reports the union. Polyglot projects (more than one entry in `languages`) dispatch to each matching Critic with a target glob narrowed to its own subtree; array order is the explicit declaration, and the first entry is the primary where one is needed. An empty `languages` array runs no language Critic — only the agnostic checklist applies.
+For each declared code language, `/in-review` issues one `review` call for the code targets and one `test-check` call for the test targets (`critic-shell` takes `review` only); for `author` or `content` it issues one `critic-prose` `review` call over the prose targets. It then reports the union. Polyglot projects (more than one entry in `languages`) dispatch to each matching Critic with a target glob narrowed to its own subtree; array order is the explicit declaration, and the first entry is the primary where one is needed. An empty `languages` array runs no language Critic: only the agnostic checklist applies.
 
 ## Test-spec handoff (Diogenes)
 
@@ -207,7 +207,7 @@ For each declared code language, `/in-review` issues one `review` call for the c
 
 ## Architectural escalation (Socrates)
 
-When a finding depends on a non-local architectural call — cross-module Highlander collapse, genuinely ambiguous Detection, competing design principles — the Critic emits a RECOMMENDATION citing `socrates`:
+When a finding depends on a non-local architectural call (cross-module Highlander collapse, genuinely ambiguous Detection, competing design principles), the Critic emits a RECOMMENDATION citing `socrates`:
 
 ```
 RECOMMENDATION
@@ -264,7 +264,7 @@ Interpreting the report:
 
 - Read severity headers top-down. Critical always comes first; fix those before touching warnings.
 - Each finding's id opens the rule: `intent claude rules show <id>` prints it with its source path in the Intent install (`intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md`).
-- The `Rules applied:` line tells you whether any rules were filtered out by `.intent_critic.yml` — if the count is unexpectedly low, check the config.
+- The `Rules applied:` line tells you whether any rules were filtered out by `.intent_critic.yml`: if the count is unexpectedly low, check the config.
 
 ## Non-goals
 
