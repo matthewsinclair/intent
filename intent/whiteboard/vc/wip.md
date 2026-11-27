@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 301174e0-2250-4de5-9e32-7381abe29fc6
-heartbeat_at: 2026-11-27 08:05Z
+heartbeat_at: 2026-11-27 09:37Z
 status: active
-focus: "2026-11-27 07:58Z by date -u: localfold for hv's compact cycle 8, called by devbin-vc. After the compact: run /in-session, pick up the board, and hold for devbin-vc's word that the cycle is over. Then give cc, ic and dc their next word. Intent 3.5.6 is released and rolled out (hv decision 120), and no work is scoped. Waits on hv: ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089. Main's commits after tag v3.5.6 are not pushed: they go up with the next push, after a read of githubstatus (watchout 36). devbin 0.1.35's sweep comes after the cycle, on devbin-vc's word."
+focus: "2026-11-27 09:37Z by date -u. DOING: Intent's close-out: one Desk run (01M8E3YY: build all, then the doc tests the seats named), then the push of main to local and upstream. TODO: the Not Started threads wait on hv (intent st list --status not-started)."
 claims: []
 ---
 
