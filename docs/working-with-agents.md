@@ -18,7 +18,7 @@ The usual fix is a context file: `AGENTS.md`, `CLAUDE.md`, a `.cursorrules`. **T
   $ intent agents sync
 ```
 
-This regenerates `AGENTS.md` from Intent's template and the project's configuration: its name, its author and its declared languages, each language adding its toolchain's commands. **Do not hand-edit it; the next sync overwrites you.** It is written at your repository root, or in `.claude/` when the project's `contracts` key is `dotclaude`, for a tree whose root people read rather than tools: `intent init --contracts dotclaude` sets that at birth, and `intent agents layout <root|dotclaude>` moves an existing project between the two. `CLAUDE.md` always sits beside it.
+This regenerates `AGENTS.md` from Intent's template and the project's configuration: its name, its declared languages, each of which adds its toolchain and its formatter, whether it builds through `bin/devbin`, and the build and test commands it declares. **Do not hand-edit it; the next sync overwrites you.** It is written at your repository root, or in `.claude/` when the project's `contracts` key is `dotclaude`, for a tree whose root people read rather than tools: `intent init --contracts dotclaude` sets that at birth, and `intent agents layout <root|dotclaude>` moves an existing project between the two. `CLAUDE.md` always sits beside it.
 
 The contract is split across these files, and the split is deliberate:
 
@@ -124,7 +124,7 @@ Runs that must not overlap are booked through slots, and the session hv assigns 
 
 **It buys a context file that does not silently drift**, because it is generated from something that would have to change first and `intent doctor` says when it is behind, and rules with one home that three consumers read.
 
-**It does not buy correctness.** An agent with perfect context can still write bad code. The claim is narrower and worth stating plainly: the agent is working from what the project actually says about itself, rather than from what somebody wrote down once and nobody has checked since.
+**It does not buy correctness.** An agent with perfect context can still write bad code. The claim is narrower: the agent works from what the project says about itself, rather than from what somebody wrote down once and nobody has checked since.
 
 ---
 
