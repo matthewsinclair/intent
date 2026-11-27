@@ -1,6 +1,6 @@
 # Installation
 
-Intent is a binary plus a support tree. The support tree is not optional: several commands resolve files out of it at runtime, and an install missing it breaks those commands. **Not all of them fail when it does.** Some refuse with an error, and `intent claude rules list`, `intent claude skills list`, `intent claude subagents list` and `intent plugin list` answer at exit 0 however little they find, which is why the check below is read by its output rather than by its exit code.
+Intent is a binary plus a support tree. The support tree is not optional: several commands resolve files out of it at runtime, and an install missing it breaks those commands. **Not all of them fail when it does**, so [the install check](#verifying-an-install) is read by its output rather than by its exit code.
 
 ## Homebrew (macOS on Apple silicon)
 
@@ -33,7 +33,7 @@ Intent installs on Linux through [Homebrew on Linux](https://docs.brew.sh/Homebr
 
 The formula installs the package for the machine's architecture, x86_64 or aarch64: `intent` and `intentd`, built static against musl, and the support tree, laid out under the keg's `libexec` as on macOS (see [What the install has to contain](#what-the-install-has-to-contain)). Nothing needs a checkout of Intent's source. `intent bootstrap` is the same step as on macOS ([above](#homebrew-macos-on-apple-silicon)), and the formula's caveat names it.
 
-**No `brew trust` step is needed.** On a Linux machine that had never run `brew trust`, Homebrew 7.0.9 added this tap and read its formula, and a fully-qualified `brew install` from a tap it had not been told to trust went through.
+**No `brew trust` step is needed.** A fully qualified `brew install` from this tap goes through on a machine that has never run `brew trust`.
 
 Then, in a new project:
 
@@ -64,7 +64,7 @@ Requires stable Rust 1.90 or later: the workspace is edition 2024, and 1.90 is t
   $ cargo build --release
 ```
 
-The binaries land in `native/rust/target/release/`. **The binary finds its own templates, rule library and skills, and nothing needs setting.** `intentsvcs::install::home()` reads `std::env::current_exe()`, canonicalises it, and walks up until it reaches a directory containing `lib/templates`. A source build's binary therefore resolves to the repository root by construction. Symlinks are resolved before that walk, because a packaged `intent` is reached through one (Homebrew's `bin/intent` points into the Cellar), and walking up from the link would climb the wrong tree entirely.
+The binaries land in `native/rust/target/release/`. **The binary finds its own templates, rule library and skills, and nothing needs setting.** `intentsvcs::install::home()` resolves the running executable's symlinks and walks up from it to the first directory that contains `lib/templates`, so a source build's binary resolves to the repository root.
 
 So a source build needs only the binary on `PATH`:
 
@@ -72,13 +72,11 @@ So a source build needs only the binary on `PATH`:
   $ export PATH="/path/to/intent/native/rust/target/release:$PATH"
 ```
 
-**Do not set `INTENT_HOME`. v3 never reads it.** It is v2's variable. v3 resolves its install root from its own location and nothing else, so setting the variable cannot point a binary at a different tree and cannot repair an install that is missing part of its support tree. `intent info` prints the resolved root on a line labelled `INTENT_HOME`; that line is output, not a setting.
+**Do not set `INTENT_HOME`: nothing in Intent reads it.** The binary resolves its install root from its own location and nothing else, so setting the variable cannot point a binary at a different tree and cannot repair an install that is missing part of its support tree. `intent info` prints the resolved root on a line labelled `INTENT_HOME`; that line is output, not a setting.
 
 ## Per-user files
 
-Intent keeps each user's files in the XDG Base Directory layout. Configuration lives under `$XDG_CONFIG_HOME/intent/` (default `~/.config/intent/`). Data lives under `$XDG_DATA_HOME/intent/` (default `~/.local/share/intent/`): the install pointer and the skill and subagent manifests. An `ext/` moved there from `~/.intent/` is kept, but nothing reads it in this release and `intent ext` is not implemented. `intentd`'s logs live under `$XDG_STATE_HOME/intent/` (default `~/.local/state/intent/`). Its runtime files live under `$XDG_RUNTIME_DIR/intent/`, or under `run/` in the state directory (`~/.local/state/intent/run/` by default) when that variable is unset, as it always is on macOS. A variable that is unset, empty or not an absolute path takes its default. The pre-commit gate's shim applies the same rule, so it reads the pointer `intent bootstrap` wrote.
-
-The first command of v3.0.2 or later moves what an earlier build kept in `~/.intent/` into this layout, and removes `~/.intent/` when that leaves it empty. Anything else in it is left alone.
+Intent keeps each user's files in the XDG Base Directory layout. Configuration lives under `$XDG_CONFIG_HOME/intent/` (default `~/.config/intent/`). Data lives under `$XDG_DATA_HOME/intent/` (default `~/.local/share/intent/`): the install pointer and the skill and subagent manifests. An `ext/` there is kept, but nothing reads it: `intent ext` is not implemented. `intentd`'s logs live under `$XDG_STATE_HOME/intent/` (default `~/.local/state/intent/`). Its runtime files live under `$XDG_RUNTIME_DIR/intent/`, or under `run/` in the state directory (`~/.local/state/intent/run/` by default) when that variable is unset, as it always is on macOS. A variable that is unset, empty or not an absolute path takes its default. The pre-commit gate's shim applies the same rule, so it reads the pointer `intent bootstrap` wrote.
 
 ## Verifying an install
 
@@ -130,7 +128,7 @@ If a command fails with an error naming a path rather than an argument, this tab
 
 **Views an older build rendered report as `stale-render` in `intent doctor --verbose`;** a default `intent doctor` run counts them only as advisory notes it does not show. This is advisory and does not block a commit. Each group's remedy line names the verb that clears its views: `intent sync --to-disk` re-renders a realised view, and `intent sync --apply` removes an unrealised one, which the store still holds in full.
 
-**From v3.4.x or earlier, new ids are git-style, and nothing is renumbered.** From this release Intent mints every new steel thread, work package and issue under an id taken from the event that created it, so two clones that create one at the same time can no longer pick the same id. A thread shows as `ST3f9a2c1`, an issue as `I3f9a2c1`, and a work package as `ST3f9a2c1/c2e4`, and any unique prefix of at least four hex, or five if they are all digits, names one. Every existing id stays exactly as it is and keeps working in every command: `ST0001`, `ST0001/02` and issue `0012` mean what they meant. To take it up:
+**From v3.4.x or earlier, new ids are git-style, and nothing is renumbered.** From 3.5.0, Intent mints every new steel thread, work package and issue under an id taken from the event that created it, so two clones that create one at the same time can no longer pick the same id. A thread shows as `ST3f9a2c1`, an issue as `I3f9a2c1`, and a work package as `ST3f9a2c1/c2e4`, and any unique prefix of at least four hex, or five if they are all digits, names one. Every existing id stays exactly as it is and keeps working in every command: `ST0001`, `ST0001/02` and issue `0012` mean what they meant. To take it up:
 
 1. **First, upgrade Intent on every machine that opens the project.** An older Intent cannot read an upgraded project's canon: it refuses, naming each file it cannot read, and changes nothing.
 2. **Before you run `intent upgrade`, land or merge any open branch that adds work packages to a thread.** Two branches cut before the upgrade that each made the same ordinal package would meet, once upgraded, as an add/add on that package's one record file. Intent refuses that merge, naming the thread and the package, and says how to resolve it by hand.
@@ -147,11 +145,7 @@ If a command fails with an error naming a path rather than an argument, this tab
 
 Until a project is upgraded, the new Intent works on its existing ids as 3.4.x did. `st new`, `wp new`, `issues add` and the remints refuse, write nothing and name `intent upgrade`, and `intent doctor` names the upgrade as an advisory it does not count.
 
-**From v3.2.0 or earlier, run `intent bootstrap` once after the upgrade.** Those builds recorded the versioned keg, `<prefix>/Cellar/intent/<version>/libexec`, as the install pointer, and `brew upgrade` deletes that keg, so until you run it every commit in a project with the gate installed is refused, and the refusal names the command. From v3.2.1, `intent bootstrap` records `<prefix>/opt/intent/libexec`, Homebrew's link to whichever version is current, so later upgrades need nothing. `intent bootstrap --check` says whether the pointer still names a versioned keg.
-
-**From v3.0.1 or earlier,** the first command of v3.0.2 or later moves your per-user files out of `~/.intent/` (see [Per-user files](#per-user-files)). A pre-commit gate installed by the older build still reads the old pointer, so run `intent claude upgrade --apply --skip-settings` in each project, and run `intent bootstrap` if `~/.local/share/intent/home` does not exist.
-
-**From v3.0.0,** note that the v3.0.0 keg shipped without the rule library, the skills and `intent_claude_cwi`. The [v3.0.1 release notes](releases/3.0.1/RELEASE_NOTES.md) cover that migration.
+**From a release before 3.2.1**, each release's notes under [`docs/releases/`](releases/) say what its upgrade needs.
 
 ## For the maintainer of a dev checkout
 
@@ -165,7 +159,7 @@ Everything above names Homebrew alone, which is the tree every user runs. A main
 
 The keg stays linked through all of it. `intent use` puts dev or opt in front of it, and nothing unlinks or pins it.
 
-**The switch governs login shells only.** A process started without the login PATH, such as the Claude Code desktop app, a Claude Code session resumed from before `~/.local/bin` was put first, or cron, has Homebrew's bin and not `~/.local/bin`. It runs Homebrew's `intent` for Claude Code's hooks (`intent claude hook ...` in `.claude/settings.json`) and its MCP server (`"command": "intent"` in `.mcp.json`) while the shell runs dev or opt, and `intent doctor` cannot see it. Start such a session again from a login shell after a switch. Relaunch Intent.app once after upgrading to the release that carries `intent use`; from then on it follows the link at every spawn.
+**The switch governs login shells only.** A process started without the login PATH, such as the Claude Code desktop app, a Claude Code session resumed from before `~/.local/bin` was put first, or cron, has Homebrew's bin and not `~/.local/bin`. It runs Homebrew's `intent` for Claude Code's hooks (`intent claude hook ...` in `.claude/settings.json`) and its MCP server (`"command": "intent"` in `.mcp.json`) while the shell runs dev or opt, and `intent doctor` cannot see it. Start such a session again from a login shell after a switch.
 
 ## Known defects
 
