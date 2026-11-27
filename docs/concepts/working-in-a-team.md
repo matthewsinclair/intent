@@ -613,7 +613,7 @@ doctor-on-the-merge-result:
 
   steps:
     - uses: actions/checkout@v7
-    - uses: dtolnay/rust-toolchain@stable
+    - uses: ./.github/actions/fleet-rust
     - uses: Swatinem/rust-cache@v2
       with:
         workspaces: native/rust
