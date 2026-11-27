@@ -8,12 +8,12 @@ Every rule in Intent's rule library has a stable, cite-able identifier.
 
 Fixed segments separated by hyphens:
 
-| Segment  | Values                                                                                                                                                                |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                                                                     |
-| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh), `PR` (prose), `AU` (author), `CO` (content). |
-| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`).                                                                                  |
-| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                                                                        |
+| Segment  | Values                                                                                                                                                               |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                                                                    |
+| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell: bash + zsh), `PR` (prose), `AU` (author), `CO` (content). |
+| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`).                                                                                 |
+| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                                                                       |
 
 ## Examples
 
@@ -34,15 +34,15 @@ Fixed segments separated by hyphens:
 
 Fixed, two-letter, uppercase. Extending this list requires a schema bump.
 
-- `AG` — agnostic (cross-language principles)
-- `EX` — Elixir
-- `RS` — Rust
-- `SW` — Swift
-- `LU` — Lua
-- `SH` — Shell (bash + zsh both fall under this code; per-rule frontmatter tags distinguish bash-specific, zsh-specific, or both)
-- `PR` — Prose (the shared prose-hygiene base: banned filler, vanity metrics, heading hygiene, the mechanical trope pass; depended on by every prose discipline, not generic to code)
-- `AU` — Author (books, courseware, long-form prose; builds on the `PR` prose base)
-- `CO` — Content (web content: pages, posts, marketing copy; builds on the `PR` prose base, adds web-specific rules -- meta, alt-text, links, scannability, CTA)
+- `AG`: agnostic (cross-language principles)
+- `EX`: Elixir
+- `RS`: Rust
+- `SW`: Swift
+- `LU`: Lua
+- `SH`: Shell (bash + zsh both fall under this code; per-rule frontmatter tags distinguish bash-specific, zsh-specific, or both)
+- `PR`: Prose (the shared prose-hygiene base: banned filler, vanity metrics, heading hygiene, the mechanical trope pass; depended on by every prose discipline, not generic to code)
+- `AU`: Author (books, courseware, long-form prose; builds on the `PR` prose base)
+- `CO`: Content (web content: pages, posts, marketing copy; builds on the `PR` prose base and adds web-specific rules: meta, alt-text, links, scannability, CTA)
 
 Why two letters: short enough to read inline in Critic reports; distinct enough to grep.
 
@@ -135,11 +135,11 @@ concretised_by:
 
 ## Comparison with upstream
 
-Upstream (`elixir-test-critic`) uses `ETC-<CAT>-<NNN>` — a two-segment scheme without a language code because upstream is Elixir-only.
+Upstream (`elixir-test-critic`) uses `ETC-<CAT>-<NNN>`, a two-segment scheme without a language code, because upstream is Elixir-only.
 
 Intent's scheme has the language code because Intent covers agnostic, Elixir, Rust, Swift, Lua, shell and the prose packs. The cost of the extra segment is worth the clarity when rules from several sources appear in one report.
 
-When Intent ports an upstream principle, the Intent rule stores the upstream slug in `upstream_id:`. The IDs are not mechanically convertible — Intent assigns its own sequence. Shipped upstream-derived rules:
+When Intent ports an upstream principle, the Intent rule stores the upstream slug in `upstream_id:`. The IDs are not mechanically convertible: Intent assigns its own sequence. Shipped upstream-derived rules:
 
 | Intent ID        | Upstream `upstream_id` | Upstream ID    | Upstream path                 |
 | ---------------- | ---------------------- | -------------- | ----------------------------- |
@@ -147,7 +147,7 @@ When Intent ports an upstream principle, the Intent rule stores the upstream slu
 | `IN-EX-TEST-003` | `async-by-default`     | `ETC-CORE-001` | `rules/core/async-by-default` |
 | `IN-EX-TEST-004` | `start-supervised`     | `ETC-CORE-006` | `rules/core/start-supervised` |
 
-`IN-EX-TEST-001` (strong-assertions) is Intent-original — no upstream counterpart (upstream's `test-shape-not-values` is telemetry-scoped, not a general strong-assertions rule).
+`IN-EX-TEST-001` (strong-assertions) is Intent-original, with no upstream counterpart (upstream's `test-shape-not-values` is telemetry-scoped, not a general strong-assertions rule).
 
 See `attribution-policy.md` for the attribution discipline.
 
@@ -177,9 +177,9 @@ Adding a new language requires:
 - New two-letter language code, agreed on.
 - Documentation update here.
 - Rule directory `rules/<lang>/` created.
-- At least one seed rule in the new pack — subsequent rules copy from it.
+- At least one seed rule in the new pack, which later rules copy from.
 - `language` enum in `rules/_schema/rule-schema.md` extended; the codes table here updated.
-- The language added to `LANGUAGES` in `native/rust/crates/intentsvcs/src/rules.rs` -- the canon-enumeration allowlist, which `intent lang init` also derives its accepted languages from. Without it the pack is invisible to `intent claude rules list` and anything else that enumerates canon. The v3 validator (`intent claude rules validate`) checks an id's shape and keeps no list of language codes, so it needs no change. (In v2 this step was the validator regex in `intent_claude_rules` plus `LANG_SUBDIRS` in `rules_lib.sh`, both removed with the v2 shell.)
+- The language added to `LANGUAGES` in `native/rust/crates/intentsvcs/src/rules.rs`: the canon-enumeration allowlist, which `intent lang init` also derives its accepted languages from. Without it the pack is invisible to `intent claude rules list` and anything else that enumerates canon. The validator (`intent claude rules validate`) checks an id's shape and keeps no list of language codes, so it needs no change.
 - If the pack gets a headless critic, add it to `HEADLESS_LANGUAGES` in `native/rust/crates/intentsvcs/src/critic.rs`. If it is declarable but has none (as `author` and `content`), the `critic` handler in `native/rust/crates/intent-cli/src/render.rs` must treat it as a clean no-op, or `intent critic` refuses it at exit 2 and the pre-commit gate reports it UNENFORCED. If it is composed into other packs rather than declared (as `agnostic` and `prose`), add it to `NON_DECLARABLE` in `rules.rs`.
 
 Adding a new category code within an existing language: lighter process. Add the category code to the Category codes table above and start numbering from `001`.
