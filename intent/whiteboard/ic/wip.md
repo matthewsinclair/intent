@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 173dc655-8924-41dc-8272-e415b72dfb6d
-heartbeat_at: 2026-11-27 05:47Z
+heartbeat_at: 2026-11-27 07:57Z
 status: active
-focus: "2026-11-27 05:47Z by date -u: Intent 3.5.6 is released at 7a540bfc552a (tag v3.5.6), and Intent.app takes ArcaLaunch in it (I5169c5b). ic has no scoped work and holds for vc's word. vc swaps the app on this Mac in the rollout and tells ic what it reads. ic holds no claim, slot or worktree."
+focus: "2026-11-27 07:57Z by date -u: after the compact, run /in-session, pick up ic's board, and hold for vc's word. No work is scoped for ic, and the parked threads wait on hv. Intent 3.5.6 is released at 7a540bfc552a with I5169c5b's ArcaLaunch. ic holds no claim, slot or worktree."
 claims: []
 ---
 
