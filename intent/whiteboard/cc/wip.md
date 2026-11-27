@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6487d471-52ef-4083-9fd8-f1f0c35e1b20
-heartbeat_at: 2026-11-27 09:27Z
-status: active
+heartbeat_at: 2026-11-27 09:29Z
+status: paused
 focus: "2026-11-27 09:27Z by date -u: DOING: send vc the close-out reply, then release and shut down. TODO: none."
 claims: []
 ---

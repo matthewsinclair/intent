@@ -5,8 +5,8 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "6487d471-52ef-4083-9fd8-f1f0c35e1b20",
-    "heartbeat_at": "2026-11-27T09:27:24.037Z",
-    "status": "active",
+    "heartbeat_at": "2026-11-27T09:29:27.114Z",
+    "status": "paused",
     "focus": "2026-11-27 09:27Z by date -u: DOING: send vc the close-out reply, then release and shut down. TODO: none.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
@@ -3605,6 +3605,14 @@
       "fyi": false,
       "recorded_at": "2026-11-26T15:15:04.517Z",
       "archived_at": "2026-11-26T18:19:18.877Z"
+    },
+    {
+      "id": "01M8E5C7EA2N5PZ3PDYESKJFWW",
+      "recipient": "vc",
+      "body": "CLOSE-OUT DONE, cc, 2026-11-27 09:28Z by date -u. Each doc commit carries one path, went through the gate, and is local only:\n0f47540d0 lib/templates/llm/_ARCHITECTURE.md; 5e12c657d lib/templates/llm/_RULES.md; 31d3e0631 lib/templates/llm/_usage-rules.md; 38501d9c4 intent/llm/ARCHITECTURE.md; bb1294d75 intent/llm/DECISION_TREE.md; c82b5f9a0 intent/llm/RULES.md; 1c801b613 and b0910ffd3 usage-rules.md; 876d2f793 intent/docs/critics.md; 99476632b intent/docs/rules.md; afc6cee59 docs/concepts/steel-threads.md; 69d3f59f8 docs/concepts/the-store.md; 1f8a0dc68 docs/concepts/working-in-a-team.md; b8b77fe0b _schema/CI-LIMITATIONS.md; d9d907c77 _schema/attribution-policy.md; 6e8515582 _schema/id-scheme.md; f971735b3 and 0b57fe889 _schema/rule-schema.md; 7fc8c412a _attribution/elixir-test-critic.md; 9887ce5c9 teams/TERMS.md. Board: 7906b0bc8 (no item to archive; .history kept, per your correction).\nChecked against the code and left unchanged: every subagent agent.md, teams/{team,solo,supervisor,supervised}.md, _schema/sample-intent-critic.yml, docs/concepts/{index,criteria-and-tests}.md.\nTests that read a changed doc, for the one run: tests/unit/{docs_completeness,the_skill_corpus_keeps_one_home_each,critic_config,attribution_compliance,devbin_fmt_md}.bats; intentsvcs/tests/{every_key_the_runner_reads_is_declared,team_profiles,canon_seeds_usage_rules_with_the_project_name}.rs; intent-cli/tests/{shipped_prose_states_the_id_constants,the_critic_contract_is_read_from_the_install,wb_profile_door,claude_cwi_door,embedded_init,init_from_empty_dir,init_over_existing_files}.rs. lib/templates/llm moved, so the build all covers the pair.\nNothing stops the shutdown. Found, not in my list: intent organize --help still says it reconciles with .intentfiles, which 3.5.0 folded into the records (surface/dispatch-table, generated). Next: wb release, its commit, then SHUT-DOWN-READY.",
+      "re": "2026-11-27 08:46Z",
+      "fyi": false,
+      "recorded_at": "2026-11-27T09:28:55.498Z"
     }
   ],
   "handled": [
@@ -4217,6 +4225,16 @@
       "id": "01M8C67BQ3V8W40D9JB5XM3658",
       "sender": "ic",
       "handled_at": "2026-11-26T15:23:21.302Z"
+    },
+    {
+      "id": "01M8E2Y79MW37VWVMMNZVSZJ83",
+      "sender": "vc",
+      "handled_at": "2026-11-27T09:29:26.265Z"
+    },
+    {
+      "id": "01M8E30WPFD3X06YWDM888491H",
+      "sender": "vc",
+      "handled_at": "2026-11-27T09:29:26.265Z"
     }
   ]
 }
