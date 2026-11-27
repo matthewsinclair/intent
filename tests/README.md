@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains Intent's bats suite, written with [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System). The Rust suites live under each crate's `tests/` in `native/rust/crates/` and run from `native/rust` with `cargo test --workspace --no-fail-fast` (see `.github/workflows/README.md`).
+This directory contains Intent's bats suite, written with [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System). The Rust suites live under each crate's `tests/` in `native/rust/crates/`, and `bin/devbin test rust` runs them (see `.github/workflows/README.md`).
 
 ## Directory Structure
 
@@ -16,7 +16,7 @@ tests/
 └── README.md                      # This file
 ```
 
-The suite drives the v3 binary at `native/rust/target/release/intent`, so build it first (`cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd`, as CI does), or set `INTENT_BIN` to another binary. Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also need an `intent` on PATH: the hook refuses a commit in an Intent project when it cannot run `intent`.
+The suite drives the binary at `native/rust/target/release/intent`, so build it first with `bin/devbin build all`, or set `INTENT_BIN` to another binary. Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also need an `intent` on PATH: the hook refuses a commit in an Intent project when it cannot run `intent`.
 
 ## Prerequisites
 
@@ -36,22 +36,14 @@ Arms that drive an external tool call `require_tool`, which fails the arm when t
 
 ## Running Tests
 
-### Run all tests:
+Run the suite through `bin/devbin`, never with `tests/run_tests.sh` or `bats` directly (`AGENTS.md`). Where `intent estate status` shows that the estate has a controller, ask it for a slot first (`intent estate slots ask`).
 
 ```bash
-./tests/run_tests.sh
-```
+# Every bats file
+bin/devbin test shell
 
-### Run specific test file:
-
-```bash
-./tests/run_tests.sh tests/unit/daemon_commands.bats
-```
-
-### Run all unit tests:
-
-```bash
-./tests/run_tests.sh tests/unit/
+# One bats file
+bin/devbin test shell tests/unit/daemon_commands.bats
 ```
 
 ## Writing Tests
@@ -102,27 +94,13 @@ load "../lib/test_helper.bash"
 
 Each file under `unit/` names its subject in its header comment; read that rather than a list here, which goes stale the first time a file is added or removed.
 
-## Debugging Tests
-
-To see more output when debugging:
-
-```bash
-# Print each `run`'s output
-bats --verbose-run tests/unit/pre_commit_hook.bats
-
-# Trace test commands as they execute
-bats -x tests/unit/pre_commit_hook.bats
-
-# Run with TAP output
-bats -t tests/unit/pre_commit_hook.bats
-```
-
 ## CI/CD
 
 Tests run automatically via GitHub Actions on:
 
 - Every push to `main`
 - Every pull request targeting `main`
-- Every push of a release candidate (`candidate/**`), whose run adds the macOS leg and `rust.yml`'s job to the Ubuntu leg; elsewhere they run only when the workflow is dispatched by hand
+- Every push of a release candidate (`candidate/**`), whose run adds `rust.yml`'s job to the Ubuntu leg
+- A run by hand (`workflow_dispatch`), which adds the macOS leg and `rust.yml`'s job
 
 A push or pull request whose changed paths all fall under `intent/whiteboard/**` or `intent/.canon/**` does not trigger the suite. A newer push to the same ref cancels the run it supersedes. Each leg builds the release binaries before running `tests/run_tests.sh`. See `.github/workflows/tests.yml` for the CI configuration.
