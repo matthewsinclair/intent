@@ -1,0 +1,15 @@
+{
+  "id": "01M8DRWREY4D621GY5YHHGWF2D",
+  "ts": "2026-11-27T05:50:45.727Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-27, first-hand in prose in vc's session, at 05:27:51Z and 05:45:08Z by the transcript's stamps; hv's words: \"ok, you have my pre-approval to do all of that on your own, as needed.\" and, asked whether that takes in releasing.md step 5, \"yes, step 5 too\") INTENT 3.5.6'S AFTER-CUT STEPS ARE PRE-APPROVED. vc's reading, not hv's words: \"all of that\" is what vc named just before it: the Desk's lines at each leg's end, the cut followed to its END with the slot released, and the rollout (brew upgrade intent, intent use brew, intent --version, intent doctor, intent daemon start and the app swap). hv's second answer adds step 5, the site's db/release.json and its push. Executed the same morning: hv typed the cut at 05:22Z and answered its confirm by 05:27Z. v3.5.6 is released at 7a540bfc552a, and the cut ended at 05:45:59Z. The rollout ran from 05:47:27Z to 05:47:56Z. The site's release record is 5d50691, pushed at 05:49:10Z, and intent.laksa.io reads 3.5.6."
+  }
+}

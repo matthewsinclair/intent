@@ -1209,6 +1209,14 @@
       "text": "(hv, 2026-11-26, first-hand in prose in vc's session, read by 14:31Z on vc's date -u; hv's words: \"I'm about to be AFK for 1hr while I got to the gym. I want you to close out as mucn as can be closed out now this evening. Ok? Go! devbin-vc has The Pen and The Desk.\") INTENT 3.5.6 GOES NOW, AS FAR AS IT CAN GO WHILE hv IS AWAY. vc's reading, not hv's words: the seats start without waiting for devbin-vc's reply to the plan sync. devbin-vc holds the Pen and the Desk (hv decision 103). ic and dc build, prove and bank. vc lands both. dc runs gate all and test shell at the final tip. vc runs the dry run if it can run without hv at the Mac. The cut waits for hv's own keystroke (hv decision 3): a general approval does not lift the cut's /dev/tty confirm (hv decision 108).",
       "state": "live",
       "recorded_at": "2026-11-26T14:32:13.389Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 120,
+      "text": "(hv, 2026-11-27, first-hand in prose in vc's session, at 05:27:51Z and 05:45:08Z by the transcript's stamps; hv's words: \"ok, you have my pre-approval to do all of that on your own, as needed.\" and, asked whether that takes in releasing.md step 5, \"yes, step 5 too\") INTENT 3.5.6'S AFTER-CUT STEPS ARE PRE-APPROVED. vc's reading, not hv's words: \"all of that\" is what vc named just before it: the Desk's lines at each leg's end, the cut followed to its END with the slot released, and the rollout (brew upgrade intent, intent use brew, intent --version, intent doctor, intent daemon start and the app swap). hv's second answer adds step 5, the site's db/release.json and its push. Executed the same morning: hv typed the cut at 05:22Z and answered its confirm by 05:27Z. v3.5.6 is released at 7a540bfc552a, and the cut ended at 05:45:59Z. The rollout ran from 05:47:27Z to 05:47:56Z. The site's release record is 5d50691, pushed at 05:49:10Z, and intent.laksa.io reads 3.5.6.",
+      "state": "live",
+      "recorded_at": "2026-11-27T05:50:45.727Z"
     }
   ],
   "sent": [],

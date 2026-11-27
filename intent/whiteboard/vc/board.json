@@ -3253,10 +3253,10 @@
       "node": "vc",
       "kind": "watchout",
       "seq": 38,
-      "text": "Intent's dry run and cut, on devbin-dc's read relayed by devbin-vc at 14:44Z on 2026-11-26 (read, not measured for Intent): Intent's macOS stage runs Intent's own handler (bin/.devbin/cmd/macos). It reads three generic-password items from the login keychain file and submits with --apple-id, --password and --team-id. No notarytool profile and no data-protection item is in that path, so the credentials do not need hv at the Mac. The dry run's pre-flight runs Intent's macos doctor (the three items and a test-sign) and submits nothing. Limits: a system sleep stops any run, and a login keychain set to lock on sleep or idle locks the file (security show-keychain-info reads the setting). The dry run may run while hv is away; a keychain red in pre-flight stops there and waits for hv. Keep the display awake only on hv's word. Ask devbin-vc before any kovacs leg. The cut stays hv's keystroke (hv decision 3).",
+      "text": "Intent's dry run and cut, corrected forward on 2026-11-27 from the 3.5.6 cut's log: the dry run runs release.preflight only (six commands, none of them macOS), so it reads no keychain item and signs nothing. The cut's macOS leg (bin/.devbin/cmd/macos, Intent's own handler) is the first step that reads the three generic-password items from the login keychain file and signs and submits with --apple-id, --password and --team-id. At 3.5.6 that leg went green at 05:29:39Z. No notarytool profile and no data-protection item is in that path. Limits: a system sleep stops any run, and a login keychain set to lock on sleep or idle locks the file (security show-keychain-info reads the setting), so tell hv that a keychain prompt can come in the macOS leg. Keep the display awake only on hv's word. Ask devbin-vc before any kovacs leg. The cut stays hv's keystroke (hv decision 3).",
       "state": "live",
       "recorded_at": "2026-11-25T17:47:54.652Z",
-      "edited_at": "2026-11-26T14:45:01.683Z"
+      "edited_at": "2026-11-27T05:50:55.108Z"
     },
     {
       "node": "vc",
@@ -3280,7 +3280,8 @@
       "kind": "doing",
       "seq": 70,
       "text": "Intent 3.5.6 is READY (hv decisions 118 and 119): every fix landed and closed (I8b74f2a fc33a251a, I5169c5b af157d266, If7e7665 9fc66c4ac, I47c94cf 1a9bc8702), step 2 at de4261bb1, gate all and test shell green at de4261bb1, and the dry run green at e85cfd709 (six pre-flight checks, the defects check among them). intentd is stopped. Every seat's boards are committed, and no seat writes until the cut's END. Next: hv types bin/devbin release v3.5.6 in hv's own terminal in ~/Devel/prj/Intent and answers its confirm. After the cut: intent daemon start, brew upgrade intent, the app swap, and releasing.md step 5.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-27T05:50:54.003Z",
       "recorded_at": "2026-11-26T14:29:44.173Z",
       "edited_at": "2026-11-26T15:37:31.269Z"
     },
