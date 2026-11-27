@@ -1,0 +1,325 @@
+#!/usr/bin/env bash
+#
+# The built-in `howto`: instructions written for an LLM, one topic a folder.
+#
+#   howto                 list every topic: its name, its source and its summary
+#   howto <topic>         print the topic, under a first line naming its source
+#   howto <glob>          list the topics whose name, summary or a keyword match
+#   ... --core            read devbin's own topics alone
+#
+# TWO SOURCES. Core topics ship with devbin, at howto/<topic>/index.md under
+# the library this runs from, so every project vendors them with the rest of
+# the library. Project topics are the project's own, at
+# bin/.devbin/howto/<topic>/index.md, found as its commands under cmd/ and its
+# pages under help/ are: install and upgrade never write there. A project
+# topic overrides a core topic of the same name, and the list shows both and
+# marks the winner. One topic is core-only: forllms, which says how to read
+# every other, so a project copy is listed as ignored and never printed.
+#
+# THE HEADER. Each index.md opens with a header and nothing else is read from
+# it: a `---` line, `summary: <one line>`, `keywords: [a, b]` and a closing
+# `---`. A header that is not that shape is refused at exit 1, naming the file
+# and what is wrong, never read past: a topic whose summary cannot be read is
+# not listed under a guess at one. Other files in a topic's folder are parts
+# that its index.md names by relative path.
+#
+# A WORD THAT NAMES NO TOPIC lists the nearest names, by edit distance with
+# every tie, and exits 1: a guess at a near name would print instructions
+# nobody asked for. `all` is such a word: howto has no options, so it joins no
+# synthesised `all`. A glob (a word holding `*`, `?` or `[`) never prints a
+# body, and matches without regard to case. Nothing here writes, and nothing
+# prints colour.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/install
+. "$DEVBIN_LIB/install"
+
+ME="${DEVBIN_INVOKE:-bin/devbin} howto"
+
+usage() {
+  cat <<USAGE
+usage: $ME [<topic>|<glob>] [--core]
+
+  (none)     List every topic: its name, its source and its summary.
+  <topic>    Print the topic named, under a first line naming its source:
+             core, with the devbin version, or project, with its path.
+  <glob>     A word holding *, ? or [: list the topics whose name, summary or
+             a keyword match it, in any case. A list never prints a topic.
+  --core     Read devbin's own topics alone, so a project topic that overrides
+             one is passed over.
+
+  Project topics live at bin/.devbin/howto/<topic>/index.md, the project's
+  own, and override a core topic of the same name. forllms is core-only.
+  Exit 0 when the topic was printed or the list read, 1 for a word that names
+  no topic (the nearest names are listed), a glob that matches none, or a
+  header that is not the shape a topic needs.
+  See ${DEVBIN_INVOKE:-bin/devbin} help howto.
+USAGE
+}
+
+# --help first, over every argument, so no later word can act or refuse first.
+for arg in "$@"; do
+  case "$arg" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+  esac
+done
+
+# --- parse ----------------------------------------------------------------
+CORE_ONLY=no
+WORD=""
+WORD_GIVEN=no
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --core) CORE_ONLY=yes ;;
+    -*) die "howto: unknown option '$1' (try: $ME --help)" ;;
+    *)
+      [ "$WORD_GIVEN" = no ] || die "howto: takes one topic or glob, and was given '$WORD' and '$1' (try: $ME --help)"
+      WORD="$1"
+      WORD_GIVEN=yes
+      ;;
+  esac
+  shift
+done
+
+# --- pure readers ---------------------------------------------------------
+
+# howto_header <file> -- the topic's header as `<summary><TAB><keywords>`, the
+# keywords comma-separated and trimmed; or, at status 1, what is wrong with it,
+# on one line. The keywords list may be on its line, `keywords: [a, b]`, or run
+# over the indented lines below it, as Prettier writes a list too long for one
+# line, with a trailing comma.
+howto_header() {
+  awk '
+    function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
+    function list(val,    n, i, item, kw, items) {
+      if (val !~ /^\[.*\]$/) { err = "its keywords are not a list, as [a, b]"; return }
+      n = split(substr(val, 2, length(val) - 2), items, ",")
+      kw = ""
+      for (i = 1; i <= n; i++) {
+        item = trim(items[i])
+        if (item == "") {
+          if (i == n) continue
+          err = "its keywords list holds an empty item"; return
+        }
+        kw = (kw == "" ? item : kw "," item)
+      }
+      keywords = kw
+    }
+    NR == 1 {
+      if ($0 != "---") { err = "no opening --- on its first line"; exit }
+      next
+    }
+    pending && /^[ \t]/ {
+      buf = buf " " trim($0)
+      if (buf ~ /\]$/) { pending = 0; list(trim(buf)); if (err != "") exit }
+      next
+    }
+    pending { err = "its keywords list has no closing ]"; exit }
+    $0 == "---" { closed = 1; exit }
+    {
+      if (!match($0, /^[a-z_]+:/)) { err = "header line " NR " is not <key>: <value>"; exit }
+      key = substr($0, 1, RLENGTH - 1)
+      val = trim(substr($0, RLENGTH + 1))
+      if (seen[key]++) { err = "the header names " key " twice"; exit }
+      if (key == "summary") {
+        if (val == "") { err = "its summary is empty"; exit }
+        summary = val
+      } else if (key == "keywords") {
+        if (val ~ /^\[.*\]$/) { list(val); if (err != "") exit }
+        else if (val == "" || val ~ /^\[/) { pending = 1; buf = val }
+        else { err = "its keywords are not a list, as [a, b]"; exit }
+      } else {
+        err = "the header names " key ", and a header holds only summary and keywords"; exit
+      }
+    }
+    END {
+      if (err == "" && NR == 0) err = "the file is empty"
+      if (err == "" && pending) err = "its keywords list has no closing ]"
+      if (err == "" && !closed) err = "its header has no closing ---"
+      if (err == "" && !("summary" in seen)) err = "its header has no summary"
+      if (err == "" && !("keywords" in seen)) err = "its header has no keywords"
+      if (err != "") { print err; exit 1 }
+      printf "%s\t%s\n", summary, keywords
+    }
+  ' "$1"
+}
+
+# howto_body <file> -- the topic below its header, leading blank lines dropped.
+howto_body() {
+  awk '
+    seps >= 2 { if (!started && $0 ~ /^[ \t]*$/) next; started = 1; print; next }
+    $0 == "---" { seps++ }
+  ' "$1"
+}
+
+# howto_nearest <word> <name>... -- every name at the least edit distance from
+# the word, one a line, in the order given.
+howto_nearest() {
+  local word="$1"
+  shift
+  printf '%s\n' "$@" | awk -v w="$word" '
+    function dist(a, b,    la, lb, i, j, prev, cur, c, x, y, z) {
+      la = length(a); lb = length(b)
+      for (j = 0; j <= lb; j++) prev[j] = j
+      for (i = 1; i <= la; i++) {
+        cur[0] = i
+        for (j = 1; j <= lb; j++) {
+          c = (substr(a, i, 1) == substr(b, j, 1)) ? 0 : 1
+          x = prev[j] + 1; y = cur[j - 1] + 1; z = prev[j - 1] + c
+          cur[j] = (x < y ? (x < z ? x : z) : (y < z ? y : z))
+        }
+        for (j = 0; j <= lb; j++) prev[j] = cur[j]
+      }
+      return prev[lb]
+    }
+    NF { name[++n] = $0; d[n] = dist(tolower(w), tolower($0)); if (n == 1 || d[n] < best) best = d[n] }
+    END { for (i = 1; i <= n; i++) if (d[i] == best) print name[i] }
+  '
+  return 0
+}
+
+# howto_rel <path> -- the path relative to the project root, where it is under it.
+howto_rel() {
+  case "$1" in
+    "$ROOT"/*) printf '%s\n' "${1#"$ROOT"/}" ;;
+    *) printf '%s\n' "$1" ;;
+  esac
+}
+
+# --- the sources ----------------------------------------------------------
+ROOT="${PROJECT_ROOT:?}"
+CORE_ROOT="$DEVBIN_LIB/howto"
+PROJECT_HOWTO="${DEVBIN_DIR:?}/howto"
+[ -d "$CORE_ROOT" ] || die "howto: devbin's own topics are not at $CORE_ROOT -- this devbin install is missing part of its library; bin/devbin doctor says what else is"
+
+# Every topic, as parallel arrays: its name, its source (core or project), its
+# index.md, and its standing: wins, overridden or ignored.
+T_NAME=()
+T_SRC=()
+T_FILE=()
+T_STAND=()
+_howto_collect() {
+  local src="$1" dir="$2" d name
+  [ -d "$dir" ] || return 0
+  for d in "$dir"/*/; do
+    [ -f "${d}index.md" ] || continue
+    name="${d%/}"
+    name="${name##*/}"
+    T_NAME+=("$name")
+    T_SRC+=("$src")
+    T_FILE+=("${d}index.md")
+    T_STAND+=(wins)
+  done
+  return 0
+}
+LC_COLLATE=C
+_howto_collect core "$CORE_ROOT"
+[ "$CORE_ONLY" = yes ] || _howto_collect project "$PROJECT_HOWTO"
+
+# Standing: a project forllms is ignored; any other project topic that shares a
+# core topic's name overrides it.
+for p in "${!T_NAME[@]}"; do
+  [ "${T_SRC[p]}" = project ] || continue
+  if [ "${T_NAME[p]}" = forllms ]; then
+    T_STAND[p]=ignored
+    continue
+  fi
+  for c in "${!T_NAME[@]}"; do
+    [ "${T_SRC[c]}" = core ] && [ "${T_NAME[c]}" = "${T_NAME[p]}" ] && T_STAND[c]=overridden
+  done
+done
+
+# --- the list -------------------------------------------------------------
+
+# _howto_list [<glob>] -- print the rows of every topic, or of the ones the glob
+# matches; status 1 when a header could not be read or the glob matched none.
+_howto_list() {
+  local glob="${1:-}" i hdr summary keywords kw stand rc=0 matched=0 w=4
+  local -a rows=() names=() stands=() kws=()
+  for i in "${!T_NAME[@]}"; do
+    if ! hdr="$(howto_header "${T_FILE[i]}")"; then
+      warn "howto: $(howto_rel "${T_FILE[i]}"): $hdr"
+      rc=1
+      continue
+    fi
+    summary="${hdr%%$'\t'*}"
+    keywords="${hdr#*$'\t'}"
+    if [ -n "$glob" ]; then
+      local hit=no lglob="${glob,,}"
+      # The glob is a pattern, matched unquoted on purpose.
+      # shellcheck disable=SC2053
+      if [[ ${T_NAME[i],,} == $lglob ]] || [[ ${summary,,} == $lglob ]]; then
+        hit=yes
+      else
+        IFS=, read -r -a kws <<<"$keywords"
+        for kw in "${kws[@]}"; do
+          # shellcheck disable=SC2053
+          [[ ${kw,,} == $lglob ]] && hit=yes
+        done
+      fi
+      [ "$hit" = yes ] || continue
+    fi
+    matched=$((matched + 1))
+    case "${T_STAND[i]}" in
+      wins) stand="${T_SRC[i]}" ;;
+      overridden) stand="core, overridden" ;;
+      ignored) stand="project, ignored: forllms is core-only" ;;
+    esac
+    [ "${#T_NAME[i]}" -le "$w" ] || w="${#T_NAME[i]}"
+    names+=("${T_NAME[i]}")
+    stands+=("$stand")
+    rows+=("$summary")
+  done
+  for i in "${!names[@]}"; do
+    printf '%-*s  %s\n    %s\n' "$w" "${names[i]}" "(${stands[i]})" "${rows[i]}"
+  done
+  if [ -n "$glob" ] && [ "$matched" -eq 0 ]; then
+    warn "howto: no topic's name, summary or keywords match '$glob' (try: $ME, to list them all)"
+    return 1
+  fi
+  [ "$matched" -eq 0 ] || printf '\nRead one with: %s <topic>\n' "$ME"
+  return "$rc"
+}
+
+if [ "$WORD_GIVEN" = no ]; then
+  _howto_list
+  exit $?
+fi
+case "$WORD" in
+  *[\*\?\[]*)
+    _howto_list "$WORD"
+    exit $?
+    ;;
+esac
+
+# --- one topic ------------------------------------------------------------
+pick=""
+for i in "${!T_NAME[@]}"; do
+  [ "${T_NAME[i]}" = "$WORD" ] && [ "${T_STAND[i]}" = wins ] && pick="$i"
+done
+if [ -z "$pick" ]; then
+  near=()
+  for i in "${!T_NAME[@]}"; do
+    [ "${T_STAND[i]}" = ignored ] && continue
+    case " ${near[*]} " in *" ${T_NAME[i]} "*) continue ;; esac
+    near+=("${T_NAME[i]}")
+  done
+  [ "${#near[@]}" -gt 0 ] || die "howto: no topic named '$WORD', and there are no topics at all"
+  nearest="$(howto_nearest "$WORD" "${near[@]}" | paste -sd, - | sed 's/,/, /g')"
+  die "howto: no topic named '$WORD'. The nearest: $nearest (try: $ME, to list them all)"
+fi
+file="${T_FILE[pick]}"
+hdr="$(howto_header "$file")" || die "howto: $(howto_rel "$file"): $hdr"
+if [ "${T_SRC[pick]}" = core ]; then
+  printf 'howto %s: core, devbin %s (%s)\n' "$WORD" "$(devbin_runtime_version)" "$(howto_rel "$file")"
+else
+  printf 'howto %s: project (%s)\n' "$WORD" "$(howto_rel "$file")"
+fi
+printf '\n'
+howto_body "$file"

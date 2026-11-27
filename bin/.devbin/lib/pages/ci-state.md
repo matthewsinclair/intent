@@ -28,7 +28,7 @@ A commit this repository does not hold, such as a release's public snapshot, is 
 
 A summary job that is absent, skipped, cancelled or still going is not green: a finished run with none is `failed`, naming that. Among several runs on one commit the worst decides: `failed`, any conclusion but success, a cancelled one included, over one still going over `green`. With `DEVBIN_RELEASE_TAG` set, the runs `DEVBIN_RELEASE_PASSED_OVER` names by id, a space between each, are passed over, and named after the detail as `passed over run <id> (<conclusion>), from before this push`; with only such runs the verdict is `none`. A cut hands it the runs its candidate's branch held before its own push, so a run an earlier attempt left there, cancelled when that attempt deleted the candidate, never decides the leg. A value that is not run ids is `unknown`.
 
-A `failed` verdict names the deciding run's failed jobs inside its parenthesis, as `run <id> (<conclusion>; failed jobs: <name>, <name>)`, each a job that finished in anything but success, skipped or neutral. It says `no job ran` when none ran, and `no job failed` when jobs ran and none failed, as when the run failed around them. A job list `gh` cannot give is said in the same place, and the verdict stays `failed`.
+A `failed` verdict names the deciding run's failed jobs inside its parenthesis, as `run <id> (<conclusion>; failed jobs: <name>, <name>)`, each a job that finished in anything but success, skipped or neutral. With `release.ci.summary` declared, the summary job's name comes first, as `run <id> (<summary>: <conclusion>; failed jobs: <name>)`, and a finished run with no summary job reads `run <id> (no <summary> job; failed jobs: <name>)`. It says `no job ran` when none ran, and `no job failed` when jobs ran and none failed, as when the run failed around them. With no summary declared, a job list `gh` cannot give is said in the same place, and the verdict stays `failed`. With a summary declared, the job list is read first, so a list `gh` cannot give makes the verdict `unknown`.
 
 ## The runs before a push
 
@@ -44,21 +44,21 @@ Answers whether a push of the branch `<ref>` starts `release.ci.workflow`, read 
 
     fires     a push of <ref> starts the workflow
     quiet     it does not: no push trigger, a branches list nothing of which
-              matches <ref>, a branches-ignore entry that does, a push trigger
+              matches <ref> or whose `!` entry excludes it, a branches-ignore entry matching it, a push trigger
               filtering tags alone, or, with <path>... given, a paths list
               matching none of them or a paths-ignore leaving none of them out
     missing   the tree at <sha> holds no such workflow file
     unknown   a trigger written in a form this does not read, a push trigger
               filtering by paths: with no <path> given, a
-              release.ci.query that is not this built-in, `-` among them,
-              or a git that cannot answer
+              release.ci.query that is not this built-in, `-` among them, a <sha> this repository does not hold,
+              more than 300 <path>s beside a paths or paths-ignore filter, or a git that cannot answer
 
-Patterns are matched as GitHub matches them: `*` within a path segment, `**` across them, `**/` as any number of directories, none included, `?` and `+` after the character they repeat, a `[]` of letters, digits and ascending ranges of them, and the entries in order, a `!` entry excluding what an entry before it matched. A trigger written with YAML's anchors, aliases, tags, explicit keys or escapes is `unknown`, never read as something else. With no `<path>` given, a `paths-ignore` of whole directories (`<dir>/**`) leaves the answer to the branch filter, and a `fires` answer names the premise it rests on, that the release commit's files sit outside the ignored trees; any other entry, or a list written inline, is `unknown`. The reason names the file and, for `quiet`, the entry to add. It asks `gh` nothing.
+Patterns are matched as GitHub matches them: `*` within a path segment, `**` across them, `**/` as any number of directories, none included, `?` and `+` after the character they repeat, a `[]` of letters, digits and ascending ranges of them, and the entries in order, a `!` entry excluding what an entry before it matched. A trigger written with YAML's anchors, aliases, tags, explicit keys or escapes is `unknown`, never read as something else. With no `<path>` given, a `paths-ignore` of whole directories (`<dir>/**`) leaves the answer to the branch filter, and a `fires` answer names the premise it rests on, that the release commit's files sit outside the ignored trees; any other entry, or a list written inline, is `unknown`. The reason names the file. Where the push branches list is empty or matches nothing for `<ref>`, or the push trigger filters tags alone, the reason also names the branches entry to add. It asks `gh` nothing.
 
 ## The declaration
 
-    release.repo          the repository, OWNER/NAME; undeclared, read off the
-                          remote a release pushes to first, else origin, else
+    release.repo          the repository, OWNER/NAME or HOST/OWNER/NAME; undeclared, read off the
+                          first release.remotes entry, else origin, else
                           the only remote
     release.ci.workflow   the workflow file in .github/workflows whose runs are
                           the verdict; default tests.yml
@@ -68,4 +68,4 @@ Declaring `release.ci.workflow` or `release.ci.summary` is refused unless `relea
 
 ## When it cannot read
 
-A `gh` that is not installed, a `gh` call that fails, a list of runs as long as the limit `gh` was asked for, and a `git` that cannot answer about a commit the walk reached are each `unknown`, carrying the words of what failed: a verdict nobody could read is never read as anything else. No call is bounded here; the release core bounds the whole query, as it bounds every reader it asks.
+A `gh` that is not installed, a `gh` call that fails, a list of runs as long as the limit `gh` was asked for, a repository that cannot be named, and a `git` that cannot answer about a commit the walk reached are each `unknown`, carrying the words of what failed: a verdict nobody could read is never read as anything else. No call is bounded here; the release core bounds the whole query, as it bounds every reader it asks.

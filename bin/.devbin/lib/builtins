@@ -93,6 +93,7 @@ check            any     -           -          Check     - | Read-only gates; e
 precommit        opt-in  -           -          Check     - | The pre-commit gate
 db               elixir  -           -          Data      - | Database lifecycle
 docs             any     -           -          Docs      @builtin | Regenerate generated documentation (AGENTS.md, through Intent)
+howto            any     -           -          Docs      @builtin | List, search and print instructions written for LLMs: devbin's own and the project's
 content          opt-in  -           -          Docs      - | Content pipeline tasks
 version          any     -           -          Ship      @builtin | Show, set, bump, sync and check the project version
 release          opt-in  -           -          Ship      @builtin | Cut a release: confirm once, then stamp, commit, legs under one wait, tag, push, the release object and after:
