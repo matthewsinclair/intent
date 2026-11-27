@@ -44,6 +44,7 @@ Prose base -- style (mechanical), shared with every prose discipline:
 - `IN-PR-STYLE-002` -- no vanity metrics
 - `IN-PR-STYLE-003` -- one H1, no skipped heading levels
 - `IN-PR-STYLE-004` -- mechanical trope pass
+- `IN-PR-STYLE-005` -- a verblock is the version and one short line
 
 Author-specific -- style (mechanical):
 
