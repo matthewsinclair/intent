@@ -44,9 +44,9 @@ Intent's answer is to make the reasoning a tracked object with a state the tool 
 
 ## What this documentation covers
 
-This set describes **Intent v3**, the Rust implementation. Intent v2 was a Bash implementation whose final release was v2.19.0; it is documented separately and frozen at [`docs/v2/`](v2/). This build does not support a v2 project: Intent 3.5.1 is the last release that converts one.
+This set describes **Intent v3**, the Rust implementation. This build does not support a v2 project: Intent 3.5.1 is the last release that converts one.
 
-Deeper authoring guides — writing rules, writing critics, writing extensions, and the full narrative on how Intent composes with coding agents — live at `intent/docs/` in this repository. They are not part of the installed tool. This set links across to them rather than duplicating them.
+The authoring guides (writing rules, writing critics, writing extensions, and the full narrative on how Intent composes with coding agents) live at `intent/docs/` in this repository. The installed tool carries one of them, the critic contract `intent/docs/critics.md`, which `intent claude rules contract` prints. This set links across to the guides rather than duplicating them.
 
 ---
 
