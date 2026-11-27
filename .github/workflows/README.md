@@ -19,20 +19,20 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 **Jobs**:
 
 - `test-linux` (Test on Ubuntu): installs bats-core v1.12.0 from its GitHub source archive and jq from apt, puts `bin/` and `native/rust/target/release` on PATH, sets a CI git identity, clones the bats libraries into `tests/lib`, installs the stable Rust toolchain (rustfmt, clippy), Erlang/OTP 29 and Elixir 1.20 (`erlef/setup-beam`) and prettier 3 (npm), blanks the XDG_* variables, builds the pair, then runs `tests/run_tests.sh`.
-- `test-macos` (Test on macOS): only for a candidate or a run by hand (hv, fleet decision 30); a push to main or a pull request runs Linux alone. Otherwise the same, with bats-core, jq, shellcheck and bash from Homebrew; Homebrew's bash goes first on PATH because devbin's handlers refuse macOS's `/bin/bash` 3.2
+- `test-macos` (Test on macOS): only for a run by hand (`workflow_dispatch`). A push to main, a pull request and a release candidate run Linux alone (hv, fleet decision 30 and hv decision 97): the cut's macOS leg on rhadamanth is a release's macOS proof. Otherwise the same, with bats-core, jq, shellcheck and bash from Homebrew; Homebrew's bash goes first on PATH because devbin's handlers refuse macOS's `/bin/bash` 3.2
 - `rust`: only for a candidate or a run by hand, it calls `rust.yml` (`workflow_call`), so a release's cargo verdict is inside the one run the cut reads.
 - `shellcheck` (Shell Script Analysis): runs `shellcheck` on `bin/devbin`, `bin/int`, and every file under `bin/.devbin/cmd/` and `lib/templates/hooks/` that `file` reports as a shell script; findings never fail the job. The sourced libraries under `bin/.devbin/cmd/shared/` carry no shebang, so `file` reports them as text and they are not checked.
-- `test-summary` (Test Summary): runs after `test-linux`, `test-macos` and `rust` whatever their result. For a candidate or a run by hand it fails unless every one succeeded, so a skipped macOS or rust leg fails a release; elsewhere a skip is no failure. It does not wait on `shellcheck`.
+- `test-summary` (Test Summary): runs after `test-linux`, `test-macos` and `rust` whatever their result. It fails unless `test-linux` succeeded, and unless each of the other two succeeded where it was due: `test-macos` for a run by hand, and `rust` for a candidate or a run by hand. A leg skipped where it was not due is no failure. It does not wait on `shellcheck`.
 
 `tests/run_tests.sh` with no argument runs every `.bats` file under `tests/` (excluding `tests/lib/`) through devbin's lanes runner, the copy vendored at `bin/.devbin/lib`, and exits non-zero if any test fails or does not run, so a failing test fails the job. On a runner without GNU parallel it runs one lane, one test at a time, and its first line says so.
 
 ### 2. rust (`rust.yml`)
 
-**Triggers**: push to `main` and pull requests, only when a changed path is under `native/rust/**`, `schema/**`, `surface/**` or `.github/actions/fleet-rust/**`, or is `rust.yml` itself; and `workflow_call` from `tests.yml` for a release candidate or a run by hand, whatever changed.
+**Triggers**: push to `main` and pull requests, only when a changed path is under `native/rust/**`, `schema/**`, `surface/**` or `.github/actions/fleet-rust/**`, or is `rust.yml` itself; `workflow_call` from `tests.yml` for a release candidate or a run by hand, whatever changed; and `workflow_dispatch`.
 
 **Concurrency**: a newer run of the same workflow for the same event and ref cancels the one in progress.
 
-**Job** `rust`, on a `macos-latest` and `ubuntu-latest` matrix with `fail-fast: false`, working in `native/rust`:
+**Job** `rust`, working in `native/rust`, with `fail-fast: false`. It runs on `ubuntu-latest`, and on `macos-latest` as well only for a run by hand (hv decision 97, as for `test-macos`):
 
 - Installs the fleet's Rust (`.github/actions/fleet-rust`, the one home of the version CI follows) with rustfmt and clippy, restores the cargo cache, and records `rustc --version` and `cargo --version` to the job summary
 - Installs shellcheck (macOS only) and `prettier@3` (both legs); the test suite needs both on PATH
@@ -68,30 +68,23 @@ No concurrency group: every run completes.
 
 ## Local Testing
 
-The bats suite drives `native/rust/target/release/intent` (set `INTENT_BIN` to drive another binary), so build it first:
+Build and test through `bin/devbin`, never with cargo or `tests/run_tests.sh` directly (`AGENTS.md`). Where `intent estate status` shows that the estate has a controller, ask it for a slot first (`intent estate slots ask`).
 
 ```bash
-# Build the binaries the bats suite drives
-cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd
+# Build the pair the bats suite drives
+bin/devbin build all
 
 # Run every bats file
-./tests/run_tests.sh
+bin/devbin test shell
 
 # Run one bats file
-./tests/run_tests.sh tests/unit/pre_commit_hook.bats
+bin/devbin test shell tests/unit/pre_commit_hook.bats
 
-# The Rust gates, as rust.yml runs them
-cd native/rust
-cargo fmt --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
-cargo clippy -p intentd --bins -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
-cargo clippy --workspace --lib --bins -- -D clippy::needless_pass_by_value
-RUSTDOCFLAGS=-Dwarnings cargo doc --no-deps --document-private-items
-cargo test --workspace --no-fail-fast
+# Every cargo step of rust.yml, in a private worktree
+bin/devbin gate rust
 ```
 
-In a checkout other sessions share, build the pair with `bin/devbin build all` instead: it redirects a dirty build to `native/rust/target/private/release`, and otherwise builds in `native/rust/target/staging/release`, verifies the pair and only then moves it into `native/rust/target/release`.
+The bats suite drives `native/rust/target/release/intent`; set `INTENT_BIN` to drive another binary. `bin/devbin build all` builds a tree with uncommitted changes under its build inputs into `native/rust/target/private/release`. It verifies a clean tree's pair, and only then promotes it into `native/rust/target/release`.
 
 Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also need an `intent` on PATH, because the hook refuses a commit in an Intent project when it cannot run `intent`. The Rust tests need `shellcheck` and `prettier` on PATH. The bats suite also needs prettier, rustfmt, elixir and npx on PATH (CI installs jq as well), and on macOS a bash of version 5 or later ahead of `/bin/bash`: an arm whose tool is missing fails rather than skips. `INTENT_ALLOW_MISSING_<TOOL>=1` (eg `INTENT_ALLOW_MISSING_ELIXIR=1`) waives one deliberately.
 
@@ -99,7 +92,7 @@ Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also 
 
 ### Dependencies
 
-- **GitHub Actions**: `actions/checkout@v7`, `dtolnay/rust-toolchain@master` (through the local `.github/actions/fleet-rust`, which pins the fleet's version), `Swatinem/rust-cache@v2`, `erlef/setup-beam@v1`
+- **GitHub Actions**: `actions/checkout@v7`, `actions/upload-artifact@v7`, `dtolnay/rust-toolchain@master` (through the local `.github/actions/fleet-rust`, which pins the fleet's version), `Swatinem/rust-cache@v2`, `erlef/setup-beam@v1`
 - **Bats**: bats-core v1.12.0 installed with its own `install.sh` from the GitHub source archive on Ubuntu; Homebrew's `bats-core` on macOS
 - **Bats libraries**: bats-support, bats-assert and bats-file, cloned from GitHub into `tests/lib` if not present, retrying a failed clone
 - **Tools**: jq on both bats legs; shellcheck installed on macOS (Ubuntu runners ship it); prettier 3 from npm on every leg of both `tests.yml` and `rust.yml`; Erlang/OTP 29 and Elixir 1.20 on both bats legs; Homebrew's bash on the macOS bats leg
@@ -112,33 +105,13 @@ Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also 
 ### Behaviour
 
 - ShellCheck findings in the `shellcheck` job are non-blocking
-- A failing bats test fails its leg, and `test-summary` fails unless both legs pass
+- A failing bats test fails its leg, and `test-summary` then fails
 - All `bin/*` files and `tests/*.sh` are made executable before the suite runs
 
 ## Adding New Tests
 
 1. **Bats tests** go in `tests/unit/` as a `.bats` file that loads `../lib/test_helper.bash`
 2. **Rust integration tests** go under a crate's `tests/` and are declared as a `#[path]` module in that crate's `tests/suite.rs` (every crate sets `autotests = false`; see `intent/docs/notes/tn001-one-test-target-per-crate.md`)
-3. **Run tests locally** before pushing
+3. **Run the tests through `bin/devbin`** before you push (Local Testing, above)
 4. **Reference the steel thread** in your PR description (eg "Implements ST0042"); the check fails if the referenced thread does not exist
-5. **Update documentation** if adding new commands or changing behavior
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Tests pass locally but fail in CI**
-   - Check for environment-specific paths
-   - Ensure all dependencies are properly installed in the workflow
-   - Verify file permissions are set correctly
-
-2. **ShellCheck warnings**
-   - These are non-blocking but should be addressed
-   - Run `shellcheck` locally to see specific issues
-
-### Debugging Workflows
-
-- Check the Actions tab in GitHub for detailed logs
-- Each step shows its output when expanded
-- Failed steps are highlighted in red
-- Use `echo` statements for debugging in workflows
+5. **Update the documentation** when you add a command or change behaviour
