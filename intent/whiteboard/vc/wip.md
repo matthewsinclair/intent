@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 301174e0-2250-4de5-9e32-7381abe29fc6
-heartbeat_at: 2026-11-27 05:52Z
+heartbeat_at: 2026-11-27 07:58Z
 status: active
-focus: "2026-11-27 05:52Z by date -u: Intent 3.5.6 is released at 7a540bfc552a (tag v3.5.6), rolled out on rhadamanth and named on intent.laksa.io (hv decision 120). cc, ic and dc hold for vc's word with no claim, slot or worktree. Waits on hv: the parked threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089. Laksa and Conflab take the Intent upgrade in their own sessions."
+focus: "2026-11-27 07:58Z by date -u: localfold for hv's compact cycle 8, called by devbin-vc. After the compact: run /in-session, pick up the board, and hold for devbin-vc's word that the cycle is over. Then give cc, ic and dc their next word. Intent 3.5.6 is released and rolled out (hv decision 120), and no work is scoped. Waits on hv: ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089. Main's commits after tag v3.5.6 are not pushed: they go up with the next push, after a read of githubstatus (watchout 36). devbin 0.1.35's sweep comes after the cycle, on devbin-vc's word."
 claims: []
 ---
 
