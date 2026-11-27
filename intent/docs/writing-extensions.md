@@ -10,7 +10,7 @@ An extension is a self-contained directory at `~/.local/share/intent/ext/<name>/
 
 ## When an extension would apply
 
-Nothing in this build reads an extension. The route is meant for when you want to:
+The route is meant for when you want to:
 
 - Add a subagent or skill that is only useful in your projects, your organisation, or a specific domain.
 - Override a canon subagent or skill with your own version without forking Intent.
@@ -52,30 +52,18 @@ Recommended fields:
 - `author`, `license`, `homepage`.
 - `intent_compat: { min, max }` — version bounds for the Intent versions this extension supports. `min` (`MAJOR.MINOR.PATCH`) is required whenever `intent_compat` is present; `max` also accepts `2.x` / `3.x` style ranges.
 - `contributes: { subagents: [...], skills: [...], rules: [...] }` — array of `{ name, path }` objects declaring each contributed item.
-- `checksums` — optional per-file SHA for tamper detection (currently informational; enforcement is future work, not yet scheduled).
+- `checksums` — optional per-file SHA for tamper detection. Nothing checks it.
 
 Unknown top-level keys are rejected by the schema. If you need new metadata, open an issue against canon — the schema is intentionally strict.
 
-## Commands
-
-`intent ext --help` lists `list`, `show`, `validate` and `new`; each verb's own `--help` gives its arguments (`show <NAME>`, `validate [NAME]`, `new <NAME> --subagent | --skill | --rule-pack`). Each refuses at exit 2 in this build: ``error: `ext` is a known command that is not implemented yet``.
-
-## Install
-
-`intent claude subagents install` and `intent claude skills install` resolve canon only in this build, so an extension's subagent or skill cannot be installed through them.
-
-Rule packs under `~/.local/share/intent/ext/` are not reached in this build: `intent claude rules list` prints `canon` in its `prov` column for every rule, and `intent claude rules validate` notes on stderr that extension packs were not validated.
-
-## Publishing (deferred)
+## Publishing
 
 There is no registry, no `intent ext install <url>`, and no push/pull workflow.
 
-A registry, signing, and remote-install workflow remains future work (not yet scheduled). The schema's `checksums` and `homepage` fields exist in anticipation — recommended now, enforced later.
-
 ## See also
 
-- `intent ext --help` -- `intent ext` command reference
-- `intent/plugins/claude/ext-schema/extension.schema.json` — manifest JSON Schema
-- `intent/docs/rules.md` — rule authoring guide (for `--rule-pack` extensions)
-- `intent/docs/critics.md` — Critic subagent contract (rules are consumed here)
-- `intent/docs/creating-custom-agents.md` — authoring guide for canon subagents
+- `intent ext --help`: the `intent ext` command reference
+- `intent/plugins/claude/ext-schema/extension.schema.json`: the manifest's JSON Schema
+- `intent/docs/rules.md`: the rule authoring guide
+- `intent/docs/critics.md`: the critic subagent contract, where rules are consumed
+- `intent/docs/creating-custom-agents.md`: the authoring guide for canon subagents
