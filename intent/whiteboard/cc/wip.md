@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6487d471-52ef-4083-9fd8-f1f0c35e1b20
-heartbeat_at: 2026-11-27 07:57Z
+heartbeat_at: 2026-11-27 09:27Z
 status: active
-focus: "2026-11-27 07:57Z by date -u: after the compact, run /in-session, pick up cc's board, and hold for vc's word. No work is scoped for cc, and the parked threads wait on hv. cc holds no claim, slot or worktree."
+focus: "2026-11-27 09:27Z by date -u: DOING: send vc the close-out reply, then release and shut down. TODO: none."
 claims: []
 ---
 
