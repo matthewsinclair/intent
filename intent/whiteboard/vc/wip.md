@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 301174e0-2250-4de5-9e32-7381abe29fc6
-heartbeat_at: 2026-11-27 09:43Z
+heartbeat_at: 2026-11-27 09:49Z
 status: active
-focus: "2026-11-27 09:43Z by date -u, localfold for hv's pack-up. DOING: nothing. TODO: push main to local and upstream (build all and the doc tests green at 8ecde6389; the push waits on hv); the Not Started threads wait on hv (intent st list --status tbc). After the bounce: run /in-session, pick up the board, and hold for devbin-vc's word."
+focus: "2026-11-27 09:49Z by date -u. DOING: holding, not released, for devbin-vc's word. TODO: the Not Started threads wait on hv (intent st list --status tbc)."
 claims: []
 ---
 
