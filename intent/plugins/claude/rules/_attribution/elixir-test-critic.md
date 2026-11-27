@@ -14,7 +14,6 @@ Schema and discipline for this file are defined in `../_schema/attribution-polic
 | Pinned commit          | `1d9aa40700dab7370b4abd338ce11b922e914b14`          |
 | Pin date               | 2026-04-22                                          |
 | Upstream branch at pin | `main`                                              |
-| Intent release at pin  | v2.9.0                                              |
 
 The pinned commit is load-bearing. Every Intent rule with `upstream_id:` references an upstream rule at this exact commit. Upstream changes after the pin do not affect Intent rules; re-pinning is a dedicated future-ST concern (see "Re-pinning" below).
 
@@ -58,16 +57,11 @@ These Intent rules borrow principle and/or Detection heuristic from upstream rul
 
 Voice, runnable examples, and section structure are Intent's. Upstream is credited by slug in each rule's "Further Reading" section.
 
-The `intent claude rules validate` tool enforces the invariant that every rule with `upstream_id:` set has a matching row here.
-
-Per `../_schema/attribution-policy.md`:
-
-- **Tier 2 (principle borrow, default case)**: row in this table; `upstream_id:` in the rule's frontmatter; "Further Reading" cites upstream by slug.
-- **Tier 3 (substantial portion)**: row in the "Substantially derived rules" table below AND the full MIT notice inlined in the rule's `RULE.md` body.
+The `intent claude rules validate` tool enforces the invariant that every rule with `upstream_id:` set has a matching row here. The tiers are defined in `../_schema/attribution-policy.md`.
 
 ## Substantially derived rules
 
-The reference-and-recommend integration design explicitly avoids Tier 3 by rewriting upstream content in Intent's voice. If a future rule crosses into Tier 3, add a row here and inline the full MIT notice above into that rule's `RULE.md` body.
+If a rule crosses into Tier 3, add a row here and inline the full MIT notice above into that rule's `RULE.md` body.
 
 | Intent rule | Upstream slug | What was copied | MIT notice location |
 | ----------- | ------------- | --------------- | ------------------- |
@@ -78,11 +72,11 @@ _No rows._
 
 Intent's rule schema (see `../_schema/rule-schema.md`) adopts upstream's frontmatter shape. Intent adds these optional fields that upstream tools ignore:
 
-- `upstream_id:` — pointer to source slug
-- `language:` -- REQUIRED, not optional; one of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`
-- `applies_to:` — machine-readable glob patterns
-- `references:`, `concretised_by:`, `conflicts_with:` — Intent cross-references (`related_rules:` is upstream's own field, which Intent shares)
-- `aliases:` -- previous slugs, kept as a record for readers; nothing resolves them (`intent claude rules show` matches the id only)
+- `upstream_id:`: pointer to source slug
+- `language:`: REQUIRED, not optional; one of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`
+- `applies_to:`: machine-readable glob patterns
+- `references:`, `concretised_by:`, `conflicts_with:`: Intent cross-references (`related_rules:` is upstream's own field, which Intent shares)
+- `aliases:`: previous slugs, kept as a record for readers; nothing resolves them (`intent claude rules show` matches the id only)
 
 Upstream rules do not drop into Intent's discovery unchanged. An upstream rule has no `language:` (required here), its `ETC-` id fails `intent claude rules validate`'s id check, and its `related_rules:` cite `ETC-` ids no Intent rule declares; porting one means rewriting it as an Intent rule, as the three above were. Intent does not publish rules upstream.
 
@@ -102,7 +96,7 @@ Re-pinning to a new upstream commit is a scope-bearing change, not a patch or sl
 4. Update the `Pinned commit` and `Pin date` fields in the Source table.
 5. Update the `curl` commit-verification snippet's SHA below.
 6. Run `intent claude rules validate` full pass.
-7. Commit in a dedicated ST — never bundled with unrelated work.
+7. Commit in a dedicated ST, never bundled with unrelated work.
 
 ## Commit hash verification
 
